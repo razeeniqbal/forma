@@ -4,7 +4,7 @@ import type { Pipeline, Run } from "@/store/model";
 import { useApp } from "@/store/app";
 import { usePreview } from "@/lib/hooks";
 import { makeStep } from "@/lib/stepDefaults";
-import { stepTitle } from "@/engine/registry";
+import { newId, stepTitle } from "@/engine/registry";
 import type { CellPos } from "@/components/DataGrid";
 
 export interface Draft {
@@ -34,6 +34,7 @@ interface Ctx {
   applyDraft(): void;
   discardDraft(): void;
   addStep(type: StepType | "lookup", column?: string): void;
+  insertPreset(steps: Step[]): void;
   editStep(i: number): void;
   removeStep(i: number): void;
   moveStep(from: number, to: number): void;
@@ -124,6 +125,22 @@ export function WorkspaceProvider({ pipeline, children }: { pipeline: Pipeline; 
     [draft, sel, spec.steps.length, spec.source, preview.result, column, dateFormat, startDraft, toast],
   );
 
+  const insertPreset = useCallback(
+    (steps: Step[]) => {
+      const fresh = steps.map((s) => ({ ...JSON.parse(JSON.stringify(s)), id: newId(s.type.slice(0, 4)) }) as Step);
+      const at = Math.min(Math.max(sel, SOURCE) + 1, spec.steps.length);
+      setPickerOpen(null);
+      if (fresh.length === 1) {
+        startDraft({ step: fresh[0], index: at, isNew: true });
+        return;
+      }
+      update((s) => ({ ...s, steps: [...s.steps.slice(0, at), ...fresh, ...s.steps.slice(at)] }));
+      setSelRaw(at + fresh.length - 1);
+      toast("success", `Inserted ${fresh.length} steps from preset. Undo with Ctrl/⌘ Z.`);
+    },
+    [sel, spec.steps.length, startDraft, update, toast],
+  );
+
   const applyDraft = useCallback(() => {
     if (!draft) return;
     const d = draft;
@@ -189,6 +206,7 @@ export function WorkspaceProvider({ pipeline, children }: { pipeline: Pipeline; 
     applyDraft,
     discardDraft,
     addStep,
+    insertPreset,
     editStep,
     removeStep,
     moveStep,

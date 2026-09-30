@@ -51,6 +51,9 @@ The full V1 loop from PRD §28 works end to end:
 - **Review queue:** rows that can't be transformed or validated confidently are held back instead of silently loaded. For each one you can correct the value, keep the original, exclude the row, ignore the warning, or apply the same decision to similar rows. Decisions are fingerprinted to the source row, so they never carry over to a changed row.
 - **Runs:** test runs execute the draft on a sample. Manual runs execute on every row in a Web Worker against an immutable version, and record a timeline, per-step metrics, logs, output data and a comparison with the previous run. You can rerun on a new compatible file without repeating any cleaning.
 - **Export:** a single `pipeline.py` or a full project (`pipeline.py`, `requirements.txt`, `config.yaml`, `README.md`, `pipeline.json`, plus FORMA's output as a parity reference). The code has one function per step, and its comments match the visual pipeline, e.g. `# 04 Clean — Standardise invoice_date`. Credentials are never written into code; database destinations read an environment variable.
+- **Update rules from review:** the review queue proposes deterministic rule changes, such as accepting a date format, turning a correction into a Replace step, or allowing a recurring value. Each one previews on every row how many review rows it resolves, and what else it changes, before you apply it.
+- **Schedules & orchestration:** set a cron schedule per pipeline, then export an **Airflow** DAG or a **Prefect** flow (each FORMA step becomes a Prefect task) alongside the Python project.
+- **Reusable presets:** save a step or a whole pipeline's steps as a preset and insert it from the transformation picker.
 - **Productivity:** `Ctrl/⌘ K` opens the command palette. Undo/redo cover every pipeline edit. `Ctrl/⌘ S` saves a version, `Delete` removes the selected step, and arrow keys navigate the grid.
 
 ## How it's built
@@ -74,12 +77,9 @@ web/
 
 These are marked "Later" or "V1.x" in the PRD and shown as such in the UI:
 
-- scheduling
 - database/API/Google Sheets/cloud **sources**
 - SQL and Polars targets
-- Airflow and Prefect exports
 - collaboration, comments and approvals
-- "update rule from correction"
 - AI-assisted extraction (field suggestions are deterministic pattern detection)
 
 Database **destinations** are configured in FORMA and written by the exported Python project. The browser cannot reach databases.

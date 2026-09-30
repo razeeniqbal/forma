@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { execute } from "@/engine/execute";
 import { invoicePipeline, invoiceSteps } from "@/engine/demo";
-import { generateConfigYaml, generatePython } from "@/codegen/python";
+import { generateAirflowDag, generateConfigYaml, generatePrefectFlow, generatePython } from "@/codegen/python";
 import { fingerprint, loadDataset } from "@/engine/load";
 import { toText } from "@/engine/values";
 import { parseCsv, parseJson } from "@/parsers";
@@ -260,5 +260,22 @@ describe("parity: TypeScript engine ≡ generated Python", () => {
       };
       runCase("append", appendSpec, sheet, join(SAMPLES, "invoices.csv"), undefined, [extra]);
     });
+  });
+
+  describe("orchestration exports", () => {
+    it("Prefect flow runs every step as a task and writes the same output; Airflow DAG compiles", async () => {
+      const sheet = await sampleSheet();
+      const spec = invoicePipeline("f");
+      spec.steps.push({ id: "g", type: "group", by: ["status"], aggs: [{ column: "total", fn: "sum", as: "total" }] });
+      spec.destination = { type: "file", format: "csv", path: "output/out.csv" };
+      const ts = runCase("prefect", spec, sheet, join(SAMPLES, "invoices.xlsx"));
+      const dir = join(OUT, "prefect");
+      writeFileSync(join(dir, "flow.py"), generatePrefectFlow(spec, { schedule: "0 6 * * *" }));
+      writeFileSync(join(dir, "dag.py"), generateAirflowDag(spec, { schedule: "0 6 * * *" }));
+      execFileSync(PY, ["-m", "py_compile", "dag.py"], { cwd: dir });
+      const log = execFileSync(PY, ["flow.py"], { cwd: dir, stdio: "pipe", env: { ...process.env, PREFECT_LOGGING_LEVEL: "INFO" }, timeout: 180000 }).toString();
+      expect(readFileSync(join(dir, "output", "out.csv"), "utf8")).toBe(toCsv(ts.output));
+      void log;
+    }, 240000);
   });
 });

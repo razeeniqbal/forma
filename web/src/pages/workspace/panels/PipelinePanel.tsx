@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, ChevronUp, ChevronDown, Trash2, Pencil, Database, FileSpreadsheet, MoreHorizontal } from "lucide-react";
+import { Plus, ChevronUp, ChevronDown, Trash2, Pencil, Database, FileSpreadsheet, MoreHorizontal, Bookmark } from "lucide-react";
+import { useApp } from "@/store/app";
 import { describeStep, STAGE_OF, stepTitle } from "@/engine/registry";
 import type { StepResult } from "@/engine/types";
 import { useMenu } from "@/components/ui";
@@ -94,6 +95,18 @@ export function PipelinePanel() {
                         { label: "Move up", icon: <ChevronUp size={15} />, disabled: i === 0, onClick: () => ws.moveStep(i, i - 1) },
                         { label: "Move down", icon: <ChevronDown size={15} />, disabled: i === steps.length - 1, onClick: () => ws.moveStep(i, i + 1) },
                         { label: "Insert step after", icon: <Plus size={15} />, onClick: () => { ws.setSel(i); ws.openPicker(); } },
+                        { separator: true, label: "" },
+                        {
+                          label: "Save as preset…",
+                          icon: <Bookmark size={15} />,
+                          onClick: () => {
+                            const name = window.prompt("Preset name", stepTitle(s))?.trim();
+                            if (name) {
+                              useApp.getState().savePreset(name, [s]);
+                              useApp.getState().toast("success", `Saved preset “${name}”`);
+                            }
+                          },
+                        },
                         { separator: true, label: "" },
                         { label: "Delete step", icon: <Trash2 size={15} />, danger: true, hint: "Del", onClick: () => ws.removeStep(i) },
                       ])

@@ -8,7 +8,7 @@ import { stepTitle, STAGE_OF } from "@/engine/registry";
 import { CodeView, findStepRange } from "@/components/CodeView";
 import { Empty, Modal, Tabs } from "@/components/ui";
 import { useFullExecution } from "@/lib/hooks";
-import { projectFiles, zipProject } from "@/lib/exporters";
+import { projectFiles, zipProject, type ExportTarget } from "@/lib/exporters";
 import { copyText, download, fmtInt } from "@/lib/format";
 
 type Tab = "full" | "functions" | "requirements" | "config" | "readme" | "spec";
@@ -18,7 +18,7 @@ export function ExportPage() {
   const pipeline = usePipeline(id);
   const connections = useApp((s) => s.connections);
   const toast = useApp((s) => s.toast);
-  const [target, setTarget] = useState<"script" | "project">("project");
+  const [target, setTarget] = useState<"script" | ExportTarget>("project");
   const [tab, setTab] = useState<Tab>("full");
   const [includeSource, setIncludeSource] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -68,7 +68,14 @@ export function ExportPage() {
           const blob = await getRawFile(s.source.fileId);
           if (blob) extraSources[s.source.file] = blob;
         }
-      const files = projectFiles(spec, { ...opts, expected: out, source: includeSource ? raw : undefined, extraSources });
+      const files = projectFiles(spec, {
+        ...opts,
+        expected: out,
+        source: includeSource ? raw : undefined,
+        extraSources,
+        target: target === "script" ? "project" : target,
+        schedule: pipeline.schedule?.enabled ? pipeline.schedule.cron : null,
+      });
       download(`${base}.zip`, await zipProject(base, files), "application/zip");
       toast("success", "Project downloaded");
     } finally {
@@ -145,19 +152,29 @@ export function ExportPage() {
                   </div>
                 </div>
               </label>
-              {[
-                ["Airflow", "Export as an Airflow DAG."],
-                ["Prefect", "Export as a Prefect flow."],
-              ].map(([t, d]) => (
-                <div key={t} className="option disabled">
-                  <input type="radio" disabled />
-                  <Workflow size={22} color="var(--subtle)" />
+              {(
+                [
+                  ["airflow", "Airflow", "Project + an Airflow DAG that runs it."],
+                  ["prefect", "Prefect", "Project + a Prefect flow; each FORMA step is a task."],
+                ] as const
+              ).map(([v, t, d]) => (
+                <label key={v} className={`option ${target === v ? "on" : ""}`}>
+                  <input type="radio" checked={target === v} onChange={() => setTarget(v)} />
+                  <Workflow size={22} color={target === v ? "var(--blue)" : "var(--muted)"} />
                   <div className="grow">
                     <div className="t">{t}</div>
                     <div className="d">{d}</div>
+                    <div className="tiny muted" style={{ marginTop: 4 }}>
+                      {pipeline.schedule?.enabled ? (
+                        <>
+                          Schedule: <span className="mono">{pipeline.schedule.cron}</span> (UTC)
+                        </>
+                      ) : (
+                        "No schedule set — runs when triggered."
+                      )}
+                    </div>
                   </div>
-                  <span className="badge sm">Coming later</span>
-                </div>
+                </label>
               ))}
             </div>
           </div>
@@ -284,7 +301,7 @@ export function ExportPage() {
                   {busy ? <Loader2 size={16} className="spin" /> : <FolderDown size={16} />} Download project
                 </button>
               )}
-              {target === "project" ? (
+              {target !== "script" ? (
                 <button className="btn" onClick={() => download("pipeline.py", code, "text/x-python")}>
                   <Download size={15} /> Download .py
                 </button>

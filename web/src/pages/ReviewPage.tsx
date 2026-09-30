@@ -7,6 +7,7 @@ import type { Run } from "@/store/model";
 import { fingerprint } from "@/engine/load";
 import { Empty, StatusBadge } from "@/components/ui";
 import { ISSUE_LABEL, upsertDecisions } from "@/lib/review";
+import { RuleSuggestions } from "./RuleSuggestions";
 import { copyText, fmtDateTime, fmtInt } from "@/lib/format";
 
 interface Item {
@@ -152,6 +153,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
         </div>
       </div>
 
+      {pipelineExists && items.length > 0 && <RuleSuggestions pipelineId={run.pipelineId} />}
       {items.length === 0 ? (
         <div className="card">
           <Empty icon={<CheckCircle2 size={22} />} title="No rows need review">

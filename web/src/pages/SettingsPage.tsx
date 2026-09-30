@@ -3,6 +3,8 @@ import { PRESET_LABEL, PRESET_ORDER } from "@/store/layouts";
 import type { PresetId } from "@/store/model";
 import { OUTPUT_DATE_FORMATS } from "@/engine/values";
 import { confirmAction } from "@/components/ui";
+import { stepTitle } from "@/engine/registry";
+import { Trash2 } from "lucide-react";
 import { MOD } from "@/lib/format";
 
 export const SHORTCUTS: [string, string][] = [
@@ -70,6 +72,7 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+        <PresetsCard />
         <div className="card card-pad">
           <h3 style={{ marginBottom: 10 }}>Keyboard shortcuts</h3>
           <table className="table compact">
@@ -103,6 +106,38 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PresetsCard() {
+  const presets = useApp((x) => x.presets);
+  const del = useApp((x) => x.deletePreset);
+  return (
+    <div className="card card-pad">
+      <h3 style={{ marginBottom: 4 }}>Transformation presets</h3>
+      <div className="muted small" style={{ marginBottom: 10 }}>
+        Save a step (step menu → Save as preset) or a whole pipeline (More → Save steps as preset) and reuse it from the transformation picker.
+      </div>
+      {presets.length === 0 ? (
+        <div className="subtle small">No presets yet.</div>
+      ) : (
+        <table className="table compact">
+          <tbody>
+            {presets.map((p) => (
+              <tr key={p.id}>
+                <td style={{ fontWeight: 600 }}>{p.name}</td>
+                <td className="small muted">{p.description || p.steps.map((s) => stepTitle(s)).join(" → ")}</td>
+                <td style={{ width: 40 }}>
+                  <button className="btn ghost sm icon" aria-label={`Delete ${p.name}`} onClick={() => del(p.id)}>
+                    <Trash2 size={14} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
   Play, FlaskConical, CalendarClock, Code2, MoreHorizontal, Undo2, Redo2, LayoutGrid, X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
-  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow,
+  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow, Info, Bookmark,
 } from "lucide-react";
 import { useApp, usePipeline, defaultSourceSpec } from "@/store/app";
 import type { PanelId, PresetId, WorkspaceLayout } from "@/store/model";
@@ -12,7 +12,8 @@ import { STAGE_OF, stepTitle, describeStep, TRANSFORMS } from "@/engine/registry
 import type { StepType } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { ACCEPT, parseFile } from "@/parsers";
-import { confirmAction, Empty, Modal, useMenu } from "@/components/ui";
+import { confirmAction, Empty, Modal, Toggle, useMenu } from "@/components/ui";
+import { CRON_PRESETS, nextRuns, parseCron } from "@/lib/cron";
 import { usePaletteActions, type PaletteAction } from "@/components/CommandPalette";
 import { useHotkeys } from "@/lib/hooks";
 import { fmtDateTime, fmtInt, MOD } from "@/lib/format";
@@ -70,6 +71,7 @@ function Workspace() {
   const [customize, setCustomize] = useState(false);
   const [maximized, setMaximized] = useState<PanelId | null>(null);
   const [versions, setVersions] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
   const [name, setName] = useState(pipeline.spec.name);
   const more = useMenu();
   const presetMenu = useMenu();
@@ -239,8 +241,8 @@ function Workspace() {
           <button className="btn" onClick={testRun} disabled={!!running || !ws.spec.source}>
             {running ? <Loader2 size={15} className="spin" /> : <FlaskConical size={15} />} Test Run
           </button>
-          <button className="btn" disabled title="Scheduled runs arrive in V1.x">
-            <CalendarClock size={15} /> Schedule
+          <button className={`btn ${pipeline.schedule?.enabled ? "soft" : ""}`} onClick={() => setScheduling(true)} title={pipeline.schedule?.enabled ? `Scheduled: ${pipeline.schedule.cron} (UTC)` : "Set a schedule"}>
+            <CalendarClock size={15} /> {pipeline.schedule?.enabled ? "Scheduled" : "Schedule"}
           </button>
           <button className="btn primary" onClick={() => ws.setRunModal(true)} disabled={!!running || !ws.spec.source}>
             <Play size={15} /> Run
@@ -259,6 +261,18 @@ function Workspace() {
                 { label: "Review queue", icon: <ListChecks size={15} />, onClick: () => nav(`/pipelines/${pipeline.id}/review`) },
                 { label: "Customize workspace", icon: <LayoutGrid size={15} />, onClick: () => setCustomize(true) },
                 { separator: true, label: "" },
+                {
+                  label: "Save steps as preset…",
+                  icon: <Bookmark size={15} />,
+                  disabled: !ws.spec.steps.length,
+                  onClick: () => {
+                    const name = window.prompt("Preset name", `${pipeline.spec.name} steps`)?.trim();
+                    if (name) {
+                      app.savePreset(name, ws.spec.steps, `${ws.spec.steps.length} steps from ${pipeline.spec.name}`);
+                      app.toast("success", `Saved preset “${name}”`);
+                    }
+                  },
+                },
                 { label: "Duplicate pipeline", icon: <Copy size={15} />, onClick: () => { const p = app.duplicatePipeline(pipeline.id); if (p) nav(`/pipelines/${p.id}`); } },
                 {
                   label: "Delete pipeline",
@@ -418,6 +432,7 @@ function Workspace() {
       <TransformPicker />
       {ws.runModal && <RunModal onClose={() => ws.setRunModal(false)} />}
       {versions && <VersionsModal onClose={() => setVersions(false)} />}
+      {scheduling && <ScheduleModal onClose={() => setScheduling(false)} />}
       {more.node}
       {presetMenu.node}
     </div>
@@ -518,6 +533,67 @@ function RunModal({ onClose }: { onClose: () => void }) {
             )}
           </div>
         </label>
+      </div>
+    </Modal>
+  );
+}
+
+function ScheduleModal({ onClose }: { onClose: () => void }) {
+  const ws = useWs();
+  const p = ws.pipeline;
+  const setSchedule = useApp((s) => s.setSchedule);
+  const serverUrl = useApp((s) => s.settings.serverUrl);
+  const [cron, setCron] = useState(p.schedule?.cron ?? "0 6 * * *");
+  const [enabled, setEnabled] = useState(p.schedule?.enabled ?? true);
+  const valid = parseCron(cron) !== null;
+  const runs = valid ? nextRuns(cron, 3) : [];
+  return (
+    <Modal
+      title="Schedule pipeline"
+      icon={<CalendarClock size={18} color="var(--blue)" />}
+      onClose={onClose}
+      footer={
+        <>
+          {p.schedule && (
+            <button className="btn danger" style={{ marginRight: "auto" }} onClick={() => { setSchedule(p.id, undefined); onClose(); }}>
+              Remove schedule
+            </button>
+          )}
+          <button className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn primary" disabled={!valid} onClick={() => { setSchedule(p.id, { cron: cron.trim(), enabled }); onClose(); }}>
+            Save schedule
+          </button>
+        </>
+      }
+    >
+      <div className="col" style={{ gap: 12 }}>
+        <div className="chips">
+          {CRON_PRESETS.map((c) => (
+            <button key={c.cron} className={`chip ${cron === c.cron ? "on" : ""}`} onClick={() => setCron(c.cron)}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+        <div className="field">
+          <label>Cron expression (UTC)</label>
+          <input className={`input mono ${valid ? "" : "invalid"}`} value={cron} onChange={(e) => setCron(e.target.value)} />
+          <div className="hint">minute · hour · day of month · month · day of week — e.g. <code>0 6 * * 1-5</code></div>
+        </div>
+        {valid && (
+          <div className="small">
+            <b>Next runs:</b> {runs.map((d) => d.toISOString().replace("T", " ").slice(0, 16)).join(" · ")} UTC
+          </div>
+        )}
+        <Toggle checked={enabled} onChange={setEnabled} label="Schedule enabled" />
+        <div className="callout">
+          <Info size={16} />
+          <div className="small">
+            Scheduled runs execute the latest saved version on{" "}
+            {serverUrl ? <>the FORMA server at <span className="mono">{serverUrl}</span></> : <>a FORMA server (Settings → Server) or</>} in the Airflow / Prefect project you export — a browser tab can't run jobs while it's closed.
+          </div>
+        </div>
       </div>
     </Modal>
   );

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { PipelineSpec, RawSheet, SourceFile, SourceSpec } from "@/engine/types";
+import type { PipelineSpec, RawSheet, SourceFile, SourceSpec, Step } from "@/engine/types";
 import { detectRegion } from "@/engine/load";
 import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
 import { toText } from "@/engine/values";
@@ -14,6 +14,7 @@ import type {
   RunStep,
   Settings,
   SourceMeta,
+  TransformPreset,
   WorkspaceLayout,
 } from "./model";
 
@@ -45,6 +46,7 @@ interface AppState {
   sources: SourceMeta[];
   connections: Connection[];
   layouts: WorkspaceLayout[];
+  presets: TransformPreset[];
   settings: Settings;
   history: Record<string, History>;
   toasts: Toast[];
@@ -63,6 +65,7 @@ interface AppState {
   undo(id: string): void;
   redo(id: string): void;
   setPreset(id: string, preset: PresetId, layoutId?: string): void;
+  setSchedule(id: string, schedule: Pipeline["schedule"]): void;
   saveVersion(id: string, reason?: string): number;
   duplicatePipeline(id: string): Pipeline | undefined;
   deletePipeline(id: string): void;
@@ -70,6 +73,8 @@ interface AppState {
   runPipeline(id: string, mode: "test" | "manual", opts?: { sourceFileId?: string }): Promise<Run | undefined>;
   deleteRun(id: string): void;
 
+  savePreset(name: string, steps: Step[], description?: string): TransformPreset;
+  deletePreset(id: string): void;
   saveLayout(layout: WorkspaceLayout): void;
   deleteLayout(id: string): void;
   addConnection(c: Omit<Connection, "id" | "createdAt">): Connection;
@@ -135,19 +140,21 @@ export const useApp = create<AppState>((set, get) => ({
   sources: [],
   connections: [],
   layouts: [],
+  presets: [],
   settings: DEFAULT_SETTINGS,
   history: {},
   toasts: [],
   runningPipelines: {},
 
   async hydrate() {
-    const [pipelines, runs, sources, connections, layouts, settings] = await Promise.all([
+    const [pipelines, runs, sources, connections, layouts, settings, presets] = await Promise.all([
       db.load<Pipeline[]>("pipelines"),
       db.load<Run[]>("runs"),
       db.load<SourceMeta[]>("sources"),
       db.load<Connection[]>("connections"),
       db.load<WorkspaceLayout[]>("layouts"),
       db.load<Settings>("settings"),
+      db.load<TransformPreset[]>("presets"),
     ]);
     set({
       ready: true,
@@ -157,6 +164,7 @@ export const useApp = create<AppState>((set, get) => ({
       sources: sources ?? [],
       connections: connections ?? [],
       layouts: layouts ?? [],
+      presets: presets ?? [],
       settings: { ...DEFAULT_SETTINGS, ...(settings ?? {}) },
     });
   },
@@ -253,6 +261,12 @@ export const useApp = create<AppState>((set, get) => ({
 
   setPreset(id, preset, layoutId) {
     const pipelines = get().pipelines.map((x) => (x.id === id ? { ...x, preset, customLayoutId: layoutId ?? x.customLayoutId } : x));
+    set({ pipelines });
+    persist("pipelines", pipelines);
+  },
+
+  setSchedule(id, schedule) {
+    const pipelines = get().pipelines.map((x) => (x.id === id ? { ...x, schedule, updatedAt: Date.now() } : x));
     set({ pipelines });
     persist("pipelines", pipelines);
   },
@@ -430,6 +444,19 @@ export const useApp = create<AppState>((set, get) => ({
     void db.remove(`out:${id}`);
   },
 
+  savePreset(name, steps, description) {
+    const preset: TransformPreset = { id: newId("preset"), name, description, steps: JSON.parse(JSON.stringify(steps)), createdAt: Date.now() };
+    const presets = [...get().presets, preset];
+    set({ presets });
+    persist("presets", presets);
+    return preset;
+  },
+  deletePreset(id) {
+    const presets = get().presets.filter((p) => p.id !== id);
+    set({ presets });
+    persist("presets", presets);
+  },
+
   saveLayout(layout) {
     const layouts = [...get().layouts.filter((l) => l.id !== layout.id), layout];
     set({ layouts });
@@ -459,7 +486,7 @@ export const useApp = create<AppState>((set, get) => ({
   },
   async resetAll() {
     await db.clearAll();
-    set({ pipelines: [], runs: [], sources: [], connections: [], layouts: [], settings: DEFAULT_SETTINGS, history: {} });
+    set({ pipelines: [], runs: [], sources: [], connections: [], layouts: [], presets: [], settings: DEFAULT_SETTINGS, history: {} });
   },
 }));
 

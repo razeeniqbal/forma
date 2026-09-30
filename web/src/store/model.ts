@@ -20,6 +20,8 @@ export interface Pipeline {
   dirty: boolean;
   preset: PresetId;
   customLayoutId?: string;
+  /** Cron schedule (UTC). Executed by the FORMA server or an exported Airflow/Prefect deployment. */
+  schedule?: { cron: string; enabled: boolean };
   createdAt: number;
   updatedAt: number;
 }
@@ -118,10 +120,21 @@ export interface WorkspaceLayout {
   builtIn?: boolean;
 }
 
+/** Reusable transformation preset (PRD §21 "reusable transformation presets"). */
+export interface TransformPreset {
+  id: string;
+  name: string;
+  description?: string;
+  steps: import("@/engine/types").Step[];
+  createdAt: number;
+}
+
 export interface Settings {
   userName: string;
   previewRows: number;
   defaultPreset: PresetId;
   defaultDateFormat: string;
   testRunRows: number;
+  /** Optional FORMA server (Python backend) for large files, schedules and database connections. */
+  serverUrl?: string;
 }
