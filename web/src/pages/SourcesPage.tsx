@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderInput, Upload, Eye, Download, Plus, Trash2, Loader2, MoreHorizontal } from "lucide-react";
+import { FolderInput, Upload, Eye, Download, Plus, Trash2, Loader2, MoreHorizontal, Database } from "lucide-react";
+import { ServerSourceModal, useServerHealth } from "@/components/server";
 import { useApp } from "@/store/app";
 import { getRawFile } from "@/store/db";
 import { ACCEPT, parseFile } from "@/parsers";
@@ -20,6 +21,8 @@ export function SourcesPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
   const menu = useMenu();
+  const { health } = useServerHealth();
+  const [serverSource, setServerSource] = useState(false);
 
   const upload = async (files: FileList) => {
     setBusy(true);
@@ -41,6 +44,11 @@ export function SourcesPage() {
           <p>Uploaded files are stored immutably in your browser. Pipelines derive new data; originals never change.</p>
         </div>
         <div className="actions">
+          {health && (
+            <button className="btn" onClick={() => setServerSource(true)}>
+              <Database size={15} /> Database / API source
+            </button>
+          )}
           <button className="btn primary" onClick={() => inputRef.current?.click()} disabled={busy}>
             {busy ? <Loader2 size={15} className="spin" /> : <Upload size={15} />} Upload files
           </button>
@@ -135,6 +143,7 @@ export function SourcesPage() {
         )}
       </div>
       {preview && <SourcePreview meta={preview} onClose={() => setPreview(null)} />}
+      {serverSource && <ServerSourceModal onClose={() => setServerSource(false)} onAdded={() => toast("success", "Source added")} />}
       {menu.node}
     </div>
   );

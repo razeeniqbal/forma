@@ -56,6 +56,10 @@ The full V1 loop from PRD §28 works end to end:
 - **Reusable presets:** save a step or a whole pipeline's steps as a preset and insert it from the transformation picker.
 - **Productivity:** `Ctrl/⌘ K` opens the command palette. Undo/redo cover every pipeline edit. `Ctrl/⌘ S` saves a version, `Delete` removes the selected step, and arrow keys navigate the grid.
 
+## FORMA server (optional)
+
+`server/` is a Python backend (FastAPI) that adds large-file and scheduled runs, database and API/Google Sheets sources, database destinations and AI-assisted extraction. It runs the exact exported `pipeline.py`, so its output matches the app. See [`server/README.md`](server/README.md), then connect it under **Settings → FORMA server**.
+
 ## How it's built
 
 ```
@@ -71,17 +75,13 @@ web/
 ```
 
 - **One spec, two engines.** The UI, the in-browser executor and the code generator all work from the same `PipelineSpec` (PRD §8). The parity suite runs both engines on the same files and checks they agree cell for cell, including row IDs, review rows and rule counts. Exported projects can check themselves: `python pipeline.py --check expected/forma_output.csv`.
-- **Browser-first.** Everything runs locally and all data stays in the browser. Previews run on a configurable sample; full runs process every row in a Web Worker.
+- **Browser-first, server optional.** Without a server, everything runs locally and all data stays in the browser. Previews run on a configurable sample, and full runs process every row in a Web Worker. With the FORMA server connected, runs can execute there instead.
 
 ## Not in this build yet
 
-These are marked "Later" or "V1.x" in the PRD and shown as such in the UI:
+- collaboration, comments and approvals (need multi-user accounts)
+- SQL and Polars code targets (the SQL panel is a placeholder)
+- an in-browser Python parity check (use `python pipeline.py --check` locally)
+- lineage and Git integration
 
-- database/API/Google Sheets/cloud **sources**
-- SQL and Polars targets
-- collaboration, comments and approvals
-- AI-assisted extraction (field suggestions are deterministic pattern detection)
-
-Database **destinations** are configured in FORMA and written by the exported Python project. The browser cannot reach databases.
-
-The recommended scale-out architecture (PRD §19: FastAPI, PostgreSQL metadata, object storage, a job queue and workers for 500 MB files) is the next step. The engine and spec are already separated from the UI to make that move straightforward.
+The wordmark in `web/public/brand` uses live Inter text; a designer should outline it for final production assets.

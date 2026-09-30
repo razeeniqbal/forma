@@ -23,6 +23,18 @@ export function RunPage() {
   const [level, setLevel] = useState<"all" | "info" | "success" | "warning" | "error">("all");
   const [modal, setModal] = useState<null | "output" | "compare" | "spec" | "config">(null);
   const [rerunning, setRerunning] = useState(false);
+  const refreshServerRun = useApp((s) => s.refreshServerRun);
+  useEffect(() => {
+    if (!run?.remoteId) return;
+    if (run.status !== "running" && run.steps.length) return;
+    let alive = true;
+    const tick = () => refreshServerRun(run.id).catch(() => undefined).finally(() => alive && setTimeout(tick, 1500));
+    tick();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run?.id, run?.status, run?.steps.length]);
 
   if (!run)
     return (
@@ -53,6 +65,7 @@ export function RunPage() {
           <div className="row">
             <h1 style={{ fontSize: 24 }}>{run.pipelineName}</h1>
             {run.mode === "test" ? <span className="badge">Test run · draft</span> : <span className="badge outline">v{run.version}</span>}
+            {run.remoteId && <span className="badge blue">FORMA server{run.trigger === "schedule" ? " · scheduled" : ""}</span>}
           </div>
           <div className="row small muted" style={{ marginTop: 6, gap: 14 }}>
             <span>

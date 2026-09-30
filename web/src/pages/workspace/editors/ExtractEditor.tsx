@@ -1,5 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Trash2, Plus, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Wand2, ArrowRight } from "lucide-react";
+import { Trash2, Plus, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Wand2, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { useServerHealth } from "@/components/server";
+import { serverClient, useApp } from "@/store/app";
 import type { Cell, Dataset, ExtractField, Step } from "@/engine/types";
 import { ANY_DATE_FORMATS, compileRegex, extractValue } from "@/engine/execute";
 import { formatDate, parseDate, parseMoney, toText } from "@/engine/values";
@@ -76,6 +78,10 @@ function highlight(text: string, fields: ExtractField[]): ReactNode {
 export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; onChange: (s: Step) => void; before?: Dataset }) {
   const [rowAt, setRowAt] = useState(0);
   const [showFailed, setShowFailed] = useState(false);
+  const { health } = useServerHealth();
+  const toast = useApp((s) => s.toast);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNote, setAiNote] = useState<string | null>(null);
   const colIdx = before?.columns.indexOf(step.column) ?? -1;
   const texts = useMemo(() => (before && colIdx >= 0 ? before.rows.map((r) => toText(r[colIdx])) : []), [before, colIdx]);
 
@@ -129,6 +135,25 @@ export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; o
         <>
           <div className="row">
             <span className="label grow">Fields</span>
+            {health?.features.ai && (
+              <button className="btn xs soft" disabled={aiBusy} title="Ask Claude (via your FORMA server) to propose patterns. You review them before applying." onClick={async () => {
+                const hint = window.prompt("What should be extracted? (optional — e.g. invoice number, due date and total)") ?? undefined;
+                setAiBusy(true);
+                try {
+                  const failing = stats ? stats.failed.map((r) => texts[r]).filter(Boolean) : [];
+                  const samples = [...new Set([...failing.slice(0, 20), ...texts.filter(Boolean).slice(0, 60)])].slice(0, 60) as string[];
+                  const r = await serverClient()!.suggestPatterns(samples, hint || undefined);
+                  onChange({ ...step, fields: r.fields.map((f) => ({ name: f.name, type: f.type, pattern: f.pattern })) });
+                  setAiNote(`${r.fields.length} fields proposed by ${r.model}. Check the match rates and failed rows before applying — execution stays plain regex.`);
+                } catch (e) {
+                  toast("error", (e as Error).message);
+                } finally {
+                  setAiBusy(false);
+                }
+              }}>
+                {aiBusy ? <Loader2 size={12} className="spin" /> : <Sparkles size={12} />} AI suggest
+              </button>
+            )}
             <button
               className="btn xs"
               title="Infer fields from detected patterns (deterministic; no data leaves your browser)"
@@ -137,6 +162,11 @@ export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; o
               <Wand2 size={12} /> Suggest fields
             </button>
           </div>
+          {aiNote && (
+            <div className="callout small" style={{ padding: "8px 10px" }}>
+              <Sparkles size={14} /> {aiNote}
+            </div>
+          )}
           {step.fields.map((f, k) => {
             let bad = false;
             try {

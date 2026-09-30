@@ -8,6 +8,7 @@ import { PRESET_LABEL, PRESET_ORDER } from "@/store/layouts";
 import { FileIcon } from "@/components/ui";
 import { fmtAgo, fmtBytes, fmtInt } from "@/lib/format";
 import { loadSampleSource } from "@/lib/samples";
+import { ServerSourceModal, useServerHealth } from "@/components/server";
 
 export function CreatePipelinePage() {
   const nav = useNavigate();
@@ -21,6 +22,8 @@ export function CreatePipelinePage() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { health } = useServerHealth();
+  const [serverSource, setServerSource] = useState(false);
 
   const destination = () => {
     if (dest === "later") return null;
@@ -146,19 +149,25 @@ export function CreatePipelinePage() {
             <h3 style={{ marginBottom: 10 }}>Other sources</h3>
             <div className="grid-4">
               {[
-                { icon: <Database size={20} />, t: "Database", d: "PostgreSQL connector" },
-                { icon: <Network size={20} />, t: "API", d: "REST API source" },
-                { icon: <Sheet size={20} />, t: "Google Sheets", d: "Use data from Sheets" },
-                { icon: <Cloud size={20} />, t: "Cloud storage", d: "S3, GCS, Azure Blob" },
+                { icon: <Database size={20} />, t: "Database", d: "PostgreSQL, MySQL, SQLite (SQL query)" },
+                { icon: <Network size={20} />, t: "API", d: "JSON or CSV over HTTP" },
+                { icon: <Sheet size={20} />, t: "Google Sheets", d: "Sheets shared by link" },
+                { icon: <Cloud size={20} />, t: "Cloud storage", d: "Public or pre-signed file URL" },
               ].map((o) => (
-                <div key={o.t} className="option disabled" title="Planned connector">
+                <button
+                  key={o.t}
+                  className={`option ${health ? "" : "disabled"}`}
+                  style={{ textAlign: "left" }}
+                  title={health ? undefined : "Connect a FORMA server in Settings to use this source"}
+                  onClick={() => (health ? setServerSource(true) : nav("/settings"))}
+                >
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--blue-50)", color: "var(--blue)", display: "grid", placeItems: "center", flex: "none" }}>{o.icon}</div>
                   <div className="grow" style={{ minWidth: 0 }}>
                     <div className="t">{o.t}</div>
                     <div className="d">{o.d}</div>
                   </div>
-                  <span className="badge sm">Soon</span>
-                </div>
+                  {!health && <span className="badge sm">Needs server</span>}
+                </button>
               ))}
             </div>
           </div>
@@ -203,6 +212,7 @@ export function CreatePipelinePage() {
           </div>
         </div>
       </div>
+      {serverSource && <ServerSourceModal onClose={() => setServerSource(false)} onAdded={(meta) => void start(meta)} />}
     </div>
   );
 }

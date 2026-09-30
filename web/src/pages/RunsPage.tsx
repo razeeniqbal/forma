@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { History, Trash2 } from "lucide-react";
 import { useApp } from "@/store/app";
@@ -13,6 +13,11 @@ export function RunsPage() {
   const nav = useNavigate();
   const [status, setStatus] = useState<RunStatus | "all">("all");
   const [pipe, setPipe] = useState("all");
+  const importServerRuns = useApp((s) => s.importServerRuns);
+  const serverUrl = useApp((s) => s.settings.serverUrl);
+  useEffect(() => {
+    if (serverUrl) importServerRuns().catch(() => undefined);
+  }, [serverUrl, importServerRuns]);
   const list = runs.filter((r) => (status === "all" || r.status === status) && (pipe === "all" || r.pipelineId === pipe));
   const count = (s: RunStatus) => runs.filter((r) => r.status === s).length;
   return (
@@ -75,7 +80,7 @@ export function RunsPage() {
                     </Link>
                   </td>
                   <td>{r.mode === "test" ? <span className="badge">Draft</span> : <span className="badge outline">v{r.version}</span>}</td>
-                  <td className="small">{r.mode === "test" ? "Test" : "Manual"}</td>
+                  <td className="small">{r.mode === "test" ? "Test" : r.trigger === "schedule" ? "Scheduled" : "Manual"}{r.remoteId && <span className="badge blue sm" style={{ marginLeft: 6 }}>Server</span>}</td>
                   <td>
                     <StatusBadge status={r.status} short />
                   </td>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Database, Plus, Trash2, KeyRound, Info, FileSpreadsheet } from "lucide-react";
-import { useApp } from "@/store/app";
+import { serverClient, useApp } from "@/store/app";
+import { useServerHealth } from "@/components/server";
 import type { Connection } from "@/store/model";
 import { confirmAction, Empty, Modal } from "@/components/ui";
 import { fmtAgo } from "@/lib/format";
@@ -16,7 +17,8 @@ const TYPES: { value: Connection["type"]; label: string; env: string }[] = [
 export function DestinationsPage() {
   const connections = useApp((s) => s.connections);
   const pipelines = useApp((s) => s.pipelines);
-  const { deleteConnection } = useApp.getState();
+  const { deleteConnection, toast } = useApp.getState();
+  const { health } = useServerHealth();
   const [adding, setAdding] = useState(false);
   return (
     <div className="page">
@@ -64,7 +66,18 @@ export function DestinationsPage() {
                       <code>{c.envVar}</code>
                     </td>
                     <td className="small muted">{fmtAgo(c.createdAt)}</td>
-                    <td>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      {health && c.type !== "api" && (
+                        <button
+                          className="btn sm"
+                          onClick={async () => {
+                            const r = await serverClient()!.testConnection(c.envVar).catch((e) => ({ ok: false, error: (e as Error).message }));
+                            toast(r.ok ? "success" : "error", r.ok ? `${c.name}: connected` : `${c.name}: ${r.error}`);
+                          }}
+                        >
+                          Test
+                        </button>
+                      )}
                       <button
                         className="btn ghost sm icon"
                         aria-label="Delete connection"

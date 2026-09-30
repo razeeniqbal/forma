@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { Server } from "lucide-react";
 import { useApp } from "@/store/app";
+import { useServerHealth } from "@/components/server";
 import { PRESET_LABEL, PRESET_ORDER } from "@/store/layouts";
 import type { PresetId } from "@/store/model";
 import { OUTPUT_DATE_FORMATS } from "@/engine/values";
@@ -72,6 +75,7 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+        <ServerCard />
         <PresetsCard />
         <div className="card card-pad">
           <h3 style={{ marginBottom: 10 }}>Keyboard shortcuts</h3>
@@ -138,6 +142,58 @@ function PresetsCard() {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function ServerCard() {
+  const s = useApp((x) => x.settings);
+  const update = useApp((x) => x.updateSettings);
+  const { health, error, checking, recheck } = useServerHealth();
+  const [url, setUrl] = useState(s.serverUrl ?? "");
+  const [token, setToken] = useState(s.serverToken ?? "");
+  return (
+    <div className="card card-pad col" style={{ gap: 12 }}>
+      <div className="row">
+        <Server size={16} color="var(--muted)" />
+        <h3 className="grow">FORMA server</h3>
+        {s.serverUrl && (checking ? <span className="badge">Checking…</span> : health ? <span className="badge green">Connected · v{health.version}</span> : <span className="badge red">Not reachable</span>)}
+      </div>
+      <div className="muted small">
+        Optional Python backend for large files, scheduled runs, database/API sources and AI-assisted extraction. Start it with <code>python -m forma_server</code> (see <code>server/README.md</code>).
+      </div>
+      <div className="grid-2">
+        <div className="field">
+          <label>Server URL</label>
+          <input className="input mono" placeholder="http://localhost:8787" value={url} onChange={(e) => setUrl(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>API token (optional)</label>
+          <input className="input mono" type="password" placeholder="FORMA_API_TOKEN" value={token} onChange={(e) => setToken(e.target.value)} />
+        </div>
+      </div>
+      <div className="row">
+        <button
+          className="btn primary"
+          onClick={() => {
+            update({ serverUrl: url.trim() || undefined, serverToken: token.trim() || undefined });
+            setTimeout(recheck, 0);
+          }}
+        >
+          Save &amp; test
+        </button>
+        {s.serverUrl && (
+          <button className="btn" onClick={() => { update({ serverUrl: undefined, serverToken: undefined }); setUrl(""); setToken(""); }}>
+            Disconnect
+          </button>
+        )}
+        {health && (
+          <span className="small muted">
+            AI assist {health.features.ai ? "on" : "off (set ANTHROPIC_API_KEY on the server)"} · schedules on · database &amp; API sources on
+          </span>
+        )}
+      </div>
+      {error && <div className="callout red small">{error}</div>}
     </div>
   );
 }

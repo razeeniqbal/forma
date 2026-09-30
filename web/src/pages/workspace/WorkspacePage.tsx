@@ -12,7 +12,8 @@ import { STAGE_OF, stepTitle, describeStep, TRANSFORMS } from "@/engine/registry
 import type { StepType } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { ACCEPT, parseFile } from "@/parsers";
-import { confirmAction, Empty, Modal, Toggle, useMenu } from "@/components/ui";
+import { confirmAction, Empty, Modal, Seg, Toggle, useMenu } from "@/components/ui";
+import { useServerHealth } from "@/components/server";
 import { CRON_PRESETS, nextRuns, parseCron } from "@/lib/cron";
 import { usePaletteActions, type PaletteAction } from "@/components/CommandPalette";
 import { useHotkeys } from "@/lib/hooks";
@@ -449,6 +450,8 @@ function RunModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const app = useApp.getState();
   const [mode, setMode] = useState<"current" | "other">("current");
+  const { health } = useServerHealth();
+  const [where, setWhere] = useState<"browser" | "server">(health ? "server" : "browser");
   const [other, setOther] = useState<{ id: string; name: string; missing: string[]; rows: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -475,7 +478,7 @@ function RunModal({ onClose }: { onClose: () => void }) {
   const run = async () => {
     setBusy(true);
     onClose();
-    const r = await app.runPipeline(p.id, "manual", mode === "other" && other ? { sourceFileId: other.id } : {});
+    const r = where === "server" ? await app.runOnServer(p.id) : await app.runPipeline(p.id, "manual", mode === "other" && other ? { sourceFileId: other.id } : {});
     if (r) nav(`/runs/${r.id}`);
   };
 
@@ -500,6 +503,23 @@ function RunModal({ onClose }: { onClose: () => void }) {
           Runs execute every row in a background worker and reference an immutable version.
           {p.dirty && ` Your draft changes will be saved as v${nextVersion}.`}
         </div>
+        {health && (
+          <div className="field">
+            <label>Run on</label>
+            <Seg
+              value={where}
+              onChange={(w) => {
+                setWhere(w);
+                if (w === "server") setMode("current");
+              }}
+              options={[
+                { value: "server", label: "FORMA server" },
+                { value: "browser", label: "This browser" },
+              ]}
+            />
+            <div className="hint">{where === "server" ? "Runs the exported Python on the server: large files, database destinations, run history shared with schedules." : "Runs in a background worker in this tab."}</div>
+          </div>
+        )}
         <label className={`option ${mode === "current" ? "on" : ""}`}>
           <input type="radio" checked={mode === "current"} onChange={() => setMode("current")} />
           <div>
@@ -507,7 +527,7 @@ function RunModal({ onClose }: { onClose: () => void }) {
             <div className="d">{ws.spec.source?.file}</div>
           </div>
         </label>
-        <label className={`option ${mode === "other" ? "on" : ""}`}>
+        <label className={`option ${mode === "other" ? "on" : ""} ${where === "server" ? "disabled" : ""}`} style={where === "server" ? { display: "none" } : undefined}>
           <input type="radio" checked={mode === "other"} onChange={() => setMode("other")} />
           <div className="grow">
             <div className="t">A new compatible file</div>

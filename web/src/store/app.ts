@@ -1,6 +1,8 @@
 import { create } from "zustand";
-import type { PipelineSpec, RawSheet, SourceFile, SourceSpec, Step } from "@/engine/types";
-import { detectRegion } from "@/engine/load";
+import type { Issue, PipelineSpec, RawSheet, SourceFile, SourceSpec, Step } from "@/engine/types";
+import { detectRegion, loadDataset } from "@/engine/load";
+import { parseCsv } from "@/parsers";
+import { FormaServer, type ServerRun } from "@/lib/server";
 import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
 import { toText } from "@/engine/values";
 import { executeInWorker } from "@/lib/runner";
@@ -71,6 +73,9 @@ interface AppState {
   deletePipeline(id: string): void;
 
   runPipeline(id: string, mode: "test" | "manual", opts?: { sourceFileId?: string }): Promise<Run | undefined>;
+  runOnServer(id: string): Promise<Run | undefined>;
+  importServerRuns(): Promise<number>;
+  refreshServerRun(runId: string): Promise<void>;
   deleteRun(id: string): void;
 
   savePreset(name: string, steps: Step[], description?: string): TransformPreset;
@@ -132,6 +137,74 @@ export async function loadSideSheets(spec: PipelineSpec): Promise<Record<string,
     }
   }
   return out;
+}
+
+export function serverClient(): FormaServer | null {
+  const { serverUrl, serverToken } = useApp.getState().settings;
+  return serverUrl ? new FormaServer(serverUrl, serverToken) : null;
+}
+
+async function pollServerRun(runId: string) {
+  for (let i = 0; i < 7200; i++) {
+    await new Promise((r) => setTimeout(r, i < 10 ? 700 : 2000));
+    const run = useApp.getState().runs.find((r) => r.id === runId);
+    if (!run) return;
+    try {
+      await useApp.getState().refreshServerRun(runId);
+    } catch {
+      /* transient network error: keep polling */
+    }
+    if (useApp.getState().runs.find((r) => r.id === runId)?.status !== "running") return;
+  }
+}
+
+/** Map a FORMA server run into the app's run record. */
+export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, triggeredBy: string): Run {
+  const res = r.result;
+  const rules = spec?.steps.flatMap((s) => (s.type === "validate" ? s.rules : [])) ?? [];
+  const started = r.startedAt * 1000;
+  return {
+    id: `run_${r.id}`,
+    remoteId: r.id,
+    trigger: r.trigger,
+    pipelineId: r.pipelineId,
+    pipelineName: r.pipelineName,
+    version: r.version,
+    mode: "manual",
+    triggeredBy: r.trigger === "schedule" ? "Schedule (FORMA server)" : `${triggeredBy} · FORMA server`,
+    startedAt: started,
+    finishedAt: r.finishedAt ? r.finishedAt * 1000 : undefined,
+    status: r.status,
+    sourceName: spec?.source?.file ?? "source",
+    destinationLabel: spec?.destination?.type === "database" ? `database · ${spec.destination.table ?? ""}` : spec?.destination?.path || "output file (server)",
+    rowsIn: res?.rows_in ?? 0,
+    rowsOut: res?.rows_out ?? 0,
+    reviewCount: res?.review_count ?? 0,
+    excludedCount: res?.excluded_count ?? 0,
+    failedCount: r.status === "failed" ? res?.rows_in ?? 0 : 0,
+    steps: (res?.steps ?? []).map((s, i) => ({
+      stepId: spec?.steps[i]?.id ?? `srv${i}`,
+      title: s.title,
+      stage: s.label.split(" — ")[0].replace(/^\d+\s*/, ""),
+      rowsIn: s.rows_in,
+      rowsOut: s.rows_out,
+      changedCells: 0,
+      addedColumns: [],
+      removedColumns: [],
+      issues: s.issues,
+      durationMs: s.duration_ms,
+      summary: s.error ? "Failed" : `${s.rows_in.toLocaleString()} → ${s.rows_out.toLocaleString()} rows${s.issues ? ` · ${s.issues.toLocaleString()} flagged` : ""}`,
+      error: s.error,
+    })),
+    logs: (res?.logs ?? [{ t: r.startedAt, level: "info" as const, step: "System", message: "Queued on the FORMA server" }]).map((l) => ({ ...l, t: l.t * 1000 })),
+    reviewIssues: (res?.review_issues ?? []).map((i) => ({ ...i, kind: i.kind as Issue["kind"] })),
+    sourceColumns: res?.source_columns ?? [],
+    reviewSource: Object.fromEntries(Object.entries(res?.review_source ?? {}).map(([k, v]) => [Number(k), v])),
+    reviewValues: Object.fromEntries(Object.entries(res?.review_values ?? {}).map(([k, v]) => [Number(k), v])),
+    ruleResults: (res?.rule_results ?? []).map((x) => ({ ruleId: x.rule, column: x.column, kind: rules.find((rr) => rr.id === x.rule)?.kind ?? "not_blank", evaluated: x.evaluated, passed: x.passed })),
+    columns: res?.columns ?? [],
+    error: r.error ?? undefined,
+  };
 }
 
 export const useApp = create<AppState>((set, get) => ({
@@ -270,6 +343,16 @@ export const useApp = create<AppState>((set, get) => ({
     const pipelines = get().pipelines.map((x) => (x.id === id ? { ...x, schedule, updatedAt: Date.now() } : x));
     set({ pipelines });
     persist("pipelines", pipelines);
+    const server = serverClient();
+    if (server) {
+      // Schedules run on the server: publish the latest saved version with the new schedule.
+      const version = get().saveVersion(id, "Scheduled");
+      const p = get().pipelines.find((x) => x.id === id)!;
+      server
+        .sync(p, p.versions.at(-1)!.spec, version, get().connections)
+        .then((r) => get().toast("success", schedule?.enabled ? `Scheduled on the FORMA server${r.nextRun ? ` — next run ${r.nextRun.replace("T", " ").slice(0, 16)} UTC` : ""}` : "Schedule updated on the FORMA server"))
+        .catch((e) => get().toast("error", `Could not sync the schedule: ${(e as Error).message}`));
+    }
   },
 
   saveVersion(id, reason = "Saved") {
@@ -438,6 +521,64 @@ export const useApp = create<AppState>((set, get) => ({
     return finished;
   },
 
+  async runOnServer(id) {
+    const server = serverClient();
+    const p0 = get().pipelines.find((x) => x.id === id);
+    if (!server || !p0?.spec.source) return;
+    const version = get().saveVersion(id, "Run on server");
+    const p = get().pipelines.find((x) => x.id === id)!;
+    const spec = p.versions.at(-1)!.spec;
+    let remote: ServerRun;
+    try {
+      await server.sync(p, spec, version, get().connections);
+      remote = await server.startRun(id);
+    } catch (e) {
+      get().toast("error", (e as Error).message);
+      return;
+    }
+    const run = fromServerRun(remote, spec, get().settings.userName);
+    set((s) => ({ runs: [run, ...s.runs], runningPipelines: { ...s.runningPipelines, [id]: run.id } }));
+    void pollServerRun(run.id);
+    return run;
+  },
+
+  async importServerRuns() {
+    const server = serverClient();
+    if (!server) return 0;
+    const remote = await server.listRuns();
+    const known = new Set(get().runs.map((r) => r.remoteId).filter(Boolean));
+    const fresh = remote.filter((r) => !known.has(r.id));
+    if (!fresh.length) return 0;
+    const added = fresh.map((r) => fromServerRun(r, get().pipelines.find((p) => p.id === r.pipelineId)?.versions.find((v) => v.version === r.version)?.spec, "Schedule"));
+    const runs = [...get().runs, ...added].sort((a, b) => b.startedAt - a.startedAt);
+    set({ runs });
+    persist("runs", runs.slice(0, 200));
+    return added.length;
+  },
+
+  async refreshServerRun(runId) {
+    const run = get().runs.find((r) => r.id === runId);
+    const server = serverClient();
+    if (!run?.remoteId || !server) return;
+    const remote = await server.getRun(run.remoteId);
+    const spec = get().pipelines.find((p) => p.id === run.pipelineId)?.versions.find((v) => v.version === run.version)?.spec;
+    const next = { ...fromServerRun(remote, spec, run.triggeredBy.split(" · ")[0]), id: run.id };
+    if (next.status !== "running" && remote.status !== "failed") {
+      try {
+        const csv = await server.output(run.remoteId);
+        const sheet = parseCsv(csv, ",").sheet;
+        if (sheet.cells.length <= 200001) await db.putRunOutput(run.id, loadDataset(sheet, { type: "csv", file: "", fileId: "", headerRow: 0, startCol: 0, endCol: Math.max(0, (sheet.cells[0]?.length ?? 1) - 1) }));
+      } catch {
+        /* output is optional */
+      }
+    }
+    const runs = get().runs.map((r) => (r.id === runId ? next : r));
+    const running = { ...get().runningPipelines };
+    if (next.status !== "running") delete running[run.pipelineId];
+    set({ runs, runningPipelines: running });
+    persist("runs", runs.slice(0, 200));
+  },
+
   deleteRun(id) {
     const runs = get().runs.filter((r) => r.id !== id);
     set({ runs });
@@ -483,7 +624,7 @@ export const useApp = create<AppState>((set, get) => ({
   updateSettings(p) {
     const settings = { ...get().settings, ...p };
     set({ settings });
-    persist("settings", settings);
+    void db.save("settings", settings); // immediate: settings must survive an instant reload
   },
   async resetAll() {
     await db.clearAll();

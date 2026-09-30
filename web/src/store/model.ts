@@ -80,6 +80,9 @@ export interface Run {
   ruleResults: RuleResult[];
   columns: string[];
   error?: string;
+  /** Executed on the FORMA server (id there). */
+  remoteId?: string;
+  trigger?: string;
 }
 
 export interface RunOutput {
@@ -137,4 +140,6 @@ export interface Settings {
   testRunRows: number;
   /** Optional FORMA server (Python backend) for large files, schedules and database connections. */
   serverUrl?: string;
+  /** Optional bearer token (FORMA_API_TOKEN on the server). Stored only in this browser. */
+  serverToken?: string;
 }
