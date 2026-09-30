@@ -12,6 +12,7 @@ import { toText } from "@/engine/values";
 import { parseJson } from "@/parsers";
 import type { PipelineSpec, RawSheet } from "@/engine/types";
 import { SAMPLES, sampleCsv, sampleSheet } from "../helpers";
+import { toCsv } from "@/lib/exporters";
 
 const OUT = join(__dirname, "..", "..", ".parity-out");
 const PY = process.env.PYTHON ?? "python3";
@@ -46,6 +47,12 @@ describe("parity: TypeScript engine ≡ generated Python", () => {
     const sheet = await sampleSheet();
     const ts = runCase("invoice_xlsx", invoicePipeline("f"), sheet, join(SAMPLES, "invoices.xlsx"));
     expect(ts.output.rows.length).toBeGreaterThan(900);
+    // The exported project's own parity check (`--check`) against FORMA's CSV.
+    const dir = join(OUT, "invoice_xlsx");
+    writeFileSync(join(dir, "expected.csv"), toCsv(ts.output));
+    execFileSync(PY, ["pipeline.py", "--check", "expected.csv"], { cwd: dir, stdio: "pipe" });
+    writeFileSync(join(dir, "tampered.csv"), toCsv(ts.output).replace("INV-2231", "INV-9999"));
+    expect(() => execFileSync(PY, ["pipeline.py", "--check", "tampered.csv"], { cwd: dir, stdio: "pipe" })).toThrow();
   });
 
   it("review decisions: correct, keep, ignore, exclude", async () => {

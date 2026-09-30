@@ -144,7 +144,7 @@ export async function parseFile(file: File): Promise<ParsedFile> {
   }
   if (!sheets.length) throw new Error("The file contains no sheets.");
   return {
-    source: { id: newId("src"), name: file.name, kind, size: file.size, addedAt: Date.now(), sheets },
+    source: { id: newId("src"), name: file.name, kind, size: file.size, addedAt: Date.now(), sheets, delimiter, raw: file },
     delimiter,
   };
 }

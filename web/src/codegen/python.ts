@@ -438,6 +438,7 @@ Usage:
     pip install -r requirements.txt
     python pipeline.py                         # uses config.yaml / defaults below
     python pipeline.py --source new_file.xlsx  # rerun on a compatible file
+    python pipeline.py --check expected/forma_output.csv  # verify parity with FORMA
 
 Credentials are never written into this file. Database destinations read
 their connection URL from an environment variable (see config).
@@ -531,6 +532,29 @@ ${
         print(f"Wrote {review_path}", file=sys.stderr)
 
 
+def check_parity(output: pd.DataFrame, expected_csv: str) -> bool:
+    """Compare this run's output with FORMA's output (exported as CSV), cell by cell."""
+    with open(expected_csv, encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.reader(fh))
+    header, body = rows[0], rows[1:]
+    problems = []
+    if header != list(output.columns):
+        problems.append(f"columns differ: FORMA {header} vs Python {list(output.columns)}")
+    if len(body) != len(output):
+        problems.append(f"row count differs: FORMA {len(body)} vs Python {len(output)}")
+    for r, (want, got) in enumerate(zip(body, output.itertuples(index=False, name=None))):
+        got_text = [to_text(v) or "" for v in got]
+        if want != got_text:
+            problems.append(f"row {r + 1}: FORMA {want} vs Python {got_text}")
+        if len(problems) > 10:
+            break
+    if problems:
+        print("Parity check FAILED:", *problems, sep="\\n  ", file=sys.stderr)
+        return False
+    print(f"Parity check passed: {len(output)} rows x {len(output.columns)} columns match FORMA exactly.", file=sys.stderr)
+    return True
+
+
 def load_config() -> dict:
     config = json.loads(json.dumps(CONFIG))
     config_file = HERE / "config.yaml"
@@ -550,6 +574,7 @@ def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description=${pyStr(spec.name)})
     parser.add_argument("--source", help="path to a compatible source file")
     parser.add_argument("--output", help="output file path (file destinations)")
+    parser.add_argument("--check", metavar="EXPECTED_CSV", help="compare the output with FORMA's exported output and exit")
     args = parser.parse_args(argv)
     config = load_config()
     if args.source:
@@ -557,6 +582,8 @@ def main(argv=None) -> None:
     if args.output:
         config["output"]["path"] = args.output
     output, review = run(config)
+    if args.check:
+        sys.exit(0 if check_parity(output, args.check) else 1)
     write_output(output, review, config)
 
 

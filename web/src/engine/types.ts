@@ -24,6 +24,10 @@ export interface SourceFile {
   size: number;
   addedAt: number;
   sheets: RawSheet[];
+  /** Original upload (kept immutable for download and parity checks); not persisted inline. */
+  raw?: Blob;
+  /** CSV delimiter detected on import. */
+  delimiter?: string;
 }
 
 export type SourceKind = "csv" | "excel" | "json" | "jsonl" | "text";
