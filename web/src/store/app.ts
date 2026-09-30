@@ -117,6 +117,7 @@ export function defaultSourceSpec(file: SourceFile, sheetName?: string): SourceS
     startCol: r.startCol,
     endCol: r.endCol,
     ...(file.kind === "csv" ? { csvDelimiter: file.delimiter ?? "," } : {}),
+    ...(file.origin ? { origin: file.origin } : {}),
   };
 }
 

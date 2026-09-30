@@ -456,6 +456,8 @@ def normalize_cell(v):
         return v.strftime("%H:%M:%S")
     if isinstance(v, str):
         return v if v != "" else None
+    if isinstance(v, Decimal):
+        return float(v)
     return v
 
 
@@ -482,8 +484,32 @@ def _records_to_grid(records) -> list[list]:
 
 
 def read_grid(src: dict) -> list[list]:
-    """Read the raw grid of cells (rows x columns) from the source file."""
-    path, kind = src["path"], src["type"]
+    """Read the raw grid of cells (rows x columns) from the source."""
+    kind = src["type"]
+    if kind == "database":
+        from sqlalchemy import create_engine, text as sql
+
+        url = os.environ.get(src["url_env"])
+        if not url:
+            raise SystemExit(f"Set the {src['url_env']} environment variable to the database URL.")
+        with create_engine(url).connect() as conn:
+            result = conn.execute(sql(src["query"]))
+            return [list(result.keys())] + [[normalize_cell(v) for v in row] for row in result]
+    if kind == "api":
+        import urllib.request
+
+        headers = {"Accept": "application/json, text/csv, */*", "User-Agent": "forma-pipeline"}
+        if src.get("token_env"):
+            headers["Authorization"] = "Bearer " + os.environ[src["token_env"]]
+        with urllib.request.urlopen(urllib.request.Request(src["url"], headers=headers), timeout=120) as resp:
+            body = resp.read().decode("utf-8-sig")
+        if src.get("format") == "csv":
+            return [[c if c != "" else None for c in row] for row in csv.reader(io.StringIO(body))]
+        data = json.loads(body)
+        if isinstance(data, dict):
+            data = next((v for v in data.values() if isinstance(v, list)), [data])
+        return _records_to_grid(data)
+    path = src["path"]
     if not os.path.isabs(path) and not os.path.exists(path):
         path = str(HERE / path)  # relative paths resolve next to pipeline.py
     if kind == "excel":

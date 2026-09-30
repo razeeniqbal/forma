@@ -400,7 +400,7 @@ function SourceInspector() {
       </div>
       <div className="kv">
         <div>Type</div>
-        <div>{{ excel: "Excel workbook", csv: "CSV", json: "JSON", jsonl: "JSON Lines", text: "Text" }[file.kind]}</div>
+        <div>{{ excel: "Excel workbook", csv: "CSV", json: "JSON", jsonl: "JSON Lines", text: "Text", database: "Database query", api: "API / URL" }[file.kind]}</div>
         {file.kind === "excel" && (
           <>
             <div>Sheets</div>

@@ -28,9 +28,16 @@ export interface SourceFile {
   raw?: Blob;
   /** CSV delimiter detected on import. */
   delimiter?: string;
+  /** Database / API sources: how to fetch the live data. */
+  origin?: SourceOrigin;
 }
 
-export type SourceKind = "csv" | "excel" | "json" | "jsonl" | "text";
+export type SourceKind = "csv" | "excel" | "json" | "jsonl" | "text" | "database" | "api";
+
+/** Where a server-fetched source comes from (the generated code re-reads it live). */
+export type SourceOrigin =
+  | { kind: "database"; urlEnv: string; query: string }
+  | { kind: "api"; url: string; format: "json" | "csv"; tokenEnv?: string };
 
 export interface SourceSpec {
   type: SourceKind;
@@ -42,8 +49,9 @@ export interface SourceSpec {
   /** 0-based inclusive column bounds of the data region. */
   startCol: number;
   endCol: number;
-  /** Rows to skip after the header before data (usually 0). */
   csvDelimiter?: string;
+  /** Database / API sources. */
+  origin?: SourceOrigin;
 }
 
 export type OutputType = "text" | "number" | "date";

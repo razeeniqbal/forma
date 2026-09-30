@@ -418,8 +418,13 @@ export function generateStep(step: Step, index: number): string {
 }
 
 function sourceConfig(s: SourceSpec) {
+  const o = s.origin;
   return {
-    path: s.file,
+    ...(o?.kind === "database"
+      ? { url_env: o.urlEnv, query: o.query }
+      : o?.kind === "api"
+        ? { url: o.url, format: o.format, ...(o.tokenEnv ? { token_env: o.tokenEnv } : {}) }
+        : { path: s.file }),
     type: s.type,
     ...(s.sheet ? { sheet: s.sheet } : {}),
     header_row: s.headerRow,
@@ -498,6 +503,7 @@ import os
 import re
 import sys
 from datetime import date, datetime, time
+from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
@@ -659,7 +665,8 @@ if __name__ == "__main__":
 export function generateRequirements(spec: PipelineSpec): string {
   const lines = ["pandas>=2.1", "numpy>=1.24", "pyyaml>=6.0"];
   if (spec.source?.type === "excel" || sideSteps(spec).some((s) => s.source.type === "excel") || spec.destination?.format === "xlsx") lines.push("openpyxl>=3.1");
-  if (spec.destination?.type === "database") lines.push("sqlalchemy>=2.0", "psycopg2-binary>=2.9");
+  const dbSource = spec.source?.type === "database" || sideSteps(spec).some((s) => s.source.type === "database");
+  if (spec.destination?.type === "database" || dbSource) lines.push("sqlalchemy>=2.0", "psycopg2-binary>=2.9");
   return lines.join("\n") + "\n";
 }
 
@@ -707,7 +714,7 @@ python pipeline.py                          # uses config.yaml
 python pipeline.py --source path/to/new.${spec.source?.type === "excel" ? "xlsx" : spec.source?.type ?? "csv"}   # rerun on a compatible file
 \`\`\`
 
-Place the source file (\`${spec.source?.file ?? "source"}\`)${sideSteps(spec).length ? ` and ${[...new Set(sideSteps(spec).map((s) => `\`${s.source.file}\``))].join(", ")}` : ""} next to \`pipeline.py\` or pass \`--source\`.
+${spec.source?.origin?.kind === "database" ? `The source is read live from the database in \`$${spec.source.origin.urlEnv}\` with the query in \`config.yaml\`.\n\n` : spec.source?.origin?.kind === "api" ? `The source is fetched live from \`${spec.source.origin.url}\`.\n\n` : ""}Place the source file (\`${spec.source?.file ?? "source"}\`)${sideSteps(spec).length ? ` and ${[...new Set(sideSteps(spec).map((s) => `\`${s.source.file}\``))].join(", ")}` : ""} next to \`pipeline.py\` or pass \`--source\`.
 
 ${
   out.type === "database"
