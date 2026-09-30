@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileUp, FolderOpen, FileText, Info, Database, Network, Sheet, Cloud, ChevronRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, FileUp, FolderOpen, FileText, Info, Database, Network, Sheet, Cloud, Loader2, Sparkles } from "lucide-react";
 import { useApp } from "@/store/app";
 import { ACCEPT, parseFile } from "@/parsers";
 import type { PresetId, SourceMeta } from "@/store/model";
@@ -152,15 +152,12 @@ export function CreatePipelinePage() {
                 { icon: <Cloud size={20} />, t: "Cloud storage", d: "S3, GCS, Azure Blob" },
               ].map((o) => (
                 <div key={o.t} className="option disabled" title="Planned connector">
-                  <div className="stat" style={{ padding: 0 }}>
-                    <div className="icon-wrap">{o.icon}</div>
-                  </div>
-                  <div className="grow">
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--blue-50)", color: "var(--blue)", display: "grid", placeItems: "center", flex: "none" }}>{o.icon}</div>
+                  <div className="grow" style={{ minWidth: 0 }}>
                     <div className="t">{o.t}</div>
                     <div className="d">{o.d}</div>
                   </div>
                   <span className="badge sm">Soon</span>
-                  <ChevronRight size={15} color="var(--subtle)" />
                 </div>
               ))}
             </div>

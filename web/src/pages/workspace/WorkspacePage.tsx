@@ -79,7 +79,8 @@ function Workspace() {
   const base: WorkspaceLayout =
     pipeline.preset === "custom" ? layouts.find((l) => l.id === pipeline.customLayoutId) ?? PRESETS.analyst : PRESETS[pipeline.preset];
   const layout = edit ?? base;
-  const setLayout = (l: WorkspaceLayout) => setEdit({ ...l, columns: l.columns.filter((c) => c.panels.length) });
+  const setLayout = (l: WorkspaceLayout) =>
+    setEdit({ ...l, columns: l.columns.filter((c) => c.panels.length).map((c) => (c.heights?.length === c.panels.length ? c : { ...c, heights: undefined })) });
   const present = new Set(layout.columns.flatMap((c) => c.panels));
 
   const hide = (pid: PanelId) => {
@@ -327,7 +328,7 @@ function Workspace() {
                           return (
                             <Fragment key={pid}>
                               {pi > 0 && <PanelResizeHandle className="resize-v" />}
-                              <Panel defaultSize={100 / col.panels.length} minSize={10}>
+                              <Panel defaultSize={col.heights?.length === col.panels.length ? col.heights[pi] : 100 / col.panels.length} minSize={10}>
                                 <C />
                               </Panel>
                             </Fragment>

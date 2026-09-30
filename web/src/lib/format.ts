@@ -10,7 +10,11 @@ export function fmtInt(n: number): string {
 
 export function fmtPct(part: number, total: number, digits = 1): string {
   if (!total) return "—";
-  return `${((part / total) * 100).toFixed(digits)}%`;
+  const f = Math.pow(10, digits);
+  let v = (part / total) * 100;
+  if (part < total) v = Math.min(v, 100 - 1 / f); // never round up to 100% while something failed
+  if (part > 0) v = Math.max(v, 1 / f); // never show 0% when something passed
+  return `${(Math.round(v * f) / f).toFixed(digits)}%`;
 }
 
 export function fmtDuration(ms: number): string {

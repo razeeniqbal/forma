@@ -63,7 +63,7 @@ export function ProfilePanel() {
                         <Bar value={ok / ev} />
                       </>
                     ) : (
-                      <span className="subtle small">No rules</span>
+                      <span className="subtle small" title="No validation rules on this column">—</span>
                     )}
                   </td>
                   <td>

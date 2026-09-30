@@ -144,7 +144,7 @@ function StepSummary({ index }: { index: number }) {
     <div className="col" style={{ gap: 12 }}>
       <div>
         <div className="row">
-          <span className="badge blue">{String(index + 1).padStart(2, "0")}</span>
+          <span className="badge blue">{String(index + 2).padStart(2, "0")}</span>
           <h2 style={{ fontSize: 16 }} className="grow">
             {stepTitle(step)}
           </h2>
@@ -160,7 +160,7 @@ function StepSummary({ index }: { index: number }) {
         <div>{stepColumns(step).join(", ") || "—"}</div>
         <div>Position</div>
         <div>
-          Step {index + 1} of {ws.spec.steps.length}
+          Step {index + 2} of {ws.spec.steps.length + 2} (after Source)
         </div>
         {res && (
           <>

@@ -150,8 +150,8 @@ export const useApp = create<AppState>((set, get) => ({
 
   toast(kind, message) {
     const id = newId("t");
-    set((s) => ({ toasts: [...s.toasts.slice(-3), { id, kind, message }] }));
-    setTimeout(() => get().dismissToast(id), kind === "error" ? 7000 : 3800);
+    set((s) => ({ toasts: [...s.toasts.slice(-2), { id, kind, message }] }));
+    setTimeout(() => get().dismissToast(id), kind === "error" ? 7000 : kind === "warning" ? 5000 : 2600);
   },
   dismissToast(id) {
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));

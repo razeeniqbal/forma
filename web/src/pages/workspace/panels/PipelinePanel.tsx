@@ -71,7 +71,7 @@ export function PipelinePanel() {
               onClick={() => !ws.draft && ws.setSel(i)}
               onDoubleClick={() => !ws.draft && ws.editStep(i)}
             >
-              <span className="n">{String(i + 1).padStart(2, "0")}</span>
+              <span className="n">{String(i + 2).padStart(2, "0")}</span>
               <div className="grow" style={{ minWidth: 0 }}>
                 <div className="t">
                   {stepTitle(s)} {isDraft && <span className="badge blue sm">{ws.draft?.isNew ? "Preview" : "Editing"}</span>}

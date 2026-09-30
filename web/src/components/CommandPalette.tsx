@@ -83,9 +83,9 @@ export function CommandPalette() {
     const base: PaletteAction[] = [
       { id: "nav-pipelines", group: "Navigate", title: "Pipelines", icon: <Workflow size={16} />, run: go("/pipelines") },
       { id: "nav-new", group: "Navigate", title: "New pipeline", icon: <Plus size={16} />, keywords: "create upload", run: go("/pipelines/new") },
-      { id: "nav-sources", group: "Navigate", title: "Sources", icon: <FolderInput size={16} />, run: go("/sources") },
-      { id: "nav-dest", group: "Navigate", title: "Destinations & connections", icon: <Database size={16} />, run: go("/destinations") },
-      { id: "nav-runs", group: "Navigate", title: "Run history", icon: <History size={16} />, run: go("/runs") },
+      { id: "nav-sources", group: "Navigate", title: "Sources", keywords: "files uploads", icon: <FolderInput size={16} />, run: go("/sources") },
+      { id: "nav-dest", group: "Navigate", title: "Destinations & connections", keywords: "database connection warehouse", icon: <Database size={16} />, run: go("/destinations") },
+      { id: "nav-runs", group: "Navigate", title: "Run history", keywords: "runs executions logs", icon: <History size={16} />, run: go("/runs") },
       { id: "nav-settings", group: "Navigate", title: "Settings", icon: <Settings size={16} />, run: go("/settings") },
     ];
     const pipes: PaletteAction[] = pipelines.map((p) => ({

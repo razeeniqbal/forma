@@ -69,7 +69,8 @@ export function BeforeAfterTable({ index, initialView = "changed" }: { index: nu
       return before.rows[bIdx.get(id)!][before.columns.indexOf(col.c)];
     };
     const widths = estimateWidths(cols.map((c) => c.c + "  after"), Math.min(ids.length, 60), get);
-    const gridCols: GridColumn[] = cols.map((c, k) => ({ name: c.side === "ctx" ? c.c : `${c.side === "before" ? "BEFORE" : "AFTER"} · ${c.c}`, width: widths[k] }));
+    const cap = (k: number) => Math.min(widths[k], cols[k].side === "ctx" ? 160 : cols[k].side === "before" ? 300 : 220);
+    const gridCols: GridColumn[] = cols.map((c, k) => ({ name: c.side === "ctx" ? c.c : `${c.side === "before" ? "BEFORE" : "AFTER"} · ${c.c}`, width: cap(k) }));
     return { ids, cols, get, gridCols, issueRows, bIdx, aIdx, removed: before.rows.length - after.rows.length };
   }, [step, before, after, view, ws]);
 

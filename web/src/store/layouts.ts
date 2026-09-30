@@ -25,8 +25,8 @@ export const PRESETS: Record<Exclude<PresetId, "custom">, WorkspaceLayout> = {
     builtIn: true,
     columns: [
       { panels: ["pipeline"], size: 17 },
-      { panels: ["preview", "beforeAfter"], size: 52 },
-      { panels: ["inspector", "profile"], size: 31 },
+      { panels: ["preview", "beforeAfter"], size: 52, heights: [58, 42] },
+      { panels: ["inspector", "profile"], size: 31, heights: [66, 34] },
     ],
   },
   extraction: {
@@ -34,7 +34,7 @@ export const PRESETS: Record<Exclude<PresetId, "custom">, WorkspaceLayout> = {
     name: "Extraction",
     builtIn: true,
     columns: [
-      { panels: ["source", "failedRows"], size: 56 },
+      { panels: ["source", "failedRows"], size: 56, heights: [62, 38] },
       { panels: ["inspector"], size: 44 },
     ],
   },
@@ -53,7 +53,7 @@ export const PRESETS: Record<Exclude<PresetId, "custom">, WorkspaceLayout> = {
     builtIn: true,
     columns: [
       { panels: ["pipeline"], size: 18 },
-      { panels: ["preview", "logs"], size: 44 },
+      { panels: ["preview", "logs"], size: 44, heights: [60, 40] },
       { panels: ["python"], size: 38 },
     ],
   },
@@ -79,5 +79,5 @@ export const PRESET_LABEL: Record<PresetId, string> = {
 };
 
 export function cloneLayout(l: WorkspaceLayout): WorkspaceLayout {
-  return { ...l, columns: l.columns.map((c) => ({ ...c, panels: c.panels.slice() })) };
+  return { ...l, columns: l.columns.map((c) => ({ ...c, panels: c.panels.slice(), heights: c.heights?.slice() })) };
 }

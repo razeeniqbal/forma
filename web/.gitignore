@@ -2,3 +2,4 @@ node_modules
 dist
 *.tsbuildinfo
 .parity-out
+e2e-shots

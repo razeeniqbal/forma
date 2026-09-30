@@ -96,10 +96,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
 
   useEffect(() => setPage(0), [tab, q, perPage]);
 
-  const original = (it: Item): string => {
-    const withText = it.issues.find((i) => typeof i.value === "string" && i.value.length > 14);
-    return String(withText?.value ?? it.issues[0].value ?? "(blank)");
-  };
+  const original = (it: Item): string => originalText(run, it);
   const valueOf = (row: number, col: string) => {
     const idx = run.columns.indexOf(col);
     return idx >= 0 ? run.reviewValues[row]?.[idx] ?? null : null;
@@ -347,7 +344,7 @@ function ReviewDetail({
   const [action, setAction] = useState<ReviewAction>("correct");
   const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(item.columns.map((c) => [c, valueOf(item.row, c) ?? ""])));
   const source = run.reviewSource[item.row] ?? [];
-  const textIssue = item.issues.find((i) => typeof i.value === "string");
+  const orig = originalText(run, item);
   const valid = action !== "correct" || item.columns.every((c) => (values[c] ?? "").trim() !== "");
   const existing = decisions[0];
 
@@ -369,12 +366,12 @@ function ReviewDetail({
         <div>
           <div className="row" style={{ marginBottom: 6 }}>
             <h4 className="grow">Original value · row {item.row}</h4>
-            <button className="btn ghost xs" onClick={() => copyText(String(textIssue?.value ?? ""))}>
+            <button className="btn ghost xs" onClick={() => copyText(orig)}>
               <Copy size={12} /> Copy
             </button>
           </div>
           <div className="card mono small" style={{ padding: 10, background: "var(--surface-2)", wordBreak: "break-word" }}>
-            {String(textIssue?.value ?? item.issues[0].value ?? "(blank)")}
+            {orig}
           </div>
           <details style={{ marginTop: 6 }}>
             <summary className="small muted" style={{ cursor: "pointer" }}>
@@ -476,6 +473,19 @@ function ReviewDetail({
       </div>
     </div>
   );
+}
+
+/** The source cell a flagged value came from (e.g. the Details text an invoice date was extracted from). */
+function originalText(run: Run, it: Item): string {
+  const src = run.reviewSource[it.row] ?? [];
+  for (const i of it.issues) {
+    const v = i.value === null ? null : String(i.value);
+    if (v === null) continue;
+    const hit = src.find((s) => s !== null && s.includes(v));
+    if (hit) return hit;
+  }
+  const v = it.issues[0].value;
+  return v === null ? "(blank)" : String(v);
 }
 
 function Option({ on, set, t, d }: { on: boolean; set: () => void; t: string; d: string }) {

@@ -66,7 +66,9 @@ export function suggestRules(ds: Dataset, column?: string): ValidationRule[] {
     if (p.completeness > 0.9) rules.push({ id: newId("r"), column: c, kind: "not_blank" });
     if (p.type === "number") rules.push({ id: newId("r"), column: c, kind: "gt", value: 0 });
     if (/^\d{4}-\d{2}-\d{2}$/.test(p.examples[0] ?? "")) rules.push({ id: newId("r"), column: c, kind: "valid_date" });
-    if (p.unique <= 6 && p.filled > 20 && p.type === "text") rules.push({ id: newId("r"), column: c, kind: "in_set", values: p.top.map((t) => t.value) });
+    const clean = p.top.filter((t) => t.value === t.value.trim() && t.count >= p.filled * 0.05);
+    if (p.type === "text" && p.filled > 20 && (p.unique <= 4 || /status|type|category|state|currency|country|stage/i.test(c)) && clean.length >= 2 && clean.length <= 8 && p.caseVariants === 0 && p.paddedText === 0)
+      rules.push({ id: newId("r"), column: c, kind: "in_set", values: clean.map((t) => t.value) });
     if (/^[A-Z]{2,5}-?\d+$/.test(p.examples[0] ?? "")) rules.push({ id: newId("r"), column: c, kind: "matches", pattern: "^[A-Z]{2,5}-?\\d+$", description: "Must match ID pattern" });
     if (p.uniqueness > 0.97 && p.filled > 20 && /id|no|number|code/i.test(c)) rules.push({ id: newId("r"), column: c, kind: "unique" });
   }

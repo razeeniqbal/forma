@@ -124,10 +124,10 @@ export function ExportPage() {
                       ["pipeline.json", "Pipeline specification"],
                       ["expected/forma_output.csv", "Parity reference"],
                     ].map(([f, d]) => (
-                      <div key={f} className="row" style={{ gap: 6 }}>
-                        <File size={12} color="var(--subtle)" />
-                        <span className="mono" style={{ width: 170 }}>{f}</span>
-                        <span className="muted">{d}</span>
+                      <div key={f} className="row" style={{ gap: 6 }} title={d}>
+                        <File size={12} color="var(--subtle)" style={{ flex: "none" }} />
+                        <span className="mono">{f}</span>
+                        <span className="muted tiny ellipsis">{d}</span>
                       </div>
                     ))}
                     {raw && spec.source && (
@@ -237,7 +237,7 @@ export function ExportPage() {
               <CodeView code={shown[tab]} />
             </div>
             <div className="small muted" style={{ padding: "8px 14px", borderTop: "1px solid var(--border)" }}>
-              {spec.steps.map((s, i) => `${String(i + 1).padStart(2, "0")} ${STAGE_OF[s.type]} — ${stepTitle(s)}`).join(" · ") || "No steps yet"}
+              {spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")} ${STAGE_OF[s.type]} — ${stepTitle(s)}`).join(" · ") || "No steps yet"}
             </div>
           </div>
 

@@ -15,7 +15,7 @@ import { SAMPLES, sampleCsv, sampleSheet } from "../helpers";
 import { toCsv } from "@/lib/exporters";
 
 const OUT = join(__dirname, "..", "..", ".parity-out");
-const PY = process.env.PYTHON ?? "python3";
+const PY = process.env.PYTHON ?? (process.platform === "win32" ? "python" : "python3");
 
 function runCase(name: string, spec: PipelineSpec, sheet: RawSheet, sourceFile: string, sourceText?: string) {
   const dir = join(OUT, name);

@@ -114,7 +114,7 @@ export interface WorkspaceLayout {
   id: string;
   name: string;
   /** Columns of stacked panels, with relative widths. */
-  columns: { panels: PanelId[]; size: number }[];
+  columns: { panels: PanelId[]; size: number; heights?: number[] }[];
   builtIn?: boolean;
 }
 
