@@ -1,0 +1,1002 @@
+No.,Customer,Details,Amount,Status,Remarks,Created At
+1,Evergreen Ltd,"Inv #INV-2231, Due 12/12/2026, Total RM 2,609",2609,Open,Follow up,08/12/2026
+2,Riverstone Sdn Bhd,"Inv #INV-2232, Due 22/10/2026, Total RM 10,975","RM 10,975.00",Paid,,20/10/2026
+3,Kinabalu Traders,"Inv #INV-2233, Due 01/12/2026, Total RM 3,708",3708,Open,Escalate,30/11/2026
+4,Orion Ventures,"Inv #INV-2234, Due 08/10/2026, Total RM 6,827",6827, paid ,Urgent payment,2026-10-04
+5,Zenith Foods,"Inv #INV-2235, Due 08/10/2026, Total RM 10,943",10943,Paid,Follow up,2026-10-06
+6,Melaka Marine,"Inv #INV-2236, Due 24/12/2026, Total RM 3,676","RM 3,676.00",Open,Urgent payment,2026-12-21
+7,Kinabalu Traders,"Inv #INV-2237, Due 10/11/2026, Total RM 3,534",3534,Open,,08/11/2026
+8,Kinabalu Traders,"Inv #INV-2238, Due 01/11/2026, Total RM 2,411",2411,Open,,31/10/2026
+9,Orion Ventures,"Inv #INV-2239, Due 21/10/2026, Total RM 5,468",5468,Open,,20/10/2026
+10,Selangor Steel,"Inv #INV-2240, Due 25/11/2026, Total RM 11,114",11114,Open,,20/11/2026
+11,Evergreen Ltd,"Inv #INV-2241, Due 14/11/2026, Total RM 9,978",9978,Open,Check PO,09/11/2026
+12,Kinabalu Traders,"Inv #INV-2242, Due 17/10/2026, Total RM 2,682","RM 2,682.00",Open,,16/10/2026
+13,  Pioneer Resources ,"Inv #INV-2243, Due 15/11/2026, Total RM 2,387",2387,Paid,,11/11/2026
+14,Delta Corp,"Inv #INV-2244, Due 04/10/2026, Total RM 3,492",3492,Open,Urgent payment,01/10/2026
+15,Horizon Systems,"Inv #INV-2245, Due 17/10/2026, Total RM 11,587",11587,Paid,Escalate,14/10/2026
+16,Terra Energy,"Inv #INV-2246, Due 02/12/2026, Total RM 11,504",11504,Open,,28/11/2026
+17,Acme Sdn Bhd,"Inv #INV-2247, Due 10/11/2026, Total RM 11,616",11616,Open,Urgent payment,09/11/2026
+18,Terra Energy,"Inv #INV-2248, Due 16/12/2026, Total RM 10,462",10462,Paid,,"Dec 14, 2026"
+19,Acme Sdn Bhd,"Inv #INV-2249, Due 28/11/2026, Total RM 5,428",5428,Paid,Escalate,26/11/2026
+20,Beta Trading,"Inv #INV-2250, Due 28/10/2026, Total RM 6,381",6381,Paid,Urgent payment,25/10/2026
+21,Unity Networks,"Inv #INV-2251, Due 26/12/2026, Total RM 7,957",7957,Open,Partial payment,"Dec 21, 2026"
+22,Wira Logistics,"Inv #INV-2252, Due 15/12/2026, Total RM 237",237,Paid,,11/12/2026
+23,Horizon Systems,"Inv #INV-2253, Due 03/11/2026, Total RM 2,273",2273, open ,,29/10/2026
+24,Delta Corp,"Inv #INV-2254, Due 04/10/2026, Total RM 3,774",3774,Open,Escalate,01/10/2026
+25,Beta Trading,"Inv #INV-2255, Due 04/11/2026, Total RM 2,607",2607,Open,Partial payment,02/11/2026
+26,Beta Trading,"Inv #INV-2256, Due 05/11/2026, Total RM 2,589",2589,Open,Check PO,"Nov 04, 2026"
+27,Unity Networks,"Inv #INV-2257, Due 21/10/2026, Total RM 2,848",2848,Open,,20/10/2026
+28,Delta Corp,"Inv #INV-2258, Due 04/10/2026, Total RM 657",657, paid ,Partial payment,02/10/2026
+29,Terra Energy,"Inv #INV-2259, Due 06/11/2026, Total RM 9,717",9717,Open,,05/11/2026
+30,Selangor Steel,"Inv #INV-2260, Due 04/12/2026, Total RM 10,572",10572,Open,,03/12/2026
+31,Quantum Dynamics,"Inv #INV-2261, Due 21/10/2026, Total RM 6,210","RM 6,210.00",Paid,,20/10/2026
+32,Pioneer Resources,"Inv #INV-2262, Due 11/12/2026, Total RM 7,067",7067, open ,Follow up,2026-12-07
+33,Selangor Steel,"Inv #INV-2263, Due 20/10/2026, Total RM 8,567",8567,Paid,Check PO,17/10/2026
+34,Vertex Industries,"Inv #INV-2264, Due 14/12/2026, Total RM 6,236",6236,Open,Escalate,11/12/2026
+35,Zenith Foods,"Inv #INV-2265, Due 16/10/2026, Total RM 10,004",10004,Open,Follow up,11/10/2026
+36,Orion Ventures,"Inv #INV-2266, Due 20/12/2026, Total RM 2,285",2285, open ,,18/12/2026
+37,Terra Energy,"Inv #INV-2267, Due 07/11/2026, Total RM 10,488",10488,Open,Check PO,04/11/2026
+38,Orion Ventures,"Inv #INV-2268, Due 23/12/2026, Total RM 11,032",11032,Paid,Check PO,"Dec 19, 2026"
+39,Summit Global,"Inv #INV-2269, Due 15/10/2026, Total RM 512",512,Paid,Partial payment,12/10/2026
+40,Zenith Foods,"Inv #INV-2270, Due 26/11/2026, Total RM 12,183",12183,Open,Follow up,22/11/2026
+41,Unity Networks,"Inv #INV-2271, Due 15/10/2026, Total RM 8,751","RM 8,751.00", paid ,Urgent payment,10/10/2026
+42,Beta Trading,"Inv #INV-2272, Due 11/11/2026, Total RM 11,174",11174,Paid,Urgent payment,10/11/2026
+43,Unity Networks,"Inv #INV-2273, Due 07/10/2026, Total RM 1,372",1372,Open,Partial payment,05/10/2026
+44,Summit Global,"Inv #INV-2274, Due 09/12/2026, Total RM 1,392",1392, paid ,Urgent payment,07/12/2026
+45,Vertex Industries,"Inv #INV-2275, Due 26/10/2026, Total RM 3,447",3447,Open,,23/10/2026
+46,Wira Logistics,"Inv #INV-2276, Due 02/10/2026, Total RM 3,472","RM 3,472.00",Open,Partial payment,30/09/2026
+47,Quantum Dynamics,"Inv #INV-2277, Due 08/12/2026, Total RM 2,731",2731,Open,,04/12/2026
+48,Melaka Marine,"Inv #INV-2278, Due 15/10/2026, Total RM 4,761",4761,Open,Escalate,11/10/2026
+49,  Zenith Foods ,"Inv #INV-2279, Due 02/10/2026, Total RM 5,686",5686,Paid,Partial payment,2026-09-27
+50,Beta Trading,"Inv #INV-2280, Due 18/10/2026, Total RM 1,825","RM 1,825.00",Open,Escalate,"Oct 13, 2026"
+51,Melaka Marine,"Inv #INV-2281, Due 05/10/2026, Total RM 5,233",5233,Open,Urgent payment,30/09/2026
+52,Nexus Solutions,"Inv #INV-2282, Due 16/11/2026, Total RM 3,950",3950,Paid,,2026-11-13
+53,Summit Global,"Inv #INV-2283, Due 03/11/2026, Total RM 3,614",3614, open ,,2026-11-02
+54,  Unity Networks ,"Inv #INV-2284, Due 21/11/2026, Total RM 3,717",3717,Open,Follow up,18/11/2026
+55,Kinabalu Traders,"Inv #INV-2285, Due 14/11/2026, Total RM 9,606",9606,Paid,,2026-11-13
+56,Riverstone Sdn Bhd,"Inv #INV-2286, Due 05/10/2026, Total RM 5,708",5708,Open,,04/10/2026
+57,Acme Sdn Bhd,"Inv #INV-2287, Due 04/12/2026, Total RM 5,314",5314,Open,,"Dec 01, 2026"
+58,Delta Corp,"Inv #INV-2288, Due 09/12/2026, Total RM 5,905","RM 5,905.00",Open,,06/12/2026
+59,Selangor Steel,"Inv #INV-2289, Due 07/11/2026, Total RM 8,387",8387,Open,Urgent payment,05/11/2026
+60,Wira Logistics,"Inv #INV-2290, Due 07/11/2026, Total RM 9,724",9724,Open,Check PO,02/11/2026
+61,Beta Trading,"Inv #INV-2291, Due 28/11/2026, Total RM 291",291,Paid,Check PO,26/11/2026
+62,Global Tech,"Inv #INV-2292, Due 08/12/2026, Total RM 355",355,Paid,,04/12/2026
+63,Vertex Industries,"Inv #INV-2293, Due 20/11/2026, Total RM 943",943,Open,,18/11/2026
+64,Quantum Dynamics,"Inv #INV-2294, Due 01/10/2026, Total RM 9,569",9569,Paid,Escalate,2026-09-30
+65,Zenith Foods,"Inv #INV-2295, Due 09/11/2026, Total RM 10,739",10739,Paid,,05/11/2026
+66,Zenith Foods,"Inv #INV-2296, Due 19/12/2026, Total RM 10,927",10927, open ,,17/12/2026
+67,Wira Logistics,"Inv #INV-2297, Due 18/12/2026, Total RM 1,548",1548,Open,Check PO,"Dec 14, 2026"
+68,Delta Corp,"Inv #INV-2298, Due 19/10/2026, Total RM 9,638",9638,Open,Escalate,17/10/2026
+69,Terra Energy,"Inv #INV-2299, Due 23/11/2026, Total RM 12,212",12212,Paid,Follow up,20/11/2026
+70,Pioneer Resources,"Inv #INV-2300, Due 20/12/2026, Total RM 8,219",8219,Open,,16/12/2026
+71,Beta Trading,"Inv #INV-2301, Due 08/12/2026, Total RM 9,219",9219,Open,Partial payment,2026-12-07
+72,Wira Logistics,"Inv #INV-2302, Due 15/11/2026, Total RM 7,163",7163,Open,,13/11/2026
+73,Summit Global,"Inv #INV-2303, Due 12/12/2026, Total RM 2,671",2671,Open,,07/12/2026
+74,Beta Trading,"Inv #INV-2304, Due 01/12/2026, Total RM 7,525",7525,Paid,,29/11/2026
+75,Melaka Marine,"Inv #INV-2305, Due 09/12/2026, Total RM 11,957",11957,Open,,07/12/2026
+76,Global Tech,"Inv #INV-2306, Due 26/12/2026, Total RM 8,779",8779,Open,Partial payment,"Dec 23, 2026"
+77,Summit Global,"Inv #INV-2307, Due 05/10/2026, Total RM 9,613",9613,Paid,Follow up,03/10/2026
+78,  Nexus Solutions ,"Inv #INV-2308, Due 26/11/2026, Total RM 3,796",3796,Paid,Escalate,23/11/2026
+79,Melaka Marine,"Inv #INV-2309, Due 14/12/2026, Total RM 10,473",10473,Open,Escalate,2026-12-13
+80,Zenith Foods,"Inv #INV-2310, Due 27/11/2026, Total RM 8,416",8416,Open,,25/11/2026
+81,Acme Sdn Bhd,"Inv #INV-2311, Due 02/10/2026, Total RM 10,912",10912,Open,,2026-09-27
+82,Orion Ventures,"Inv #INV-2312, Due 25/12/2026, Total RM 2,618",2618,Open,,2026-12-22
+83,  Summit Global ,"Inv #INV-2313, Due 26/11/2026, Total RM 11,884",11884,Open,,2026-11-25
+84,Summit Global,"Inv #INV-2314, Due 14/11/2026, Total RM 4,676",4676,Paid,Urgent payment,09/11/2026
+85,Horizon Systems,"Inv #INV-2315, Due 22/12/2026, Total RM 2,757",2757,Open,Partial payment,20/12/2026
+86,Global Tech,"Inv #INV-2316, Due 25/10/2026, Total RM 7,716",7716,Open,Follow up,2026-10-20
+87,Summit Global,"Inv #INV-2317, Due 17/11/2026, Total RM 4,337",4337,Paid,Urgent payment,16/11/2026
+88,Global Tech,"Inv #INV-2318, Due 23/10/2026, Total RM 12,363",12363,Open,,19/10/2026
+89,Nexus Solutions,"Inv #INV-2319, Due 25/11/2026, Total RM 11,188",11188,Open,Urgent payment,21/11/2026
+90,Nexus Solutions,"Inv #INV-2320, Due 27/10/2026, Total RM 7,884",7884,Open,,25/10/2026
+91,Nexus Solutions,"Inv #INV-2321, Due 21/11/2026, Total RM 5,447",5447,Paid,Follow up,2026-11-19
+92,Zenith Foods,"Inv #INV-2322, Due 25/10/2026, Total RM 220",220,Open,,22/10/2026
+93,Wira Logistics,"Inv #INV-2323, Due 17/12/2026, Total RM 5,226",5226,Paid,,2026-12-16
+94,  Delta Corp ,"Inv #INV-2324, Due 20/11/2026, Total RM 818",818,Open,,19/11/2026
+95,Nexus Solutions,"Inv #INV-2325, Due 07/11/2026, Total RM 12,322",12322,Open,,05/11/2026
+96,Nexus Solutions,"Inv #INV-2326, Due 25/12/2026, Total RM 853",853,Open,,22/12/2026
+97,Zenith Foods,"Inv #INV-2327, Due 27/10/2026, Total RM 6,803",6803,Paid,Escalate,25/10/2026
+98,Unity Networks,"Inv #INV-2328, Due 14/12/2026, Total RM 4,644","RM 4,644.00",Open,Escalate,"Dec 11, 2026"
+99,Riverstone Sdn Bhd,"Inv #INV-2329, Due 06/12/2026, Total RM 800",800,Paid,,2026-12-04
+100,Summit Global,"Inv #INV-2330, Due 16/11/2026, Total RM 11,566",11566,Paid,,11/11/2026
+101,Evergreen Ltd,"Inv #INV-2331, Due 11/11/2026, Total RM 3,892",3892,Open,Escalate,09/11/2026
+102,Acme Sdn Bhd,"Inv #INV-2332, Due 02/11/2026, Total RM 7,953",7953,Paid,,31/10/2026
+103,Acme Sdn Bhd,"Inv #INV-2333, Due 07/12/2026, Total RM 10,776",10776,Open,,03/12/2026
+104,Unity Networks,"Inv #INV-2334, Due 23/11/2026, Total RM 5,894","RM 5,894.00",Paid,Escalate,21/11/2026
+105,Beta Trading,"Inv #INV-2335, Due 03/10/2026, Total RM 11,243","RM 11,243.00",Open,,02/10/2026
+106,Beta Trading,"Inv #INV-2336, Due 01/11/2026, Total RM 5,929",5929,Paid,,27/10/2026
+107,Evergreen Ltd,"Inv #INV-2337, Due 28/12/2026, Total RM 10,135",10135,Open,,27/12/2026
+108,Melaka Marine,"Inv #INV-2338, Due 28/12/2026, Total RM 6,630",6630,Paid,,2026-12-25
+109,Global Tech,"Inv #INV-2339, Due 15/12/2026, Total RM 8,109",8109,Open,Escalate,10/12/2026
+110,Acme Sdn Bhd,"Inv #INV-2340, Due 03/12/2026, Total RM 11,882",11882,Paid,Escalate,02/12/2026
+111,Orion Ventures,"Inv #INV-2341, Due 16/10/2026, Total RM 4,683",4683,Open,Urgent payment,11/10/2026
+112,  Unity Networks ,"Inv #INV-2342, Due 09/11/2026, Total RM 11,258",11258,Paid,,04/11/2026
+113,Melaka Marine,"Inv #INV-2343, Due 23/10/2026, Total RM 11,282",11282,Open,Check PO,19/10/2026
+114,Nexus Solutions,"Inv #INV-2344, Due 20/10/2026, Total RM 7,281",7281,Open,,18/10/2026
+115,Beta Trading,"Inv #INV-2345, Due 27/12/2026, Total RM 477",477,Paid,Urgent payment,"Dec 25, 2026"
+116,Orion Ventures,"Inv #INV-2346, Due 14/10/2026, Total RM 3,487",3487,Open,,09/10/2026
+117,  Kinabalu Traders ,"Inv #INV-2347, Due 04/12/2026, Total RM 519",519,Open,Escalate,29/11/2026
+118,Terra Energy,"Inv #INV-2348, Due 09/10/2026, Total RM 2,479",2479,Paid,Escalate,05/10/2026
+119,Vertex Industries,"Inv #INV-2349, Due 14/12/2026, Total RM 3,060",3060,Paid,,09/12/2026
+120,Orion Ventures,"Inv #INV-2350, Due 27/11/2026, Total RM 1,677",1677,Open,Escalate,2026-11-24
+121,Delta Corp,"Inv #INV-2351, Due 08/11/2026, Total RM 3,879",3879,Open,Follow up,03/11/2026
+122,Summit Global,"Inv #INV-2352, Due 01/12/2026, Total RM 11,353",11353, open ,Check PO,26/11/2026
+123,Selangor Steel,"Inv #INV-2353, Due 16/10/2026, Total RM 8,729",8729,Paid,Partial payment,14/10/2026
+124,Orion Ventures,"Inv #INV-2354, Due 19/11/2026, Total RM 7,454",7454,Open,Urgent payment,15/11/2026
+125,Summit Global,"Inv #INV-2355, Due 22/12/2026, Total RM 3,818",3818,Open,,17/12/2026
+126,Selangor Steel,"Inv #INV-2356, Due 22/12/2026, Total RM 6,325",6325,Open,,21/12/2026
+127,Melaka Marine,"Inv #INV-2357, Due 22/11/2026, Total RM 509",509,Open,,2026-11-19
+128,Delta Corp,"Inv #INV-2358, Due 25/10/2026, Total RM 10,912",10912,Paid,,20/10/2026
+129,Beta Trading,"Inv #INV-2359, Due 19/11/2026, Total RM 11,235",11235,Open,,2026-11-15
+130,Kinabalu Traders,"Inv #INV-2360, Due 11/12/2026, Total RM 1,514",1514,Paid,Partial payment,"Dec 09, 2026"
+131,Zenith Foods,"Inv #INV-2361, Due 19/12/2026, Total RM 8,437",8437,Paid,,15/12/2026
+132,Orion Ventures,"Inv #INV-2362, Due 12/10/2026, Total RM 1,686",1686,Paid,Partial payment,2026-10-09
+133,Vertex Industries,"Inv #INV-2363, Due 27/11/2026, Total RM 5,164",5164,Paid,Escalate,24/11/2026
+134,Melaka Marine,"Inv #INV-2364, Due 18/12/2026, Total RM 8,557",8557,Paid,Partial payment,17/12/2026
+135,Global Tech,"Inv #INV-2365, Due 15/12/2026, Total RM 1,137",1137,Open,Follow up,2026-12-11
+136,Kinabalu Traders,"Inv #INV-2366, Due 08/12/2026, Total RM 9,998",9998, paid ,,2026-12-06
+137,Acme Sdn Bhd,"Inv #INV-2367, Due 21/10/2026, Total RM 11,608","RM 11,608.00",Paid,,19/10/2026
+138,Orion Ventures,"Inv #INV-2368, Due 08/12/2026, Total RM 12,490",12490,Paid,Urgent payment,"Dec 07, 2026"
+139,Unity Networks,"Inv #INV-2369, Due 04/12/2026, Total RM 10,217",10217,Paid,,29/11/2026
+140,Selangor Steel,"Inv #INV-2370, Due 03/12/2026, Total RM 8,597","RM 8,597.00",Open,,28/11/2026
+141,Wira Logistics,"Inv #INV-2371, Due 16/11/2026, Total RM 4,098",4098,Open,Escalate,2026-11-11
+142,Summit Global,"Inv INV2372 - payable 31/13/2026 - RM3,220",7349,Paid,,2026-12-04
+143,Unity Networks,"Inv #INV-2373, Due 10/12/2026, Total RM 12,427",12427,Paid,,07/12/2026
+144,Kinabalu Traders,"Inv #INV-2374, Due 19/10/2026, Total RM 1,372",1372,Paid,,17/10/2026
+145,Riverstone Sdn Bhd,"Inv #INV-2375, Due 13/11/2026, Total RM 650",650,Open,Check PO,2026-11-10
+146,Beta Trading,"Inv #INV-2376, Due 23/12/2026, Total RM 273",273,Open,Escalate,19/12/2026
+147,Evergreen Ltd,"Inv #INV-2377, Due 14/11/2026, Total RM 4,420",4420,Open,Escalate,09/11/2026
+148,Horizon Systems,"Inv #INV-2378, Due 08/11/2026, Total RM 5,829",5829,Paid,,2026-11-07
+149,Beta Trading,"Inv #INV-2379, Due 22/10/2026, Total RM 11,373","RM 11,373.00",Paid,Urgent payment,2026-10-18
+150,Global Tech,"Inv #INV-2380, Due 17/10/2026, Total RM 3,307","RM 3,307.00",Paid,,15/10/2026
+151,Terra Energy,"Inv #INV-2381, Due 03/12/2026, Total RM 6,662",6662, open ,Escalate,30/11/2026
+152,Delta Corp,"Inv #INV-2382, Due 06/11/2026, Total RM 11,849",11849,Paid,,03/11/2026
+153,Zenith Foods,"Inv #INV-2383, Due 27/10/2026, Total RM 4,293",4293,Paid,Check PO,2026-10-23
+154,Riverstone Sdn Bhd,"Inv #INV-2384, Due 17/10/2026, Total RM 6,302",6302,Paid,,2026-10-15
+155,Evergreen Ltd,"Inv #INV-2385, Due 11/12/2026, Total RM 4,830",4830,Open,Partial payment,08/12/2026
+156,Zenith Foods,"Inv #INV-2386, Due 21/12/2026, Total RM 12,455",12455,Open,Follow up,18/12/2026
+157,Quantum Dynamics,"Inv #INV-2387, Due 02/10/2026, Total RM 3,774",3774,Open,,01/10/2026
+158,Melaka Marine,"Inv #INV-2388, Due 24/11/2026, Total RM 1,427",1427,Paid,Partial payment,"Nov 20, 2026"
+159,Vertex Industries,"Inv #INV-2389, Due 04/12/2026, Total RM 7,903",7903,Paid,Escalate,30/11/2026
+160,Terra Energy,"Inv #INV-2390, Due 25/10/2026, Total RM 11,256",11256,Open,,23/10/2026
+161,Vertex Industries,"Inv #INV-2391, Due 22/10/2026, Total RM 721",721,Open,Escalate,17/10/2026
+162,Orion Ventures,"Inv #INV-2392, Due 19/10/2026, Total RM 5,135",5135,Paid,Follow up,2026-10-15
+163,Vertex Industries,"Inv #INV-2393, Due 04/10/2026, Total RM 10,174",10174,Open,Escalate,2026-10-02
+164,Delta Corp,"Inv #INV-2394, Due 02/11/2026, Total RM 7,172",7172,Paid,,01/11/2026
+165,Melaka Marine,"Inv #INV-2395, Due 09/12/2026, Total RM 11,093",11093,Open,,08/12/2026
+166,Delta Corp,"Inv #INV-2396, Due 06/12/2026, Total RM 11,358",11358, open ,,04/12/2026
+167,Pioneer Resources,"Inv #INV-2397, Due 05/10/2026, Total RM 5,462",5462,Paid,,02/10/2026
+168,Acme Sdn Bhd,"Inv #INV-2398, Due 09/12/2026, Total RM 6,733",6733,Open,Check PO,"Dec 05, 2026"
+169,Vertex Industries,"Inv #INV-2399, Due 27/12/2026, Total RM 8,624",8624,Paid,Partial payment,2026-12-24
+170,Melaka Marine,"Inv #INV-2400, Due 04/12/2026, Total RM 7,604",7604,Paid,Partial payment,01/12/2026
+171,Pioneer Resources,"Inv #INV-2401, Due 16/11/2026, Total RM 10,177",10177, open ,Escalate,11/11/2026
+172,Unity Networks,"Inv #INV-2402, Due 03/12/2026, Total RM 10,747",10747,Paid,,2026-12-01
+173,Delta Corp,"Inv #INV-2403, Due 20/12/2026, Total RM 9,493",9493, open ,,17/12/2026
+174,Vertex Industries,"Inv #INV-2404, Due 10/12/2026, Total RM 3,722",3722,Open,,2026-12-08
+175,Selangor Steel,"Inv #INV-2405, Due 10/12/2026, Total RM 10,936",10936,Paid,Follow up,07/12/2026
+176,Wira Logistics,"Inv #INV-2406, Due 13/10/2026, Total RM 2,999",2999,Open,,2026-10-11
+177,Horizon Systems,"Inv #INV-2407, Due 22/10/2026, Total RM 10,648",10648,Open,,2026-10-21
+178,  Melaka Marine ,"Inv #INV-2408, Due 04/10/2026, Total RM 7,664",7664,Paid,Escalate,01/10/2026
+179,Vertex Industries,"Inv #INV-2409, Due 23/12/2026, Total RM 1,776",1776,Open,Follow up,"Dec 22, 2026"
+180,Terra Energy,"Inv #INV-2410, Due 08/10/2026, Total RM 6,857",6857,Paid,Check PO,04/10/2026
+181,Quantum Dynamics,"Inv #INV-2411, Due 08/11/2026, Total RM 2,296",2296,Open,Escalate,"Nov 04, 2026"
+182,Acme Sdn Bhd,"Inv #INV-2412, Due 16/10/2026, Total RM 830",830,Open,,11/10/2026
+183,Riverstone Sdn Bhd,"Inv #INV-2413, Due 14/12/2026, Total RM 4,768",4768,Open,,"Dec 10, 2026"
+184,Selangor Steel,"Inv #INV-2414, Due 24/10/2026, Total RM 2,646",2646,Open,Follow up,2026-10-20
+185,Nexus Solutions,"Inv #INV-2415, Due 17/10/2026, Total RM 1,484",1484,Paid,Check PO,13/10/2026
+186,Delta Corp,"Inv #INV-2416, Due 24/11/2026, Total RM 6,835",6835,Paid,Escalate,"Nov 22, 2026"
+187,Summit Global,"Inv #INV-2417, Due 23/11/2026, Total RM 1,165",1165,Paid,,22/11/2026
+188,Unity Networks,"Inv #INV-2418, Due 17/11/2026, Total RM 11,081",11081,Open,Partial payment,14/11/2026
+189,Nexus Solutions,"Inv #INV-2419, Due 11/11/2026, Total RM 303",303,Open,Urgent payment,09/11/2026
+190,Zenith Foods,"Inv #INV-2420, Due 09/11/2026, Total RM 4,862",4862,Paid,Check PO,2026-11-06
+191,Zenith Foods,"Inv #INV-2421, Due 13/11/2026, Total RM 7,545",7545,Paid,Escalate,2026-11-09
+192,Horizon Systems,"Inv #INV-2422, Due 17/10/2026, Total RM 11,133",11133,Paid,Partial payment,13/10/2026
+193,Wira Logistics,"Inv #INV-2423, Due 15/12/2026, Total RM 10,416",10416,Open,Partial payment,14/12/2026
+194,Terra Energy,"Inv #INV-2424, Due 06/12/2026, Total RM 8,846",8846,Open,Urgent payment,05/12/2026
+195,Global Tech,"Inv #INV-2425, Due 04/11/2026, Total RM 7,395",7395,Paid,,31/10/2026
+196,Melaka Marine,"Inv #INV-2426, Due 12/11/2026, Total RM 6,919",6919,Open,Check PO,07/11/2026
+197,Unity Networks,"Inv #INV-2427, Due 25/10/2026, Total RM 6,929",6929,Open,Follow up,"Oct 22, 2026"
+198,  Beta Trading ,"Inv #INV-2428, Due 21/10/2026, Total RM 11,350",11350,Open,,2026-10-19
+199,Zenith Foods,"Inv #INV-2429, Due 19/12/2026, Total RM 5,691",5691,Paid,,17/12/2026
+200,Horizon Systems,"Inv #INV-2430, Due 27/10/2026, Total RM 8,472",8472,Open,,23/10/2026
+201,Vertex Industries,"Inv #INV-2431, Due 12/10/2026, Total RM 7,582",7582,Paid,Escalate,08/10/2026
+202,Delta Corp,"Inv #INV-2432, Due 03/11/2026, Total RM 1,251",1251,Paid,Follow up,29/10/2026
+203,Evergreen Ltd,"Inv #INV-2433, Due 24/10/2026, Total RM 9,678",9678,Open,,21/10/2026
+204,Summit Global,"Inv #INV-2434, Due 14/11/2026, Total RM 232",232,Open,,13/11/2026
+205,Evergreen Ltd,"Inv #INV-2435, Due 28/11/2026, Total RM 4,323",4323,Open,,25/11/2026
+206,Beta Trading,"Inv #INV-2436, Due 05/11/2026, Total RM 6,021",6021, open ,,"Oct 31, 2026"
+207,Horizon Systems,"Inv #INV-2437, Due 25/11/2026, Total RM 3,211",3211,Open,Partial payment,"Nov 21, 2026"
+208,Nexus Solutions,"Inv #INV-2438, Due 01/11/2026, Total RM 1,510",1510,Paid,Partial payment,2026-10-28
+209,  Kinabalu Traders ,"Inv #INV-2439, Due 08/11/2026, Total RM 2,966",2966,PAID,,05/11/2026
+210,Acme Sdn Bhd,"Inv #INV-2440, Due 21/11/2026, Total RM 331",331,Paid,Follow up,16/11/2026
+211,Terra Energy,"Inv #INV-2441, Due 16/12/2026, Total RM 10,855",10855,Paid,,"Dec 12, 2026"
+212,Selangor Steel,"Inv #INV-2442, Due 28/12/2026, Total RM 12,054",12054,Open,Urgent payment,"Dec 25, 2026"
+213,Pioneer Resources,"Inv #INV-2443, Due 11/10/2026, Total RM 3,286","RM 3,286.00",Open,,2026-10-09
+214,Nexus Solutions,"Inv #INV-2444, Due 26/12/2026, Total RM 12,258",12258,Open,Partial payment,25/12/2026
+215,Zenith Foods,"Inv #INV-2445, Due 26/12/2026, Total RM 4,032",4032,Paid,,24/12/2026
+216,Summit Global,"Inv #INV-2446, Due 04/12/2026, Total RM 9,793",9793,Open,,2026-12-01
+217,Pioneer Resources,"Inv #INV-2447, Due 09/12/2026, Total RM 8,580",8580,Paid,Urgent payment,04/12/2026
+218,Terra Energy,"Inv #INV-2448, Due 05/12/2026, Total RM 8,419",8419,Open,,02/12/2026
+219,Acme Sdn Bhd,"Inv #INV-2449, Due 08/12/2026, Total RM 1,496",1496,Paid,Partial payment,05/12/2026
+220,Terra Energy,"Inv #INV-2450, Due 15/12/2026, Total RM 12,257",12257,Open,,11/12/2026
+221,Melaka Marine,"Inv #INV-2451, Due 19/11/2026, Total RM 5,320",5320,Open,Follow up,18/11/2026
+222,Evergreen Ltd,"Inv #INV-2452, Due 06/10/2026, Total RM 1,258",1258,Paid,,05/10/2026
+223,Evergreen Ltd,"Inv #INV-2453, Due 07/11/2026, Total RM 1,063",1063, open ,Urgent payment,02/11/2026
+224,Unity Networks,"Inv #INV-2454, Due 19/10/2026, Total RM 4,484",4484,Paid,Follow up,2026-10-14
+225,Kinabalu Traders,"Inv #INV-2455, Due 25/10/2026, Total RM 10,493",10493,Open,Check PO,23/10/2026
+226,Wira Logistics,"Inv #INV-2456, Due 06/10/2026, Total RM 1,669",1669,OPEN,Check PO,04/10/2026
+227,Evergreen Ltd,"Inv #INV-2457, Due 03/11/2026, Total RM 9,264",9264,Open,Partial payment,"Oct 31, 2026"
+228,Horizon Systems,"Inv #INV-2458, Due 23/11/2026, Total RM 4,721",4721, paid ,,21/11/2026
+229,Acme Sdn Bhd,"Inv #INV-2459, Due 06/12/2026, Total RM 9,274",9274,Open,Partial payment,05/12/2026
+230,  Selangor Steel ,"Inv #INV-2460, Due 27/11/2026, Total RM 2,372",2372,Paid,,22/11/2026
+231,Wira Logistics,"Inv #INV-2461, Due 01/11/2026, Total RM 3,391",3391,Open,Follow up,29/10/2026
+232,Zenith Foods,"Inv #INV-2462, Due 24/10/2026, Total RM 3,408",3408,Paid,Escalate,2026-10-19
+233,,"Inv #INV-2463, Due 24/10/2026, Total RM 3,949",3949,Open,Follow up,"Oct 22, 2026"
+234,Terra Energy,"Inv #INV-2464, Due 06/12/2026, Total RM 10,296",10296,Open,,03/12/2026
+235,Horizon Systems,"Inv #INV-2465, Due 15/11/2026, Total RM 9,583","RM 9,583.00",Open,,14/11/2026
+236,Melaka Marine,"Inv #INV-2466, Due 26/10/2026, Total RM 7,980",7980, open ,Urgent payment,24/10/2026
+237,Zenith Foods,"Inv #INV-2467, Due 16/10/2026, Total RM 4,199",4199,Open,Partial payment,2026-10-15
+238,Acme Sdn Bhd,"Inv #INV-2468, Due 03/12/2026, Total RM 12,363",12363,Open,,2026-11-30
+239,Beta Trading,"Inv #INV-2469, Due 07/10/2026, Total RM 10,265","RM 10,265.00",PAID,,04/10/2026
+240,Nexus Solutions,"Inv #INV-2470, Due 25/12/2026, Total RM 7,202",7202,PAID,,20/12/2026
+241,Zenith Foods,"Inv #INV-2471, Due 23/10/2026, Total RM 7,341",7341,Open,Follow up,22/10/2026
+242,Global Tech,"Inv #INV-2472, Due 21/11/2026, Total RM 8,113",8113,Open,Urgent payment,"Nov 18, 2026"
+243,Melaka Marine,"Inv #INV-2473, Due 05/10/2026, Total RM 2,035",2035,Open,,2026-09-30
+244,Global Tech,"Inv #INV-2474, Due 03/11/2026, Total RM 9,433",9433,Open,Check PO,29/10/2026
+245,Melaka Marine,"Inv #INV-2475, Due 06/12/2026, Total RM 431",431,Paid,,03/12/2026
+246,Riverstone Sdn Bhd,"Inv #INV-2476, Due 19/10/2026, Total RM 10,439",10439,Open,Check PO,14/10/2026
+247,Melaka Marine,"Inv #INV-2477, Due 05/10/2026, Total RM 6,140",6140,Open,,01/10/2026
+248,Melaka Marine,"Inv #INV-2478, Due 03/11/2026, Total RM 9,174",9174,Open,Escalate,31/10/2026
+249,  Horizon Systems ,"Inv #INV-2479, Due 04/10/2026, Total RM 3,753",3753,Paid,,2026-10-01
+250,Melaka Marine,"Inv #INV-2480, Due 02/11/2026, Total RM 6,268",6268,OPEN,Check PO,2026-10-30
+251,Beta Trading,"Inv #INV-2481, Due 05/11/2026, Total RM 1,476",1476,Open,,2026-10-31
+252,Vertex Industries,"Inv #INV-2482, Due 13/11/2026, Total RM 6,452",6452,Open,Escalate,"Nov 08, 2026"
+253,Beta Trading,"Inv #INV-2483, Due 07/11/2026, Total RM 9,974",9974,Paid,,2026-11-06
+254,Nexus Solutions,"Inv #INV-2484, Due 03/12/2026, Total RM 5,463",5463,Paid,,30/11/2026
+255,Nexus Solutions,"Inv #INV-2485, Due 02/10/2026, Total RM 6,591",6591,Open,,01/10/2026
+256,Melaka Marine,"Inv #INV-2486, Due 22/11/2026, Total RM 11,544",11544,Open,,18/11/2026
+257,Pioneer Resources,"Inv #INV-2487, Due 23/10/2026, Total RM 7,980",7980,Paid,Urgent payment,22/10/2026
+258,Summit Global,"Inv #INV-2488, Due 10/11/2026, Total RM 3,143",3143,Paid,,2026-11-09
+259,Summit Global,"Inv #INV-2489, Due 06/12/2026, Total RM 5,114",5114,Paid,Escalate,"Dec 05, 2026"
+260,Beta Trading,"Inv #INV-2490, Due 12/10/2026, Total RM 7,299",7299,Open,Escalate,07/10/2026
+261,Global Tech,"Inv #INV-2491, Due 07/11/2026, Total RM 6,701",6701,Paid,Follow up,"Nov 05, 2026"
+262,Vertex Industries,"Inv #INV-2492, Due 07/12/2026, Total RM 3,523",3523,Paid,,03/12/2026
+263,  Wira Logistics ,"Inv #INV-2493, Due 20/10/2026, Total RM 6,487",6487,Open,Escalate,17/10/2026
+264,Nexus Solutions,"Inv #INV-2494, Due 22/10/2026, Total RM 9,878",9878,Paid,Partial payment,2026-10-20
+265,Riverstone Sdn Bhd,"Inv #INV-2495, Due 15/12/2026, Total RM 9,750",9750,Paid,,11/12/2026
+266,Terra Energy,"Inv #INV-2496, Due 13/10/2026, Total RM 6,842",6842,Open,Escalate,12/10/2026
+267,Selangor Steel,"Inv #INV-2497, Due 28/11/2026, Total RM 8,297",8297,Paid,Check PO,25/11/2026
+268,Quantum Dynamics,"Inv #INV-2498, Due 21/11/2026, Total RM 6,480",6480,Open,Follow up,18/11/2026
+269,Selangor Steel,"Inv #INV-2499, Due 18/11/2026, Total RM 2,347",2347,Open,Check PO,17/11/2026
+270,Evergreen Ltd,"Inv #INV-2500, Due 13/11/2026, Total RM 8,594",8594,Open,Partial payment,11/11/2026
+271,Zenith Foods,"Inv #INV-2501, Due 06/12/2026, Total RM 7,808","RM 7,808.00",Paid,,03/12/2026
+272,Zenith Foods,"Inv #INV-2502, Due 05/11/2026, Total RM 3,778",3778,Open,,04/11/2026
+273,Delta Corp,"Inv #INV-2503, Due 01/12/2026, Total RM 12,054",12054,Paid,Check PO,2026-11-27
+274,Selangor Steel,"Inv #INV-2504, Due 26/10/2026, Total RM 11,060",11060,Paid,,25/10/2026
+275,Global Tech,"Inv #INV-2505, Due 18/10/2026, Total RM 1,188",1188,Paid,,2026-10-17
+276,Riverstone Sdn Bhd,"Inv #INV-2506, Due 09/11/2026, Total RM 2,543","RM 2,543.00",Paid,Urgent payment,07/11/2026
+277,Quantum Dynamics,"Inv #INV-2507, Due 26/11/2026, Total RM 9,605",9605,Paid,Partial payment,25/11/2026
+278,Pioneer Resources,"Inv #INV-2508, Due 01/11/2026, Total RM 10,237",10237,Open,Urgent payment,2026-10-30
+279,Melaka Marine,"Inv #INV-2509, Due 06/10/2026, Total RM 7,345",7345,Open,Escalate,01/10/2026
+280,Kinabalu Traders,"Inv #INV-2510, Due 08/11/2026, Total RM 9,183",9183,Open,,06/11/2026
+281,Zenith Foods,"Inv #INV-2511, Due 27/11/2026, Total RM 6,540",6540, open ,,2026-11-24
+282,Summit Global,"Inv #INV-2512, Due 08/10/2026, Total RM 6,174",6174,Open,,05/10/2026
+283,Selangor Steel,"Inv #INV-2513, Due 22/12/2026, Total RM 8,564",8564,Open,,19/12/2026
+284,Nexus Solutions,"Inv #INV-2514, Due 11/10/2026, Total RM 9,294",9294,Paid,Check PO,06/10/2026
+285,Beta Trading,"Inv #INV-2515, Due 16/11/2026, Total RM 2,599",2599,Open,Check PO,"Nov 13, 2026"
+286,Zenith Foods,"Inv #INV-2516, Due 12/12/2026, Total RM 5,132",5132,Paid,Follow up,08/12/2026
+287,Nexus Solutions,"Inv #INV-2517, Due 23/12/2026, Total RM 5,489",5489,Open,,19/12/2026
+288,Riverstone Sdn Bhd,"Inv #INV-2518, Due 20/11/2026, Total RM 601",601,Open,,16/11/2026
+289,Quantum Dynamics,"Inv #INV-2519, Due 01/12/2026, Total RM 1,202",1202,Open,,2026-11-26
+290,Unity Networks,"Inv #INV-2520, Due 25/12/2026, Total RM 2,333",2333,Open,Urgent payment,"Dec 21, 2026"
+291,Global Tech,"Inv #INV-2521, Due 27/11/2026, Total RM 4,015",4015,Open,Follow up,26/11/2026
+292,Horizon Systems,"Inv #INV-2522, Due 21/10/2026, Total RM 10,409",10409,Open,Check PO,16/10/2026
+293,Quantum Dynamics,"Inv #INV-2523, Due 20/11/2026, Total RM 356",356,Open,Follow up,18/11/2026
+294,  Horizon Systems ,"Inv #INV-2524, Due 27/10/2026, Total RM 555",555, open ,Partial payment,22/10/2026
+295,Evergreen Ltd,"Inv #INV-2525, Due 20/10/2026, Total RM 4,990",4990,Open,Check PO,2026-10-19
+296,Terra Energy,"Inv #INV-2526, Due 13/10/2026, Total RM 8,058",8058,Open,,10/10/2026
+297,Quantum Dynamics,"Inv #INV-2527, Due 19/12/2026, Total RM 8,218","RM 8,218.00", paid ,,18/12/2026
+298,Evergreen Ltd,"Inv #INV-2528, Due 21/12/2026, Total RM 5,039",5039,Open,,16/12/2026
+299,Pioneer Resources,"Inv #INV-2529, Due 23/10/2026, Total RM 2,067",2067,Paid,,22/10/2026
+300,Quantum Dynamics,"Inv #INV-2530, Due 01/11/2026, Total RM 11,234",11234,Open,,2026-10-31
+301,Pioneer Resources,"Inv #INV-2531, Due 10/11/2026, Total RM 4,938",4938,Paid,Escalate,06/11/2026
+302,Pioneer Resources,"Inv #INV-2532, Due 04/10/2026, Total RM 6,523",6523,Open,Partial payment,30/09/2026
+303,Evergreen Ltd,"Inv #INV-2533, Due 20/10/2026, Total RM 5,824",5824,Paid,,2026-10-19
+304,Delta Corp,"Inv #INV-2534, Due 01/10/2026, Total RM 336",336,Open,,28/09/2026
+305,Acme Sdn Bhd,"Invoice #INV-2535, Due 2026/02/30, Total RM 1,800",8799,Paid,,03/10/2026
+306,Pioneer Resources,"Inv #INV-2536, Due 28/11/2026, Total RM 5,536",5536,Open,Partial payment,2026-11-25
+307,Wira Logistics,"Inv #INV-2537, Due 20/11/2026, Total RM 9,784",9784,Paid,,16/11/2026
+308,Riverstone Sdn Bhd,"Inv #INV-2538, Due 03/12/2026, Total RM 1,598",1598,Open,,02/12/2026
+309,Pioneer Resources,"Inv #INV-2539, Due 28/10/2026, Total RM 3,148","RM 3,148.00",Paid,,23/10/2026
+310,Wira Logistics,"Inv #INV-2540, Due 18/11/2026, Total RM 3,093",3093,Open,Follow up,"Nov 16, 2026"
+311,Terra Energy,"Inv #INV-2541, Due 22/10/2026, Total RM 7,539",7539,Paid,Partial payment,"Oct 20, 2026"
+312,Nexus Solutions,"Inv #INV-2542, Due 17/11/2026, Total RM 12,102",12102,Open,,15/11/2026
+313,Melaka Marine,"Inv #INV-2543, Due 13/10/2026, Total RM 226",226,Open,,2026-10-12
+314,Vertex Industries,"Inv #INV-2544, Due 08/11/2026, Total RM 2,142",2142,OPEN,Partial payment,07/11/2026
+315,Riverstone Sdn Bhd,"Inv #INV-2545, Due 23/12/2026, Total RM 5,958",5958,Open,,2026-12-19
+316,Beta Trading,"Inv #INV-2546, Due 27/10/2026, Total RM 7,414",7414,Open,Urgent payment,26/10/2026
+317,Terra Energy,"Inv #INV-2547, Due 04/12/2026, Total RM 8,251","RM 8,251.00", open ,Urgent payment,30/11/2026
+318,Terra Energy,"Inv #INV-2548, Due 08/11/2026, Total RM 2,632",2632,Paid,Partial payment,04/11/2026
+319,Melaka Marine,"Inv #INV-2549, Due 07/10/2026, Total RM 1,510",1510,PAID,,2026-10-05
+320,Selangor Steel,"Inv #INV-2550, Due 03/11/2026, Total RM 10,490",10490,Open,Partial payment,31/10/2026
+321,Horizon Systems,"Inv #INV-2551, Due 04/12/2026, Total RM 8,876",8876,Open,,30/11/2026
+322,Acme Sdn Bhd,"Inv #INV-2552, Due 28/10/2026, Total RM 8,411",8411,Open,,26/10/2026
+323,Horizon Systems,"Inv #INV-2553, Due 18/11/2026, Total RM 5,136",5136,Open,Escalate,17/11/2026
+324,Unity Networks,"Inv #INV-2554, Due 06/12/2026, Total RM 4,251",4251,Open,,03/12/2026
+325,Terra Energy,"Inv #INV-2555, Due 22/12/2026, Total RM 3,999",3999,Open,Urgent payment,2026-12-18
+326,Nexus Solutions,"Inv #INV-2556, Due 22/10/2026, Total RM 12,188",12188,Open,Escalate,2026-10-20
+327,Delta Corp,"Inv #INV-2557, Due 08/10/2026, Total RM 12,130",12130,OPEN,,07/10/2026
+328,Wira Logistics,"Inv #INV-2558, Due 17/10/2026, Total RM 6,958",6958,Open,,2026-10-12
+329,Kinabalu Traders,"Inv #INV-2559, Due 05/12/2026, Total RM 3,752",3752,Paid,Escalate,2026-12-01
+330,Acme Sdn Bhd,"Inv #INV-2560, Due 28/11/2026, Total RM 11,082",11082,Paid,Partial payment,23/11/2026
+331,  Evergreen Ltd ,"Inv #INV-2561, Due 19/11/2026, Total RM 3,650",3650,Open,,2026-11-14
+332,Unity Networks,"Inv #INV-2562, Due 21/11/2026, Total RM 7,592",7592,Open,,19/11/2026
+333,Zenith Foods,"Inv #INV-2563, Due 14/12/2026, Total RM 7,965",7965,Paid,Escalate,11/12/2026
+334,Pioneer Resources,"Inv #INV-2564, Due 26/12/2026, Total RM 10,343",10343,Paid,,22/12/2026
+335,Riverstone Sdn Bhd,"Inv #INV-2565, Due 12/12/2026, Total RM 1,082",1082,Open,Escalate,10/12/2026
+336,Delta Corp,"Inv #INV-2566, Due 21/10/2026, Total RM 9,030",9030,Open,,16/10/2026
+337,Wira Logistics,"Inv #INV-2567, Due 06/12/2026, Total RM 7,112",7112,Open,Urgent payment,04/12/2026
+338,Global Tech,"Inv #INV-2568, Due 04/10/2026, Total RM 10,285","RM 10,285.00",Open,,30/09/2026
+339,Delta Corp,"Inv #INV-2569, Due 22/11/2026, Total RM 3,768","RM 3,768.00",Open,Escalate,20/11/2026
+340,Delta Corp,"Inv #INV-2570, Due 24/12/2026, Total RM 2,680",2680,Open,Check PO,2026-12-19
+341,Pioneer Resources,"Inv #INV-2571, Due 19/12/2026, Total RM 6,138",6138,Paid,Partial payment,15/12/2026
+342,Evergreen Ltd,"Inv #INV-2572, Due 28/10/2026, Total RM 5,516",5516,Open,,2026-10-24
+343,Terra Energy,"Inv #INV-2573, Due 27/11/2026, Total RM 543",543,Open,,25/11/2026
+344,Kinabalu Traders,"Inv #INV-2574, Due 19/11/2026, Total RM 4,609",4609,Open,,"Nov 14, 2026"
+345,  Selangor Steel ,"Inv #INV-2575, Due 10/12/2026, Total RM 11,398",11398,Open,,09/12/2026
+346,Evergreen Ltd,"Inv #INV-2576, Due 03/12/2026, Total RM 8,770",8770,Open,Check PO,02/12/2026
+347,Nexus Solutions,"Inv #INV-2577, Due 18/11/2026, Total RM 5,861",5861,Open,,2026-11-13
+348,Pioneer Resources,"Inv #INV-2578, Due 24/11/2026, Total RM 5,575",5575,Paid,Urgent payment,23/11/2026
+349,Wira Logistics,"Inv #INV-2579, Due 13/12/2026, Total RM 5,280",5280,Open,,09/12/2026
+350,Selangor Steel,"Inv #INV-2580, Due 19/11/2026, Total RM 936",936,Open,,2026-11-15
+351,Kinabalu Traders,"Inv #INV-2581, Due 11/12/2026, Total RM 9,828",9828,Paid,Follow up,09/12/2026
+352,Global Tech,"Inv #INV-2582, Due 10/11/2026, Total RM 7,159","RM 7,159.00",Paid,,08/11/2026
+353,Unity Networks,"Inv #INV-2583, Due 09/11/2026, Total RM 6,941",6941,Paid,Partial payment,08/11/2026
+354,Pioneer Resources,"Inv #INV-2584, Due 01/11/2026, Total RM 4,095","RM 4,095.00",Open,,29/10/2026
+355,Vertex Industries,"Inv #INV-2585, Due 03/12/2026, Total RM 2,035",2035,Paid,Partial payment,28/11/2026
+356,Acme Sdn Bhd,"Inv #INV-2586, Due 27/10/2026, Total RM 8,695",8695,Paid,,23/10/2026
+357,Riverstone Sdn Bhd,"Inv #INV-2587, Due 20/10/2026, Total RM 10,036",10036,Paid,,17/10/2026
+358,Kinabalu Traders,"Inv #INV-2588, Due 03/12/2026, Total RM 6,944","RM 6,944.00",Paid,,01/12/2026
+359,Orion Ventures,"Inv #INV-2589, Due 12/12/2026, Total RM 7,687",7687,Open,Escalate,09/12/2026
+360,Pioneer Resources,"Inv #INV-2590, Due 20/10/2026, Total RM 6,503",6503,Paid,Escalate,2026-10-19
+361,Pioneer Resources,"Inv #INV-2591, Due 14/11/2026, Total RM 6,554",6554,Open,Partial payment,12/11/2026
+362,Terra Energy,"Inv #INV-2592, Due 18/10/2026, Total RM 933",933,Open,,2026-10-15
+363,Selangor Steel,"Inv #INV-2593, Due 05/11/2026, Total RM 734",734,Paid,Follow up,2026-11-03
+364,Delta Corp,"Inv #INV-2594, Due 10/10/2026, Total RM 5,420",5420,Open,,2026-10-08
+365,Orion Ventures,"Inv #INV-2595, Due 26/12/2026, Total RM 10,641","RM 10,641.00",Open,Partial payment,23/12/2026
+366,Delta Corp,"Inv #INV-2596, Due 26/12/2026, Total RM 4,092",4092,Open,,2026-12-22
+367,Zenith Foods,"Inv #INV-2597, Due 26/11/2026, Total RM 1,504",1504,Open,,21/11/2026
+368,Acme Sdn Bhd,"Inv #INV-2598, Due 20/10/2026, Total RM 5,729",5729,Paid,Partial payment,17/10/2026
+369,  Vertex Industries ,"Inv #INV-2599, Due 02/11/2026, Total RM 8,640",8640,Open,Escalate,2026-10-28
+370,Global Tech,"Inv #INV-2600, Due 27/10/2026, Total RM 11,065","RM 11,065.00", paid ,,23/10/2026
+371,Vertex Industries,"Inv #INV-2601, Due 20/10/2026, Total RM 6,826",6826,Open,,2026-10-19
+372,Nexus Solutions,"Inv #INV-2602, Due 27/10/2026, Total RM 11,102",11102,Open,Follow up,26/10/2026
+373,Wira Logistics,"Inv #INV-2603, Due 20/11/2026, Total RM 12,094",12094,Paid,,17/11/2026
+374,Melaka Marine,"Inv #INV-2604, Due 09/10/2026, Total RM 10,726",10726,Open,,2026-10-07
+375,Acme Sdn Bhd,"Inv #INV-2605, Due 07/10/2026, Total RM 1,534",1534, open ,Partial payment,"Oct 05, 2026"
+376,Riverstone Sdn Bhd,"Inv #INV-2606, Due 15/12/2026, Total RM 2,052",2052,Open,,12/12/2026
+377,Beta Trading,"Inv #INV-2607, Due 25/12/2026, Total RM 10,993",10993,Paid,Urgent payment,2026-12-22
+378,Acme Sdn Bhd,"Inv #INV-2608, Due 17/11/2026, Total RM 7,152",7152,Open,Check PO,13/11/2026
+379,Terra Energy,"Inv #INV-2609, Due 13/12/2026, Total RM 6,218",6218,Paid,,2026-12-12
+380,Nexus Solutions,"Inv #INV-2610, Due 05/12/2026, Total RM 6,412",6412,Open,Urgent payment,02/12/2026
+381,Beta Trading,"Inv #INV-2611, Due 08/11/2026, Total RM 11,900",11900,Open,Partial payment,2026-11-05
+382,  Delta Corp ,"Inv #INV-2612, Due 07/10/2026, Total RM 4,946",4946,Paid,Check PO,03/10/2026
+383,Orion Ventures,"Inv #INV-2613, Due 02/12/2026, Total RM 389",389,Open,Check PO,27/11/2026
+384,Nexus Solutions,"Inv #INV-2614, Due 15/12/2026, Total RM 11,570",11570,Paid,,10/12/2026
+385,Delta Corp,"Inv #INV-2615, Due 19/11/2026, Total RM 5,953",5953,Paid,,17/11/2026
+386,Kinabalu Traders,"Inv #INV-2616, Due 28/12/2026, Total RM 5,520",5520,Open,,27/12/2026
+387,Beta Trading,"Inv #INV-2617, Due 23/12/2026, Total RM 10,404",10404,Paid,Escalate,2026-12-21
+388,Zenith Foods,"Inv #INV-2618, Due 10/12/2026, Total RM 5,432",5432, paid ,,07/12/2026
+389,Terra Energy,"Inv #INV-2619, Due 27/12/2026, Total RM 595",595,Open,,25/12/2026
+390,Evergreen Ltd,"Inv #INV-2620, Due 16/10/2026, Total RM 9,930",9930,Open,Urgent payment,2026-10-13
+391,Global Tech,"Inv #INV-2621, Due 20/11/2026, Total RM 5,421",5421,Open,Check PO,"Nov 17, 2026"
+392,Beta Trading,"Inv #INV-2622, Due 06/11/2026, Total RM 611",611,Paid,,02/11/2026
+393,Quantum Dynamics,"Inv #INV-2623, Due 09/12/2026, Total RM 12,332",12332,Open,,2026-12-08
+394,Quantum Dynamics,"Inv #INV-2624, Due 21/11/2026, Total RM 6,053",6053,Open,,20/11/2026
+395,Nexus Solutions,"Inv #INV-2625, Due 08/11/2026, Total RM 6,799",6799,Paid,,07/11/2026
+396,Pioneer Resources,"Inv #INV-2626, Due 10/11/2026, Total RM 1,087",1087,Open,Urgent payment,05/11/2026
+397,Evergreen Ltd,"Inv #INV-2627, Due 14/10/2026, Total RM 8,670",8670,Paid,Follow up,2026-10-09
+398,Kinabalu Traders,"Inv #INV-2628, Due 10/12/2026, Total RM 4,859",4859,Paid,Escalate,09/12/2026
+399,Evergreen Ltd,"Inv #INV-2629, Due 26/12/2026, Total RM 4,596",4596,Open,,21/12/2026
+400,Unity Networks,"Inv #INV-2630, Due 08/10/2026, Total RM 7,481","RM 7,481.00",Paid,,05/10/2026
+401,Summit Global,"Inv #INV-2631, Due 16/12/2026, Total RM 10,368",10368,Paid,Urgent payment,12/12/2026
+402,Delta Corp,"Inv #INV-2632, Due 04/12/2026, Total RM 2,009",2009,Open,,"Dec 02, 2026"
+403,Riverstone Sdn Bhd,"Inv #INV-2633, Due 18/10/2026, Total RM 4,879",4879,Open,Check PO,17/10/2026
+404,Quantum Dynamics,"Inv #INV-2634, Due 19/11/2026, Total RM 11,037",11037,Paid,Check PO,2026-11-14
+405,Selangor Steel,"Inv #INV-2635, Due 15/11/2026, Total RM 6,298",6298,Open,,11/11/2026
+406,Pioneer Resources,"Inv #INV-2636, Due 23/11/2026, Total RM 9,509",9509,Open,Check PO,2026-11-19
+407,Nexus Solutions,"Inv #INV-2637, Due 26/12/2026, Total RM 7,574",7574,Paid,Urgent payment,23/12/2026
+408,Terra Energy,"Inv #INV-2638, Due 03/10/2026, Total RM 2,052",2052,Open,,"Sep 30, 2026"
+409,Nexus Solutions,"Inv #INV-2639, Due 05/12/2026, Total RM 4,944",4944, paid ,Follow up,30/11/2026
+410,Unity Networks,"Inv #INV-2640, Due 02/10/2026, Total RM 10,508",10508,Open,Follow up,28/09/2026
+411,Global Tech,"Inv #INV-2641, Due 06/10/2026, Total RM 4,105",4105,Paid,,02/10/2026
+412,Evergreen Ltd,"Inv #INV-2642, Due 11/12/2026, Total RM 8,848",8848,Paid,,07/12/2026
+413,Quantum Dynamics,"Inv #INV-2643, Due 13/12/2026, Total RM 8,265",8265,Open,,08/12/2026
+414,Nexus Solutions,"Inv #INV-2644, Due 08/12/2026, Total RM 2,336",2336,Paid,Escalate,07/12/2026
+415,Orion Ventures,"Inv #INV-2645, Due 17/10/2026, Total RM 12,175",12175,Paid,Urgent payment,15/10/2026
+416,Horizon Systems,"Inv #INV-2646, Due 02/11/2026, Total RM 9,913",9913,Open,Follow up,2026-10-31
+417,Selangor Steel,"Inv #INV-2647, Due 02/11/2026, Total RM 7,282",7282,Open,Follow up,29/10/2026
+418,  Acme Sdn Bhd ,INV2648 | 15-10-2026 | RM -50,10610, open ,,21/11/2026
+419,Summit Global,"Inv #INV-2649, Due 25/12/2026, Total RM 1,930",1930,Open,,2026-12-21
+420,Riverstone Sdn Bhd,"Inv #INV-2650, Due 26/12/2026, Total RM 4,108","RM 4,108.00",Open,Urgent payment,2026-12-21
+421,Terra Energy,"Inv #INV-2651, Due 17/11/2026, Total RM 8,127",8127,Paid,Urgent payment,13/11/2026
+422,Wira Logistics,"Inv #INV-2652, Due 19/10/2026, Total RM 10,642",10642,Paid,Partial payment,15/10/2026
+423,Vertex Industries,"Inv #INV-2653, Due 03/10/2026, Total RM 3,678",3678, open ,Partial payment,30/09/2026
+424,Evergreen Ltd,"Inv #INV-2654, Due 23/12/2026, Total RM 1,236","RM 1,236.00",Open,Partial payment,2026-12-18
+425,Quantum Dynamics,"Inv #INV-2655, Due 17/12/2026, Total RM 915",915,Open,Follow up,12/12/2026
+426,Wira Logistics,"Inv #INV-2656, Due 14/11/2026, Total RM 4,193",4193,Open,Partial payment,"Nov 10, 2026"
+427,Evergreen Ltd,"Inv #INV-2657, Due 03/11/2026, Total RM 8,311",8311,Open,Urgent payment,01/11/2026
+428,Wira Logistics,"Inv #INV-2658, Due 06/11/2026, Total RM 7,393","RM 7,393.00",Paid,Follow up,01/11/2026
+429,Global Tech,"Inv #INV-2659, Due 24/12/2026, Total RM 5,204",5204,Open,Urgent payment,2026-12-19
+430,Summit Global,"Inv #INV-2660, Due 16/11/2026, Total RM 11,049",11049,Open,Escalate,15/11/2026
+431,Summit Global,"Inv #INV-2661, Due 08/10/2026, Total RM 7,874",7874,Open,,05/10/2026
+432,Quantum Dynamics,"Inv #INV-2662, Due 10/12/2026, Total RM 7,671",7671,Paid,,05/12/2026
+433,Selangor Steel,"Inv #INV-2663, Due 12/10/2026, Total RM 4,899",4899,Open,Escalate,10/10/2026
+434,Beta Trading,"Inv #INV-2664, Due 25/12/2026, Total RM 10,680",10680,Open,,22/12/2026
+435,Acme Sdn Bhd,"Inv #INV-2665, Due 25/11/2026, Total RM 9,218",9218,Paid,,2026-11-22
+436,Riverstone Sdn Bhd,"Inv #INV-2666, Due 06/10/2026, Total RM 765",765,Paid,Urgent payment,04/10/2026
+437,Acme Sdn Bhd,"Inv #INV-2667, Due 26/11/2026, Total RM 3,326",3326,Open,Check PO,22/11/2026
+438,Global Tech,"Inv #INV-2668, Due 03/11/2026, Total RM 11,376",11376,Open,Check PO,01/11/2026
+439,Horizon Systems,"Inv #INV-2669, Due 26/12/2026, Total RM 11,326",11326,Open,Escalate,23/12/2026
+440,Riverstone Sdn Bhd,"Inv #INV-2670, Due 27/11/2026, Total RM 8,974","RM 8,974.00",Paid,,26/11/2026
+441,Vertex Industries,"Inv #INV-2671, Due 28/10/2026, Total RM 2,618","RM 2,618.00",Paid,,26/10/2026
+442,Delta Corp,"Inv #INV-2672, Due 14/10/2026, Total RM 10,817","RM 10,817.00",Open,Escalate,13/10/2026
+443,Kinabalu Traders,"Inv #INV-2673, Due 08/11/2026, Total RM 8,532",8532,Paid,Check PO,05/11/2026
+444,Terra Energy,"Inv #INV-2674, Due 04/10/2026, Total RM 9,784",9784,Paid,,01/10/2026
+445,Delta Corp,"Inv #INV-2675, Due 02/10/2026, Total RM 9,104",9104,Paid,,2026-09-29
+446,Kinabalu Traders,"Inv #INV-2676, Due 08/11/2026, Total RM 1,459",1459,Open,,03/11/2026
+447,Vertex Industries,"Inv #INV-2677, Due 21/10/2026, Total RM 8,200",8200,Paid,Urgent payment,16/10/2026
+448,Nexus Solutions,"Inv #INV-2678, Due 13/11/2026, Total RM 2,743",2743,Open,Urgent payment,12/11/2026
+449,Melaka Marine,"Inv #INV-2679, Due 14/10/2026, Total RM 1,782",1782,Paid,Urgent payment,12/10/2026
+450,Unity Networks,"Inv #INV-2680, Due 07/10/2026, Total RM 516",516,Paid,Follow up,2026-10-04
+451,Delta Corp,"Inv #INV-2681, Due 26/10/2026, Total RM 11,512",11512,Paid,Urgent payment,22/10/2026
+452,Quantum Dynamics,"Inv #INV-2682, Due 25/10/2026, Total RM 2,546",2546,Open,,21/10/2026
+453,Selangor Steel,"Inv #INV-2683, Due 11/11/2026, Total RM 11,508",11508,Open,Escalate,09/11/2026
+454,Vertex Industries,"Inv #INV-2684, Due 25/12/2026, Total RM 6,137",6137,Open,,20/12/2026
+455,  Global Tech ,"Inv #INV-2685, Due 04/11/2026, Total RM 6,542",6542,Open,,2026-11-03
+456,Global Tech,"Inv #INV-2686, Due 11/10/2026, Total RM 7,520",7520,Open,,09/10/2026
+457,Summit Global,"Inv #INV-2687, Due 14/10/2026, Total RM 3,374",3374,Open,,11/10/2026
+458,Melaka Marine,"Inv #INV-2688, Due 06/12/2026, Total RM 2,792",2792,Paid,Escalate,02/12/2026
+459,  Riverstone Sdn Bhd ,"Inv #INV-2689, Due 11/10/2026, Total RM 10,542","RM 10,542.00",Paid,,10/10/2026
+460,Pioneer Resources,"Inv #INV-2690, Due 27/11/2026, Total RM 4,996",4996,Paid,,22/11/2026
+461,Quantum Dynamics,"Inv #INV-2691, Due 07/11/2026, Total RM 5,086",5086,Open,,06/11/2026
+462,Melaka Marine,"Inv #INV-2692, Due 21/11/2026, Total RM 3,548",3548,Open,,20/11/2026
+463,Melaka Marine,"Inv #INV-2693, Due 08/11/2026, Total RM 1,521",1521,Paid,,07/11/2026
+464,Kinabalu Traders,"Inv #INV-2694, Due 20/10/2026, Total RM 1,299",1299,Paid,Follow up,19/10/2026
+465,Quantum Dynamics,"Inv #INV-2695, Due 21/11/2026, Total RM 1,650",1650,Open,,18/11/2026
+466,Kinabalu Traders,"Inv #INV-2696, Due 13/12/2026, Total RM 6,255",6255,Open,,12/12/2026
+467,Zenith Foods,"Inv #INV-2697, Due 01/11/2026, Total RM 9,727",9727,Paid,Follow up,2026-10-28
+468,Selangor Steel,"Inv #INV-2698, Due 13/12/2026, Total RM 2,525",2525,Open,,09/12/2026
+469,Unity Networks,"Inv #INV-2699, Due 14/12/2026, Total RM 2,254",2254,Open,Partial payment,2026-12-13
+470,Riverstone Sdn Bhd,"Inv #INV-2700, Due 21/11/2026, Total RM 11,226",11226,Open,,16/11/2026
+471,Global Tech,"Inv #INV-2701, Due 07/10/2026, Total RM 12,330","RM 12,330.00",Paid,,04/10/2026
+472,Global Tech,"Inv #INV-2702, Due 01/12/2026, Total RM 7,623",7623,Open,Partial payment,"Nov 29, 2026"
+473,Evergreen Ltd,"Inv #INV-2703, Due 14/12/2026, Total RM 8,742",8742,Paid,,"Dec 09, 2026"
+474,Selangor Steel,"Inv #INV-2704, Due 07/10/2026, Total RM 2,016",2016,Paid,Escalate,03/10/2026
+475,Pioneer Resources,"Inv #INV-2705, Due 01/11/2026, Total RM 299",299,Open,,2026-10-31
+476,Terra Energy,"Inv #INV-2706, Due 28/12/2026, Total RM 1,474","RM 1,474.00",Paid,,26/12/2026
+477,Horizon Systems,"Inv #INV-2707, Due 05/10/2026, Total RM 8,705",8705, paid ,Urgent payment,2026-10-01
+478,Riverstone Sdn Bhd,"Inv #INV-2708, Due 21/12/2026, Total RM 3,065",3065,Paid,Follow up,16/12/2026
+479,Horizon Systems,"Inv #INV-2709, Due 03/12/2026, Total RM 4,747",4747,Open,,29/11/2026
+480,Delta Corp,"Inv #INV-2710, Due 13/11/2026, Total RM 11,658",11658,Open,,2026-11-09
+481,Acme Sdn Bhd,"Inv #INV-2711, Due 14/10/2026, Total RM 8,757",8757,Open,,11/10/2026
+482,Kinabalu Traders,"Inv #INV-2712, Due 26/12/2026, Total RM 4,191",4191,Open,Partial payment,22/12/2026
+483,Wira Logistics,"Inv #INV-2713, Due 23/11/2026, Total RM 7,096",7096,Paid,,19/11/2026
+484,Unity Networks,"Inv #INV-2714, Due 26/12/2026, Total RM 9,924",9924,Paid,,2026-12-24
+485,Beta Trading,"Inv #INV-2715, Due 12/11/2026, Total RM 474",474,Paid,,07/11/2026
+486,Wira Logistics,"Inv #INV-2716, Due 01/10/2026, Total RM 7,282","RM 7,282.00",Open,Partial payment,29/09/2026
+487,Riverstone Sdn Bhd,"Inv #INV-2717, Due 23/12/2026, Total RM 593",593,Open,Check PO,19/12/2026
+488,Acme Sdn Bhd,"Inv #INV-2718, Due 26/10/2026, Total RM 3,114",3114,Open,Urgent payment,21/10/2026
+489,  Nexus Solutions ,"Inv #INV-2719, Due 04/12/2026, Total RM 5,235",5235,Open,,02/12/2026
+490,Quantum Dynamics,"Inv #INV-2720, Due 25/11/2026, Total RM 8,158",8158,Open,,21/11/2026
+491,Quantum Dynamics,"Inv #INV-2721, Due 01/12/2026, Total RM 4,867",4867,Paid,Escalate,29/11/2026
+492,Kinabalu Traders,"Inv #INV-2722, Due 03/12/2026, Total RM 7,137",7137,Open,,28/11/2026
+493,Riverstone Sdn Bhd,"Inv #INV-2723, Due 03/12/2026, Total RM 8,466",8466,Open,Urgent payment,2026-12-02
+494,Kinabalu Traders,"Inv #INV-2724, Due 09/12/2026, Total RM 9,567",9567,Paid,Urgent payment,08/12/2026
+495,Pioneer Resources,"Inv #INV-2725, Due 27/11/2026, Total RM 2,466",2466,Paid,Partial payment,25/11/2026
+496,Acme Sdn Bhd,"Inv #INV-2726, Due 10/10/2026, Total RM 9,086",9086,Open,,05/10/2026
+497,Global Tech,"Inv #INV-2727, Due 27/10/2026, Total RM 2,716",2716,Paid,,2026-10-25
+498,Quantum Dynamics,"Inv #INV-2728, Due 21/12/2026, Total RM 11,198","RM 11,198.00",Open,,20/12/2026
+499,Unity Networks,"Inv #INV-2729, Due 07/11/2026, Total RM 2,666",2666,Open,Urgent payment,2026-11-03
+500,Selangor Steel,"Inv #INV-2730, Due 17/10/2026, Total RM 6,442",6442,Open,Escalate,"Oct 15, 2026"
+500,Selangor Steel,"Inv #INV-2730, Due 17/10/2026, Total RM 6,442",6442,Open,Escalate,"Oct 15, 2026"
+501,Vertex Industries,"Inv #INV-2731, Due 16/11/2026, Total RM 2,263",2263,Open,Check PO,"Nov 14, 2026"
+502,  Vertex Industries ,"Inv #INV-2732, Due 02/10/2026, Total RM 11,979","RM 11,979.00",Paid,Escalate,30/09/2026
+503,Riverstone Sdn Bhd,"Inv #INV-2733, Due 14/11/2026, Total RM 6,874",6874,Open,Urgent payment,09/11/2026
+504,Terra Energy,"Inv #INV-2734, Due 13/10/2026, Total RM 9,386",9386,Open,Escalate,09/10/2026
+505,Evergreen Ltd,"Inv #INV-2735, Due 12/10/2026, Total RM 8,520",8520,Paid,,08/10/2026
+506,Selangor Steel,"Inv #INV-2736, Due 01/10/2026, Total RM 12,390",12390,Paid,,30/09/2026
+507,Nexus Solutions,"Inv #INV-2737, Due 23/11/2026, Total RM 10,936",10936,Open,,22/11/2026
+508,Beta Trading,"Inv #INV-2738, Due 26/10/2026, Total RM 6,199",6199,Open,,2026-10-21
+509,Acme Sdn Bhd,"Inv #INV-2739, Due 12/10/2026, Total RM 12,343",12343,Open,Urgent payment,09/10/2026
+510,Global Tech,"Inv #INV-2740, Due 06/10/2026, Total RM 4,467",4467,Open,,"Oct 02, 2026"
+511,Kinabalu Traders,"Inv #INV-2741, Due 16/11/2026, Total RM 7,443",7443,Paid,Check PO,15/11/2026
+512,Orion Ventures,"Inv #INV-2742, Due 28/10/2026, Total RM 2,471",2471,Paid,,"Oct 24, 2026"
+513,Selangor Steel,"Inv #INV-2743, Due 17/10/2026, Total RM 8,634",8634,Open,,14/10/2026
+514,Selangor Steel,"Inv #INV-2744, Due 15/10/2026, Total RM 11,007",11007,Open,Partial payment,10/10/2026
+515,Beta Trading,"Inv #INV-2745, Due 04/10/2026, Total RM 338",338,Paid,,01/10/2026
+516,Selangor Steel,"Inv #INV-2746, Due 13/12/2026, Total RM 11,108","RM 11,108.00",Paid,Partial payment,09/12/2026
+517,Selangor Steel,"Inv #INV-2747, Due 22/12/2026, Total RM 10,951",10951,Open,Urgent payment,19/12/2026
+518,Terra Energy,"Inv #INV-2748, Due 02/11/2026, Total RM 1,776",1776,Paid,,2026-10-29
+519,Beta Trading,"Inv #INV-2749, Due 13/10/2026, Total RM 7,218",7218,Open,Check PO,2026-10-09
+520,Riverstone Sdn Bhd,"Inv #INV-2750, Due 15/10/2026, Total RM 5,437",5437,Open,Check PO,2026-10-10
+521,Unity Networks,"Inv #INV-2751, Due 07/12/2026, Total RM 4,612",4612,OPEN,Follow up,04/12/2026
+522,Orion Ventures,"Inv #INV-2752, Due 15/11/2026, Total RM 6,513",6513,Open,Escalate,14/11/2026
+523,Orion Ventures,"Inv #INV-2753, Due 24/11/2026, Total RM 12,447",12447,Open,Follow up,19/11/2026
+524,Summit Global,"Inv #INV-2754, Due 15/12/2026, Total RM 7,612",7612,Open,Escalate,2026-12-12
+525,Delta Corp,"Inv #INV-2755, Due 13/10/2026, Total RM 10,501",10501,Open,Escalate,09/10/2026
+526,Selangor Steel,"Inv #INV-2756, Due 08/11/2026, Total RM 6,539",6539,Open,Partial payment,07/11/2026
+527,Unity Networks,"Invoice INV-2757, Due -, Total RM 2,450",6358,Open,,13/10/2026
+528,Orion Ventures,"Inv #INV-2758, Due 15/11/2026, Total RM 4,823",4823,Open,Check PO,2026-11-14
+529,Vertex Industries,"Inv #INV-2759, Due 21/10/2026, Total RM 1,275",1275,Paid,Escalate,17/10/2026
+530,Selangor Steel,"Inv #INV-2760, Due 18/12/2026, Total RM 10,863",10863,Paid,,17/12/2026
+531,Melaka Marine,"Inv #INV-2761, Due 18/10/2026, Total RM 12,160",12160,Paid,,2026-10-16
+532,Orion Ventures,"Inv #INV-2762, Due 06/11/2026, Total RM 797",797,Paid,Urgent payment,2026-11-02
+533,Orion Ventures,"Inv #INV-2763, Due 26/12/2026, Total RM 2,072",2072,Paid,Partial payment,23/12/2026
+534,Summit Global,"Inv #INV-2764, Due 26/12/2026, Total RM 9,285",9285,Open,,25/12/2026
+535,Riverstone Sdn Bhd,"Inv #INV-2765, Due 11/11/2026, Total RM 2,143",2143,Paid,,10/11/2026
+536,Selangor Steel,"Inv #INV-2766, Due 10/11/2026, Total RM 5,811",5811,Paid,Escalate,2026-11-09
+537,Vertex Industries,"Inv #INV-2767, Due 02/10/2026, Total RM 6,712",6712,Open,Urgent payment,27/09/2026
+538,Nexus Solutions,"Inv #INV-2768, Due 25/10/2026, Total RM 11,606","RM 11,606.00",Paid,Check PO,24/10/2026
+539,Nexus Solutions,"Inv #INV-2769, Due 10/10/2026, Total RM 10,686","RM 10,686.00",Open,,06/10/2026
+540,Unity Networks,"Inv #INV-2770, Due 17/11/2026, Total RM 2,091",2091, open ,,14/11/2026
+541,Kinabalu Traders,"Inv #INV-2771, Due 19/10/2026, Total RM 4,926",4926,Open,Escalate,17/10/2026
+542,Global Tech,"Inv #INV-2772, Due 04/11/2026, Total RM 12,301",12301,Open,,2026-11-03
+543,Unity Networks,"Inv #INV-2773, Due 10/11/2026, Total RM 5,584","RM 5,584.00",Open,,09/11/2026
+544,Melaka Marine,"Inv #INV-2774, Due 03/10/2026, Total RM 1,384",1384,Paid,Partial payment,"Sep 29, 2026"
+545,Kinabalu Traders,"Inv #INV-2775, Due 17/12/2026, Total RM 225",225,Open,,13/12/2026
+546,  Unity Networks ,"Inv #INV-2776, Due 23/11/2026, Total RM 2,650",2650,Open,,19/11/2026
+547,Unity Networks,"Inv #INV-2777, Due 06/10/2026, Total RM 7,429",7429,Open,,2026-10-04
+548,Evergreen Ltd,"Inv #INV-2778, Due 05/12/2026, Total RM 3,960",3960,Open,,03/12/2026
+549,Summit Global,"Inv #INV-2779, Due 05/10/2026, Total RM 10,955",10955,Open,,03/10/2026
+550,Riverstone Sdn Bhd,"Inv #INV-2780, Due 02/12/2026, Total RM 7,454",7454,Open,,"Nov 28, 2026"
+551,Terra Energy,"Inv #INV-2781, Due 18/10/2026, Total RM 11,228",11228,Open,,15/10/2026
+552,Acme Sdn Bhd,"Inv #INV-2782, Due 11/10/2026, Total RM 9,145",9145,Paid,Follow up,09/10/2026
+553,Orion Ventures,"Inv #INV-2783, Due 28/11/2026, Total RM 712",712,Open,Escalate,2026-11-25
+554,Evergreen Ltd,"Inv #INV-2784, Due 26/12/2026, Total RM 824",824,Paid,Urgent payment,25/12/2026
+555,Pioneer Resources,"Inv #INV-2785, Due 10/12/2026, Total RM 10,781",10781,Open,Partial payment,06/12/2026
+556,  Pioneer Resources ,"Inv #INV-2786, Due 27/10/2026, Total RM 6,550",6550,Open,,2026-10-23
+557,Pioneer Resources,"Inv #INV-2787, Due 16/12/2026, Total RM 8,683",8683, open ,,11/12/2026
+558,Delta Corp,"Inv #INV-2788, Due 18/12/2026, Total RM 2,015",2015,Paid,,"Dec 15, 2026"
+559,Vertex Industries,"Inv #INV-2789, Due 08/10/2026, Total RM 12,110",12110,Paid,Partial payment,2026-10-07
+560,Acme Sdn Bhd,"Inv #INV-2790, Due 10/10/2026, Total RM 8,480",8480,Paid,Check PO,08/10/2026
+561,Melaka Marine,"Inv #INV-2791, Due 04/12/2026, Total RM 1,067",1067,Paid,,03/12/2026
+562,Beta Trading,"Inv #INV-2792, Due 18/11/2026, Total RM 4,906",4906,Paid,,14/11/2026
+563,Horizon Systems,"Inv #INV-2793, Due 13/12/2026, Total RM 12,360",12360,Open,Follow up,11/12/2026
+564,Unity Networks,"Inv #INV-2794, Due 16/11/2026, Total RM 12,448",12448,Open,Follow up,15/11/2026
+565,Quantum Dynamics,"Inv #INV-2795, Due 12/10/2026, Total RM 10,184",10184, open ,,2026-10-09
+566,Evergreen Ltd,"Inv #INV-2796, Due 17/10/2026, Total RM 3,985",3985,Open,,16/10/2026
+567,Wira Logistics,"Inv #INV-2797, Due 16/12/2026, Total RM 6,426",6426,Open,Urgent payment,"Dec 15, 2026"
+568,Delta Corp,"Inv #INV-2798, Due 14/11/2026, Total RM 10,089",10089,Open,Urgent payment,13/11/2026
+569,Kinabalu Traders,"Inv #INV-2799, Due 03/10/2026, Total RM 2,965",2965, paid ,Follow up,28/09/2026
+570,Riverstone Sdn Bhd,"Inv #INV-2800, Due 05/12/2026, Total RM 10,631",10631,Open,Urgent payment,03/12/2026
+571,Beta Trading,"Inv #INV-2801, Due 04/12/2026, Total RM 9,221","RM 9,221.00",Paid,Urgent payment,"Nov 29, 2026"
+572,Wira Logistics,"Inv #INV-2802, Due 23/10/2026, Total RM 8,554",8554,Paid,,18/10/2026
+573,Acme Sdn Bhd,"Inv #INV-2803, Due 12/11/2026, Total RM 10,437",10437,Open,,10/11/2026
+574,Unity Networks,"Inv #INV-2804, Due 19/10/2026, Total RM 10,952",10952,Open,,2026-10-18
+575,Melaka Marine,"Inv #INV-2805, Due 17/11/2026, Total RM 9,495",9495,Open,Follow up,2026-11-13
+576,Zenith Foods,"Inv #INV-2806, Due 18/10/2026, Total RM 1,399",1399,Open,,16/10/2026
+577,Zenith Foods,"Inv #INV-2807, Due 19/12/2026, Total RM 6,988",6988, paid ,Escalate,16/12/2026
+578,Riverstone Sdn Bhd,"Inv #INV-2808, Due 15/12/2026, Total RM 6,793",6793,Paid,,11/12/2026
+579,Summit Global,"Inv #INV-2809, Due 17/11/2026, Total RM 9,497",9497,Open,,"Nov 16, 2026"
+580,Vertex Industries,"Inv #INV-2810, Due 20/11/2026, Total RM 1,830",1830,Open,,19/11/2026
+581,Pioneer Resources,"Inv #INV-2811, Due 01/10/2026, Total RM 1,639","RM 1,639.00",Open,,28/09/2026
+582,Global Tech,"Inv #INV-2812, Due 15/10/2026, Total RM 10,398",10398,Open,Partial payment,2026-10-10
+583,Vertex Industries,"Inv #INV-2813, Due 22/10/2026, Total RM 8,205",8205,Open,,2026-10-18
+584,Beta Trading,"Inv #INV-2814, Due 05/12/2026, Total RM 8,892",8892,Paid,,02/12/2026
+585,Vertex Industries,"Inv #INV-2815, Due 04/11/2026, Total RM 9,024",9024,Paid,,2026-10-30
+586,Horizon Systems,"Inv #INV-2816, Due 26/12/2026, Total RM 11,991",11991,Open,Partial payment,24/12/2026
+587,Kinabalu Traders,"Inv #INV-2817, Due 16/11/2026, Total RM 4,035",4035,Paid,,14/11/2026
+588,Beta Trading,"Inv #INV-2818, Due 26/10/2026, Total RM 8,060",8060,Open,Partial payment,24/10/2026
+589,Global Tech,"Inv #INV-2819, Due 17/12/2026, Total RM 12,113",12113, paid ,Escalate,14/12/2026
+590,Horizon Systems,"Inv #INV-2820, Due 24/11/2026, Total RM 11,402","RM 11,402.00",Open,,22/11/2026
+591,Nexus Solutions,"Inv #INV-2821, Due 24/10/2026, Total RM 2,674","RM 2,674.00",Open,,2026-10-21
+592,Nexus Solutions,"Inv #INV-2822, Due 12/11/2026, Total RM 5,411",5411,Paid,,07/11/2026
+593,Terra Energy,"Inv #INV-2823, Due 08/11/2026, Total RM 10,738",10738,Open,,05/11/2026
+594,Orion Ventures,"Inv #INV-2824, Due 22/10/2026, Total RM 649",649,Paid,Follow up,21/10/2026
+595,Unity Networks,"Inv #INV-2825, Due 23/11/2026, Total RM 7,559",7559,Open,Partial payment,20/11/2026
+596,Unity Networks,"Inv #INV-2826, Due 12/11/2026, Total RM 7,035",7035,PAID,,07/11/2026
+597,Melaka Marine,"Inv #INV-2827, Due 18/11/2026, Total RM 5,620",5620,Paid,,14/11/2026
+598,Riverstone Sdn Bhd,"Inv #INV-2828, Due 20/10/2026, Total RM 12,200","RM 12,200.00", open ,,2026-10-17
+599,Wira Logistics,"Inv #INV-2829, Due 13/11/2026, Total RM 6,930",6930,Paid,,12/11/2026
+600,Kinabalu Traders,"Inv #INV-2830, Due 07/11/2026, Total RM 7,824",7824,Open,Escalate,05/11/2026
+601,Unity Networks,"Inv #INV-2831, Due 20/11/2026, Total RM 4,366",4366,Paid,Partial payment,19/11/2026
+602,Kinabalu Traders,"Inv #INV-2832, Due 27/11/2026, Total RM 7,288",7288,Open,,22/11/2026
+603,Nexus Solutions,"Inv #INV-2833, Due 08/12/2026, Total RM 1,871",1871,Open,Follow up,03/12/2026
+604,Acme Sdn Bhd,"Inv #INV-2834, Due 15/12/2026, Total RM 11,401",11401,Paid,Partial payment,2026-12-13
+605,Horizon Systems,"Inv #INV-2835, Due 05/11/2026, Total RM 5,202",5202,Open,Partial payment,02/11/2026
+606,  Terra Energy ,"Inv #INV-2836, Due 19/10/2026, Total RM 12,383",12383,Paid,,17/10/2026
+607,Summit Global,"Inv #INV-2837, Due 18/12/2026, Total RM 5,962",5962,Paid,Urgent payment,14/12/2026
+608,Melaka Marine,"Inv #INV-2838, Due 02/11/2026, Total RM 10,776",10776,Paid,Partial payment,01/11/2026
+609,Acme Sdn Bhd,"Inv #INV-2839, Due 21/12/2026, Total RM 5,985",5985, paid ,Follow up,19/12/2026
+610,Orion Ventures,"Inv #INV-2840, Due 15/10/2026, Total RM 11,526",11526,Open,Partial payment,11/10/2026
+611,  Global Tech ,"Inv #INV-2841, Due 11/10/2026, Total RM 7,344",7344,Open,,07/10/2026
+612,Delta Corp,"Inv #INV-2842, Due 23/11/2026, Total RM 9,976",9976,Paid,Escalate,22/11/2026
+613,Pioneer Resources,"Inv #INV-2843, Due 05/12/2026, Total RM 8,948",8948,Paid,,04/12/2026
+614,,"Inv #INV-2844, Due 14/10/2026, Total RM 12,037",12037,Paid,,13/10/2026
+615,Wira Logistics,"Inv #INV-2845, Due 20/12/2026, Total RM 1,447",1447,Open,Partial payment,18/12/2026
+616,Terra Energy,"Inv #INV-2846, Due 13/10/2026, Total RM 11,177",11177,Open,,09/10/2026
+617,Wira Logistics,"Inv #INV-2847, Due 22/11/2026, Total RM 328",328,Open,Urgent payment,20/11/2026
+618,Vertex Industries,"Inv #INV-2848, Due 22/12/2026, Total RM 11,597",11597,Open,,17/12/2026
+619,Horizon Systems,"Inv #INV-2849, Due 25/11/2026, Total RM 12,125",12125,Open,Follow up,20/11/2026
+620,Wira Logistics,"Inv #INV-2850, Due 09/10/2026, Total RM 9,906",9906,Paid,,04/10/2026
+621,Riverstone Sdn Bhd,"Inv #INV-2851, Due 15/10/2026, Total RM 5,305",5305,Open,Follow up,12/10/2026
+622,Wira Logistics,"Inv #INV-2852, Due 08/12/2026, Total RM 10,443",10443,Paid,,04/12/2026
+623,Zenith Foods,"Inv #INV-2853, Due 21/11/2026, Total RM 3,235",3235,Paid,,"Nov 20, 2026"
+624,Wira Logistics,"Inv #INV-2854, Due 14/12/2026, Total RM 5,796",5796,Open,Escalate,12/12/2026
+625,Beta Trading,"Inv #INV-2855, Due 16/10/2026, Total RM 266",266,Open,,2026-10-12
+626,Global Tech,"Inv #INV-2856, Due 13/10/2026, Total RM 894",894,Paid,Partial payment,09/10/2026
+627,Terra Energy,"Inv #INV-2857, Due 10/10/2026, Total RM 1,595",1595,Paid,,07/10/2026
+628,Beta Trading,"Inv #INV-2858, Due 07/10/2026, Total RM 975",975,Paid,,05/10/2026
+629,Wira Logistics,"Inv #INV-2859, Due 19/11/2026, Total RM 2,380",2380,Paid,Escalate,16/11/2026
+630,Orion Ventures,"Inv #INV-2860, Due 26/10/2026, Total RM 314",314,Open,,2026-10-22
+631,Delta Corp,"Inv #INV-2861, Due 18/12/2026, Total RM 4,537",4537, open ,Check PO,16/12/2026
+632,Pioneer Resources,"Inv #INV-2862, Due 04/10/2026, Total RM 10,242","RM 10,242.00",Paid,,30/09/2026
+633,Vertex Industries,"Inv #INV-2863, Due 21/12/2026, Total RM 8,631",8631,Open,Check PO,2026-12-17
+634,Pioneer Resources,"Inv #INV-2864, Due 26/11/2026, Total RM 11,411",11411, open ,,"Nov 24, 2026"
+635,Evergreen Ltd,"Inv #INV-2865, Due 03/12/2026, Total RM 7,817",7817,Open,,01/12/2026
+636,Vertex Industries,"Inv #INV-2866, Due 06/10/2026, Total RM 9,514","RM 9,514.00",Open,Escalate,"Oct 03, 2026"
+637,Nexus Solutions,"Inv #INV-2867, Due 18/12/2026, Total RM 10,635",10635,Open,Check PO,2026-12-14
+638,Pioneer Resources,"Inv #INV-2868, Due 18/12/2026, Total RM 8,486",8486,Paid,Urgent payment,14/12/2026
+639,Selangor Steel,"Inv #INV-2869, Due 22/11/2026, Total RM 9,257",9257,Paid,,21/11/2026
+640,Wira Logistics,"Inv #INV-2870, Due 15/10/2026, Total RM 7,701",7701,Open,Partial payment,2026-10-14
+641,Riverstone Sdn Bhd,"Inv #INV-2871, Due 09/11/2026, Total RM 5,925",5925,Open,,"Nov 04, 2026"
+642,Zenith Foods,"Inv #INV-2872, Due 01/10/2026, Total RM 10,381",10381,Paid,Urgent payment,26/09/2026
+643,Acme Sdn Bhd,"Inv #INV-2873, Due 16/12/2026, Total RM 10,715",10715,Paid,Partial payment,12/12/2026
+644,Vertex Industries,"Inv #INV-2874, Due 01/10/2026, Total RM 8,683",8683,Open,,29/09/2026
+645,Selangor Steel,"Inv #INV-2875, Due 15/10/2026, Total RM 8,552",8552, paid ,,13/10/2026
+646,Quantum Dynamics,"Inv #INV-2876, Due 19/11/2026, Total RM 3,545","RM 3,545.00",Open,Urgent payment,16/11/2026
+647,Horizon Systems,"Inv #INV-2877, Due 23/10/2026, Total RM 7,927",7927,Open,Urgent payment,2026-10-20
+648,Horizon Systems,"Inv #INV-2878, Due 02/12/2026, Total RM 4,643",4643,Paid,Urgent payment,27/11/2026
+649,Horizon Systems,"Inv #INV-2879, Due 07/10/2026, Total RM 440",RM 440.00,Open,,05/10/2026
+650,Terra Energy,"Inv #INV-2880, Due 02/10/2026, Total RM 7,326",7326,Paid,,2026-10-01
+651,Acme Sdn Bhd,"Inv #INV-2881, Due 01/11/2026, Total RM 8,041",8041,Open,,2026-10-30
+652,Evergreen Ltd,"Inv #INV-2882, Due 01/12/2026, Total RM 6,632",6632,Open,Urgent payment,2026-11-27
+653,Selangor Steel,"Inv #INV-2883, Due 12/11/2026, Total RM 4,039",4039,Open,,10/11/2026
+654,Pioneer Resources,"Inv #INV-2884, Due 07/10/2026, Total RM 12,271",12271,Open,Escalate,2026-10-03
+655,Orion Ventures,"Inv #INV-2885, Due 12/10/2026, Total RM 2,441",2441,Paid,,09/10/2026
+656,Kinabalu Traders,"Inv #INV-2886, Due 24/10/2026, Total RM 4,778",4778,Open,,21/10/2026
+657,Quantum Dynamics,"Inv #INV-2887, Due 26/10/2026, Total RM 3,735",3735,Paid,,23/10/2026
+658,Nexus Solutions,"Inv #INV-2888, Due 10/10/2026, Total RM 12,368","RM 12,368.00",Paid,Urgent payment,06/10/2026
+659,Unity Networks,"Inv #INV-2889, Due 03/11/2026, Total RM 12,156",12156,Open,,2026-11-02
+660,Melaka Marine,"Inv #INV-2890, Due 11/10/2026, Total RM 977",977,Open,,10/10/2026
+661,Evergreen Ltd,"Inv #INV-2891, Due 24/12/2026, Total RM 1,462",1462,Paid,,21/12/2026
+662,Terra Energy,"Inv #INV-2892, Due 23/11/2026, Total RM 8,005",8005,Open,,19/11/2026
+663,Acme Sdn Bhd,"Inv #INV-2893, Due 01/12/2026, Total RM 1,386",1386,Paid,Urgent payment,2026-11-30
+664,Beta Trading,"Inv #INV-2894, Due 02/12/2026, Total RM 3,143",3143,Open,,29/11/2026
+665,Beta Trading,"Inv #INV-2895, Due 20/12/2026, Total RM 9,595",9595,Open,Follow up,"Dec 16, 2026"
+666,Kinabalu Traders,"Inv #INV-2896, Due 26/11/2026, Total RM 5,204",5204,Open,Follow up,22/11/2026
+667,Zenith Foods,"Inv #INV-2897, Due 17/11/2026, Total RM 12,035",12035,Open,,14/11/2026
+668,Unity Networks,"Inv #INV-2898, Due 11/11/2026, Total RM 12,139",12139,Paid,Urgent payment,10/11/2026
+669,Global Tech,"Inv #INV-2899, Due 05/12/2026, Total RM 975",975,Paid,,2026-12-04
+670,Nexus Solutions,"Inv #INV-2900, Due 06/10/2026, Total RM 2,552",2552,Paid,,03/10/2026
+671,Global Tech,"Inv #INV-2901, Due 23/12/2026, Total RM 3,042",3042,Paid,Follow up,2026-12-18
+672,Unity Networks,"Inv #INV-2902, Due 09/10/2026, Total RM 8,708",8708,Open,Partial payment,2026-10-06
+673,Horizon Systems,"Inv #INV-2903, Due 11/11/2026, Total RM 6,547","RM 6,547.00",Paid,,10/11/2026
+674,Evergreen Ltd,"Inv #INV-2904, Due 27/12/2026, Total RM 2,732",2732,Open,,25/12/2026
+675,Zenith Foods,"Inv #INV-2905, Due 27/10/2026, Total RM 9,512",9512,Open,Partial payment,2026-10-22
+676,Riverstone Sdn Bhd,"Inv #INV-2906, Due 22/10/2026, Total RM 1,905","RM 1,905.00",Open,Urgent payment,2026-10-18
+677,Kinabalu Traders,"Inv #INV-2907, Due 08/11/2026, Total RM 3,885",3885,Open,,2026-11-06
+678,Pioneer Resources,"Inv #INV-2908, Due 15/11/2026, Total RM 11,754",11754,Paid,,10/11/2026
+679,Vertex Industries,"Inv #INV-2909, Due 25/12/2026, Total RM 6,650",6650,Paid,,23/12/2026
+680,Nexus Solutions,"Inv #INV-2910, Due 27/12/2026, Total RM 3,730",3730,Open,,25/12/2026
+681,Global Tech,"Inv #INV-2911, Due 06/12/2026, Total RM 2,529","RM 2,529.00",Paid,,2026-12-03
+682,Zenith Foods,"Inv #INV-2912, Due 26/10/2026, Total RM 1,287",1287,Open,,21/10/2026
+683,Orion Ventures,"Inv #INV-2913, Due 15/11/2026, Total RM 7,386",7386,Open,,"Nov 13, 2026"
+684,Summit Global,"Inv #INV-2914, Due 27/10/2026, Total RM 3,753",3753,Open,,24/10/2026
+685,Melaka Marine,"Inv #INV-2915, Due 10/11/2026, Total RM 6,312",6312,Paid,Check PO,05/11/2026
+686,Terra Energy,"Inv #INV-2916, Due 02/11/2026, Total RM 6,289","RM 6,289.00",Open,Follow up,31/10/2026
+687,Acme Sdn Bhd,"Inv #INV-2917, Due 08/11/2026, Total RM 12,413",12413, paid ,,03/11/2026
+688,Pioneer Resources,"Inv #INV-2918, Due 21/12/2026, Total RM 7,650",7650,Open,,"Dec 18, 2026"
+689,Horizon Systems,INV-2919 / Due 32/10/2026 / RM 980,"RM 3,827.00",Paid,Follow up,2026-12-05
+690,  Riverstone Sdn Bhd ,"Inv #INV-2920, Due 27/11/2026, Total RM 3,332","RM 3,332.00",Paid,,26/11/2026
+691,Zenith Foods,"Inv #INV-2921, Due 08/11/2026, Total RM 7,082",7082,Paid,Urgent payment,04/11/2026
+692,Riverstone Sdn Bhd,"Inv #INV-2922, Due 07/10/2026, Total RM 6,676",6676,Paid,,02/10/2026
+693,Riverstone Sdn Bhd,"Inv #INV-2923, Due 10/10/2026, Total RM 5,264",5264, open ,Follow up,2026-10-05
+694,Nexus Solutions,"Inv #INV-2924, Due 12/10/2026, Total RM 4,203",4203,Open,,2026-10-11
+695,Beta Trading,"Inv #INV-2925, Due 13/11/2026, Total RM 12,025",12025,Open,,2026-11-11
+696,Riverstone Sdn Bhd,"Inv #INV-2926, Due 09/11/2026, Total RM 2,052",2052,Paid,Escalate,06/11/2026
+697,Beta Trading,"Inv #INV-2927, Due 07/10/2026, Total RM 9,876",9876,Open,,2026-10-03
+698,Melaka Marine,"Inv #INV-2928, Due 24/12/2026, Total RM 4,877",4877,Paid,Partial payment,23/12/2026
+699,Unity Networks,"Inv #INV-2929, Due 03/12/2026, Total RM 2,452",2452,Paid,Escalate,02/12/2026
+700,Global Tech,"Inv #INV-2930, Due 17/10/2026, Total RM 11,423","RM 11,423.00",Open,Partial payment,14/10/2026
+701,Summit Global,"Inv #2931, Due 15/10/26, Total RM3.1k",8590,Open,Urgent payment,16/10/2026
+702,Nexus Solutions,"Inv #INV-2932, Due 28/11/2026, Total RM 219",219,Open,,24/11/2026
+703,Beta Trading,"Inv #INV-2933, Due 28/11/2026, Total RM 11,906",11906,Paid,Check PO,2026-11-26
+704,Unity Networks,"Inv #INV-2934, Due 20/11/2026, Total RM 11,229",11229,Open,,"Nov 19, 2026"
+705,Global Tech,"Inv #INV-2935, Due 24/11/2026, Total RM 4,397",4397,Open,Partial payment,2026-11-23
+706,Delta Corp,"Inv #INV-2936, Due 17/12/2026, Total RM 9,954",9954,Paid,Partial payment,15/12/2026
+707,Global Tech,"Inv #INV-2937, Due 28/12/2026, Total RM 9,290",9290,Paid,,25/12/2026
+708,Evergreen Ltd,"Inv #INV-2938, Due 13/12/2026, Total RM 1,377",1377,Paid,,11/12/2026
+709,Beta Trading,"Inv #INV-2939, Due 21/12/2026, Total RM 9,329",9329,Open,Partial payment,18/12/2026
+710,Terra Energy,"Inv #INV-2940, Due 23/12/2026, Total RM 12,448","RM 12,448.00",Open,Follow up,22/12/2026
+711,Melaka Marine,"Inv #INV-2941, Due 12/11/2026, Total RM 1,911",1911,Open,,2026-11-10
+712,Summit Global,"Inv #INV-2942, Due 09/10/2026, Total RM 4,613",4613,Paid,,04/10/2026
+713,Acme Sdn Bhd,"Inv #INV-2943, Due 10/10/2026, Total RM 8,862",8862,Open,,06/10/2026
+714,Evergreen Ltd,"Inv #INV-2944, Due 01/12/2026, Total RM 11,593",11593,Paid,,"Nov 27, 2026"
+715,Nexus Solutions,"Inv #INV-2945, Due 26/11/2026, Total RM 3,958",3958,Paid,,25/11/2026
+716,Riverstone Sdn Bhd,"Inv #INV-2946, Due 15/11/2026, Total RM 10,396",10396,Paid,Check PO,12/11/2026
+717,Evergreen Ltd,"Inv #INV-2947, Due 04/11/2026, Total RM 4,192",4192,Open,Check PO,2026-11-03
+718,Selangor Steel,"Inv #INV-2948, Due 22/11/2026, Total RM 5,285",5285,Open,Escalate,20/11/2026
+719,Wira Logistics,"Inv #INV-2949, Due 12/12/2026, Total RM 4,982",4982,Paid,Escalate,11/12/2026
+720,Riverstone Sdn Bhd,"Inv #INV-2950, Due 27/11/2026, Total RM 4,882",4882,Open,Follow up,2026-11-22
+721,Beta Trading,"Inv #INV-2951, Due 23/10/2026, Total RM 5,323","RM 5,323.00",Paid,Escalate,22/10/2026
+722,Melaka Marine,"Inv #INV-2952, Due 23/11/2026, Total RM 3,112",3112,Open,,21/11/2026
+723,Terra Energy,"Inv #INV-2953, Due 05/10/2026, Total RM 12,182",12182,Open,Follow up,03/10/2026
+724,Melaka Marine,"Inv #INV-2954, Due 04/11/2026, Total RM 905",905,Open,,"Nov 01, 2026"
+725,Kinabalu Traders,"Inv #INV-2955, Due 07/10/2026, Total RM 11,843",11843,Paid,Urgent payment,04/10/2026
+726,Summit Global,"Inv #INV-2956, Due 25/11/2026, Total RM 7,126",7126,Open,Check PO,2026-11-24
+727,Delta Corp,"Inv #INV-2957, Due 14/11/2026, Total RM 6,583",6583,Paid,,11/11/2026
+728,Wira Logistics,"Inv #INV-2958, Due 03/10/2026, Total RM 6,459",6459,Open,,02/10/2026
+729,Quantum Dynamics,"Inv #INV-2959, Due 15/12/2026, Total RM 6,007",6007,Paid,Follow up,14/12/2026
+730,  Quantum Dynamics ,"Inv #INV-2960, Due 21/11/2026, Total RM 4,931",4931,Open,Partial payment,2026-11-19
+731,Pioneer Resources,"Inv #INV-2961, Due 24/12/2026, Total RM 9,916",9916,Open,Escalate,2026-12-23
+732,Unity Networks,"Inv #INV-2962, Due 09/12/2026, Total RM 5,478","RM 5,478.00",PAID,,07/12/2026
+733,Vertex Industries,"Inv #INV-2963, Due 23/10/2026, Total RM 7,320",7320,Open,Escalate,22/10/2026
+734,Horizon Systems,"Inv #INV-2964, Due 04/12/2026, Total RM 11,961",11961,Open,Check PO,03/12/2026
+735,Global Tech,"Inv #INV-2965, Due 24/12/2026, Total RM 3,901",3901,Open,Escalate,23/12/2026
+736,Zenith Foods,"Inv #INV-2966, Due 20/11/2026, Total RM 12,419","RM 12,419.00",Paid,,19/11/2026
+737,  Horizon Systems ,"Inv #INV-2967, Due 08/11/2026, Total RM 4,114",4114, open ,Partial payment,05/11/2026
+738,Orion Ventures,"Inv #INV-2968, Due 05/11/2026, Total RM 10,045",10045,Open,,2026-11-03
+739,Beta Trading,"Inv #INV-2969, Due 05/12/2026, Total RM 6,831",6831,Paid,Urgent payment,01/12/2026
+740,Pioneer Resources,"Inv #INV-2970, Due 12/11/2026, Total RM 10,740",10740,Open,,10/11/2026
+741,Summit Global,"Inv #INV-2971, Due 03/12/2026, Total RM 6,454",6454, paid ,Check PO,29/11/2026
+742,Riverstone Sdn Bhd,"Inv #INV-2972, Due 10/10/2026, Total RM 8,888",8888,Open,,07/10/2026
+743,Pioneer Resources,"Inv #INV-2973, Due 10/12/2026, Total RM 8,840",8840,Open,,06/12/2026
+744,Evergreen Ltd,"Inv #INV-2974, Due 07/12/2026, Total RM 5,442",5442,Open,Check PO,2026-12-02
+745,Horizon Systems,"INV-2975 | 2026-11-05 | RM3,OOO",468,Paid,,2026-12-18
+746,Kinabalu Traders,"Inv #INV-2976, Due 14/11/2026, Total RM 5,978",5978,Open,,2026-11-12
+747,Summit Global,"Inv #INV-2977, Due 07/12/2026, Total RM 4,226","RM 4,226.00",Paid,,2026-12-03
+748,Quantum Dynamics,"Inv #INV-2978, Due 01/12/2026, Total RM 937",937,Open,,2026-11-27
+749,Quantum Dynamics,"Inv #INV-2979, Due 06/12/2026, Total RM 2,632",2632,Open,,01/12/2026
+750,Orion Ventures,"Inv #INV-2980, Due 04/11/2026, Total RM 10,068",10068,Paid,Check PO,31/10/2026
+751,Vertex Industries,"Inv #INV-2981, Due 18/10/2026, Total RM 12,209",12209,Open,Urgent payment,15/10/2026
+752,Acme Sdn Bhd,"Inv #INV-2982, Due 09/12/2026, Total RM 5,152",5152,OPEN,,05/12/2026
+753,Summit Global,"Inv #INV-2983, Due 27/10/2026, Total RM 1,980",1980,Paid,Urgent payment,25/10/2026
+754,Orion Ventures,"Inv #INV-2984, Due 26/12/2026, Total RM 2,607",2607, paid ,,24/12/2026
+755,Kinabalu Traders,"Inv #INV-2985, Due 22/12/2026, Total RM 4,988",4988,Paid,Escalate,"Dec 19, 2026"
+756,Vertex Industries,"Inv #INV-2986, Due 03/12/2026, Total RM 6,940",6940,Open,Follow up,"Nov 30, 2026"
+757,Vertex Industries,"Inv #INV-2987, Due 14/12/2026, Total RM 10,505",10505,Open,,2026-12-13
+758,Global Tech,"Inv #INV-2988, Due 17/12/2026, Total RM 4,383",4383,Paid,Urgent payment,13/12/2026
+759,Horizon Systems,"Inv #INV-2989, Due 09/11/2026, Total RM 5,540",5540,Open,Escalate,06/11/2026
+760,  Terra Energy ,"Inv #INV-2990, Due 06/12/2026, Total RM 4,249",4249,Paid,,2026-12-04
+761,Global Tech,"Inv #INV-2991, Due 02/12/2026, Total RM 9,096",9096,Paid,Partial payment,2026-11-30
+762,Evergreen Ltd,"Inv #INV-2992, Due 02/10/2026, Total RM 309",309,Paid,Escalate,27/09/2026
+763,Beta Trading,"Inv #INV-2993, Due 08/10/2026, Total RM 8,806",8806,Paid,,03/10/2026
+764,Pioneer Resources,"Inv #INV-2994, Due 15/12/2026, Total RM 12,468",12468,Paid,,14/12/2026
+765,Melaka Marine,"Inv #INV-2995, Due 05/11/2026, Total RM 8,480",8480,Open,,04/11/2026
+766,Beta Trading,"Inv #INV-2996, Due 21/11/2026, Total RM 8,612",8612,Open,Follow up,2026-11-17
+767,Melaka Marine,"Inv #INV-2997, Due 04/10/2026, Total RM 2,610",2610,Paid,,30/09/2026
+768,Summit Global,"Inv #INV-2998, Due 14/12/2026, Total RM 11,735",11735,Open,,2026-12-10
+769,Melaka Marine,"Inv #INV-2999, Due 19/10/2026, Total RM 858",858,Open,Follow up,16/10/2026
+770,Orion Ventures,"Inv #INV-3000, Due 21/10/2026, Total RM 11,022",11022,Open,,17/10/2026
+771,Summit Global,"Inv #INV-3001, Due 28/11/2026, Total RM 4,097",4097,Open,Escalate,23/11/2026
+772,Quantum Dynamics,"Inv #INV-3002, Due 24/11/2026, Total RM 9,011",9011,Open,,2026-11-19
+773,Acme Sdn Bhd,"Inv #INV-3003, Due 02/11/2026, Total RM 5,833",5833,Open,,31/10/2026
+774,  Evergreen Ltd ,"Inv #INV-3004, Due 04/11/2026, Total RM 8,020",8020,Paid,Follow up,2026-11-01
+775,Terra Energy,"Inv #INV-3005, Due 13/10/2026, Total RM 6,688",6688,Paid,,2026-10-11
+776,Terra Energy,"Inv #INV-3006, Due 01/11/2026, Total RM 9,638",9638,Paid,,2026-10-30
+777,  Horizon Systems ,"Inv #INV-3007, Due 15/11/2026, Total RM 5,059",5059,Paid,Partial payment,2026-11-14
+778,Riverstone Sdn Bhd,"Inv #INV-3008, Due 03/12/2026, Total RM 2,694",2694,Open,Partial payment,28/11/2026
+779,Terra Energy,"Inv #INV-3009, Due 04/11/2026, Total RM 837",837,Open,,31/10/2026
+780,Zenith Foods,"Inv #INV-3010, Due 05/11/2026, Total RM 1,188",1188,Open,Check PO,04/11/2026
+781,Quantum Dynamics,"Inv #INV-3011, Due 06/10/2026, Total RM 12,202",12202,Open,Follow up,03/10/2026
+782,Selangor Steel,"Invoice 3012 - 01/11/2026 - RM 1,200",9194,Paid,Check PO,2026-10-06
+783,Acme Sdn Bhd,"Inv #INV-3013, Due 15/11/2026, Total RM 7,087",7087,Paid,,13/11/2026
+784,Nexus Solutions,"Inv #INV-3014, Due 09/11/2026, Total RM 11,128",11128,Paid,Partial payment,06/11/2026
+785,Summit Global,"Inv #INV-3015, Due 11/12/2026, Total RM 7,599","RM 7,599.00",Open,Partial payment,"Dec 06, 2026"
+786,Quantum Dynamics,"Inv #INV-3016, Due 24/12/2026, Total RM 11,990",11990,Paid,,2026-12-19
+787,Vertex Industries,"Inv #INV-3017, Due 13/10/2026, Total RM 10,727",10727,Open,,08/10/2026
+788,Global Tech,"Inv #INV-3018, Due 22/10/2026, Total RM 4,570",4570,Open,Partial payment,17/10/2026
+789,Global Tech,"Inv #INV-3019, Due 19/11/2026, Total RM 8,206",8206,Paid,Follow up,14/11/2026
+790,Beta Trading,"Inv #INV-3020, Due 18/12/2026, Total RM 11,226",11226,Open,,13/12/2026
+791,Kinabalu Traders,"Inv #INV-3021, Due 03/10/2026, Total RM 7,150",7150,Paid,,02/10/2026
+792,Kinabalu Traders,"Inv #INV-3022, Due 03/12/2026, Total RM 3,430",3430,Open,,30/11/2026
+793,Wira Logistics,"Inv #INV-3023, Due 03/11/2026, Total RM 2,262",2262,Open,Follow up,2026-10-31
+794,Quantum Dynamics,"Inv #INV-3024, Due 13/10/2026, Total RM 6,579",6579,Paid,Follow up,08/10/2026
+795,  Orion Ventures ,"Inv #INV-3025, Due 07/12/2026, Total RM 10,304",10304,Open,,03/12/2026
+796,Terra Energy,"Inv #INV-3026, Due 10/11/2026, Total RM 8,783",8783,Open,Partial payment,05/11/2026
+797,Nexus Solutions,"Inv #INV-3027, Due 14/12/2026, Total RM 6,941",6941,Open,Follow up,10/12/2026
+798,Unity Networks,"Inv #INV-3028, Due 07/12/2026, Total RM 5,713",5713,OPEN,,2026-12-06
+799,Kinabalu Traders,"Inv #INV-3029, Due 13/11/2026, Total RM 11,952",11952,Open,,11/11/2026
+800,  Pioneer Resources ,"Inv #INV-3030, Due 10/11/2026, Total RM 9,322",9322,Paid,Check PO,2026-11-05
+801,Evergreen Ltd,"Inv #INV-3031, Due 14/12/2026, Total RM 3,009","RM 3,009.00",Paid,Follow up,11/12/2026
+802,Kinabalu Traders,"Inv #INV-3032, Due 06/11/2026, Total RM 8,135",8135,Paid,Follow up,03/11/2026
+803,Beta Trading,"Inv #INV-3033, Due 07/11/2026, Total RM 2,428",2428,Paid,,05/11/2026
+804,Vertex Industries,"Inv #INV-3034, Due 21/10/2026, Total RM 2,109",2109,Open,Partial payment,20/10/2026
+805,Evergreen Ltd,"Inv #INV-3035, Due 22/11/2026, Total RM 4,783",4783, open ,Urgent payment,2026-11-17
+806,  Vertex Industries ,"Inv #INV-3036, Due 13/10/2026, Total RM 6,166",6166,Open,,12/10/2026
+807,Nexus Solutions,"Inv #INV-3037, Due 07/10/2026, Total RM 10,729",10729,Open,,"Oct 05, 2026"
+808,Selangor Steel,"Inv #INV-3038, Due 03/10/2026, Total RM 11,698",11698,Open,Urgent payment,02/10/2026
+809,Unity Networks,"Inv #INV-3039, Due 24/11/2026, Total RM 3,099",3099,Open,,21/11/2026
+810,Evergreen Ltd,"Inv #INV-3040, Due 25/10/2026, Total RM 4,481",4481,Open,,22/10/2026
+811,Summit Global,"Inv #INV-3041, Due 20/12/2026, Total RM 4,332",4332,Paid,,18/12/2026
+812,Kinabalu Traders,"Inv #INV-3042, Due 25/10/2026, Total RM 3,682",3682,Open,,21/10/2026
+813,  Terra Energy ,"Inv #INV-3043, Due 04/11/2026, Total RM 10,561",10561,Open,Urgent payment,01/11/2026
+814,Wira Logistics,"Inv #INV-3044, Due 26/11/2026, Total RM 11,269",11269,Open,,21/11/2026
+815,Summit Global,"Inv #INV-3045, Due 02/10/2026, Total RM 8,966",8966,Open,,30/09/2026
+816,Vertex Industries,"Inv #INV-3046, Due 27/11/2026, Total RM 1,792",1792,Open,Escalate,22/11/2026
+817,Selangor Steel,"Inv #INV-3047, Due 17/11/2026, Total RM 9,465",9465,Open,Partial payment,2026-11-14
+818,Kinabalu Traders,"Inv #INV-3048, Due 11/12/2026, Total RM 2,126",2126,Paid,Urgent payment,08/12/2026
+819,Quantum Dynamics,"Inv #INV-3049, Due 16/11/2026, Total RM 6,439",6439,Paid,Check PO,2026-11-12
+820,Summit Global,"Inv #INV-3050, Due 11/12/2026, Total RM 2,841",2841,OPEN,Check PO,10/12/2026
+821,Global Tech,"Inv #INV-3051, Due 24/10/2026, Total RM 5,814",5814,Open,Partial payment,19/10/2026
+822,Horizon Systems,"Inv #INV-3052, Due 14/11/2026, Total RM 8,729",8729,Open,Check PO,2026-11-11
+823,Horizon Systems,"Inv #INV-3053, Due 08/11/2026, Total RM 6,774",6774,Paid,Check PO,04/11/2026
+824,Nexus Solutions,"Inv #INV-3054, Due 20/12/2026, Total RM 7,066",7066,Open,Escalate,2026-12-16
+825,Terra Energy,"Inv #INV-3055, Due 22/10/2026, Total RM 11,922",11922,Open,,20/10/2026
+826,Orion Ventures,"Inv #INV-3056, Due 21/10/2026, Total RM 1,221",1221,Paid,Escalate,16/10/2026
+827,Zenith Foods,"Inv #INV-3057, Due 26/12/2026, Total RM 4,391",4391,Open,Check PO,"Dec 25, 2026"
+828,Zenith Foods,"Inv #INV-3058, Due 19/12/2026, Total RM 11,209",11209,Paid,Urgent payment,18/12/2026
+829,Unity Networks,"Inv #INV-3059, Due 12/11/2026, Total RM 2,588",2588,Open,Check PO,11/11/2026
+830,Wira Logistics,"Inv #INV-3060, Due 24/12/2026, Total RM 4,288",4288,Paid,Follow up,2026-12-21
+831,Wira Logistics,"Inv #INV-3061, Due 20/12/2026, Total RM 8,089",8089,Open,,17/12/2026
+832,Melaka Marine,"Inv #INV-3062, Due 06/11/2026, Total RM 1,597",1597,Paid,,2026-11-01
+833,Orion Ventures,"Inv #INV-3063, Due 24/12/2026, Total RM 6,578",6578,Open,,21/12/2026
+834,Unity Networks,"Inv #INV-3064, Due 22/11/2026, Total RM 4,144",4144,Open,,18/11/2026
+835,Orion Ventures,"Inv #INV-3065, Due 16/12/2026, Total RM 9,525",9525,Open,,2026-12-15
+836,Delta Corp,"Inv #INV-3066, Due 13/11/2026, Total RM 8,726",8726,Paid,Check PO,11/11/2026
+837,Horizon Systems,"Inv #INV-3067, Due 02/10/2026, Total RM 1,312",1312, paid ,,29/09/2026
+838,Summit Global,"Inv #INV-3068, Due 02/11/2026, Total RM 5,575",5575,Open,Partial payment,31/10/2026
+839,Kinabalu Traders,"Inv #INV-3069, Due 24/12/2026, Total RM 10,996","RM 10,996.00",Open,,"Dec 23, 2026"
+840,Acme Sdn Bhd,"Inv #INV-3070, Due 07/11/2026, Total RM 5,472",5472,Open,Follow up,2026-11-06
+841,Zenith Foods,"Inv #INV-3071, Due 22/10/2026, Total RM 8,532",8532,Open,Escalate,20/10/2026
+842,Pioneer Resources,"Inv #INV-3072, Due 04/10/2026, Total RM 5,368",5368,Open,,2026-10-03
+843,Global Tech,"Inv #INV-3073, Due 07/12/2026, Total RM 6,229",6229,Paid,Escalate,2026-12-05
+844,Kinabalu Traders,"Inv #INV-3074, Due 05/12/2026, Total RM 9,441",9441,Open,,02/12/2026
+845,Zenith Foods,"Inv #INV-3075, Due 18/12/2026, Total RM 7,021",7021,Open,Escalate,"Dec 16, 2026"
+846,Orion Ventures,"Inv #INV-3076, Due 14/12/2026, Total RM 2,684","RM 2,684.00",Open,Urgent payment,2026-12-10
+847,Beta Trading,"Inv #INV-3077, Due 08/10/2026, Total RM 2,869",2869,Open,,05/10/2026
+848,Pioneer Resources,"Inv #INV-3078, Due 02/11/2026, Total RM 5,947",5947,Paid,Urgent payment,2026-10-30
+849,Orion Ventures,"Inv #INV-3079, Due 16/10/2026, Total RM 5,573",5573,PAID,Partial payment,13/10/2026
+850,Orion Ventures,"Inv #INV-3080, Due 27/11/2026, Total RM 2,593",2593,Open,,25/11/2026
+851,Melaka Marine,"Inv #INV-3081, Due 19/12/2026, Total RM 10,722","RM 10,722.00",Paid,,16/12/2026
+852,Kinabalu Traders,"Inv #INV-3082, Due 15/10/2026, Total RM 7,370",7370,Open,Follow up,13/10/2026
+853,Selangor Steel,"Inv #INV-3083, Due 23/11/2026, Total RM 5,448",5448,Open,,20/11/2026
+854,Beta Trading,"Inv #INV-3084, Due 20/12/2026, Total RM 6,910","RM 6,910.00",Open,Escalate,2026-12-18
+855,Beta Trading,"Inv #INV-3085, Due 05/11/2026, Total RM 7,705",7705,Open,Escalate,02/11/2026
+856,Wira Logistics,"Invoice INV-3086, Due 29/02/2026, Total RM 2,100",5537,Open,,09/11/2026
+857,Orion Ventures,"Inv #INV-3087, Due 03/12/2026, Total RM 1,768",1768,Paid,,01/12/2026
+858,Horizon Systems,"Inv #INV-3088, Due 23/12/2026, Total RM 4,203","RM 4,203.00",Paid,,22/12/2026
+859,Selangor Steel,"Inv #INV-3089, Due 09/10/2026, Total RM 3,648",3648,Open,,2026-10-07
+860,Wira Logistics,"Inv #INV-3090, Due 05/11/2026, Total RM 10,932",10932,Open,,03/11/2026
+861,Horizon Systems,"Inv #INV-3091, Due 06/12/2026, Total RM 10,424","RM 10,424.00",Open,,2026-12-05
+862,Summit Global,"Inv #INV-3092, Due 28/12/2026, Total RM 8,995",8995,Open,,27/12/2026
+863,Melaka Marine,"Inv #INV-3093, Due 02/10/2026, Total RM 5,702",5702,Open,Escalate,2026-09-27
+864,Horizon Systems,"Inv #INV-3094, Due 26/12/2026, Total RM 5,796",5796,Paid,Partial payment,24/12/2026
+865,Zenith Foods,"Inv #INV-3095, Due 18/10/2026, Total RM 8,882",8882,Paid,Check PO,16/10/2026
+866,Horizon Systems,"Inv #INV-3096, Due 08/11/2026, Total RM 2,576","RM 2,576.00",Paid,,04/11/2026
+867,Nexus Solutions,"Inv #INV-3097, Due 13/11/2026, Total RM 8,349",8349,Paid,Check PO,11/11/2026
+868,Delta Corp,"Inv #INV-3098, Due 25/11/2026, Total RM 7,939",7939,Paid,,23/11/2026
+869,Pioneer Resources,"Inv #INV-3099, Due 13/11/2026, Total RM 12,286",12286,Open,Partial payment,12/11/2026
+870,Global Tech,"Inv #INV-3100, Due 21/10/2026, Total RM 9,101",9101,Paid,Check PO,19/10/2026
+871,  Global Tech ,"Inv #INV-3101, Due 12/10/2026, Total RM 8,000",8000,Paid,,07/10/2026
+872,Pioneer Resources,"Inv #INV-3102, Due 03/12/2026, Total RM 11,545",11545,Paid,Follow up,29/11/2026
+873,Pioneer Resources,"Inv #INV-3103, Due 23/11/2026, Total RM 1,969",1969,Open,Partial payment,18/11/2026
+874,Pioneer Resources,"Inv #INV-3104, Due 04/12/2026, Total RM 11,806",11806,Open,,30/11/2026
+875,Beta Trading,"Inv #INV-3105, Due 09/10/2026, Total RM 5,310",5310, open ,Escalate,08/10/2026
+876,Melaka Marine,"Inv #INV-3106, Due 05/10/2026, Total RM 6,258",6258,Open,,04/10/2026
+877,Beta Trading,"Inv #INV-3107, Due 01/12/2026, Total RM 4,665",4665,Open,Follow up,30/11/2026
+878,Terra Energy,"Inv #INV-3108, Due 07/11/2026, Total RM 11,387",11387,Open,Follow up,05/11/2026
+879,Terra Energy,"Inv #INV-3109, Due 20/11/2026, Total RM 5,417",5417,Open,,2026-11-17
+880,Vertex Industries,"Inv #INV-3110, Due 18/12/2026, Total RM 8,569",8569,Open,Check PO,15/12/2026
+881,Acme Sdn Bhd,"Inv #INV-3111, Due 19/11/2026, Total RM 4,247",4247, paid ,Partial payment,16/11/2026
+882,Summit Global,"Inv #INV-3112, Due 04/10/2026, Total RM 2,064",2064, open ,Partial payment,29/09/2026
+883,Wira Logistics,"Inv #INV-3113, Due 03/11/2026, Total RM 6,785",6785,Open,,2026-10-29
+884,Zenith Foods,"Inv #INV-3114, Due 16/12/2026, Total RM 11,127",11127,Paid,,15/12/2026
+885,Quantum Dynamics,"Inv #INV-3115, Due 19/10/2026, Total RM 12,242","RM 12,242.00",Open,,17/10/2026
+886,Melaka Marine,"Inv #INV-3116, Due 22/10/2026, Total RM 12,410",12410,Open,,17/10/2026
+887,Wira Logistics,"Inv #INV-3117, Due 08/10/2026, Total RM 3,268","RM 3,268.00",Open,Follow up,03/10/2026
+888,Beta Trading,"Inv #INV-3118, Due 14/11/2026, Total RM 6,781",6781,Open,Follow up,09/11/2026
+889,  Acme Sdn Bhd ,"Inv #INV-3119, Due 02/10/2026, Total RM 769",769,Open,,29/09/2026
+890,Riverstone Sdn Bhd,"Inv #INV-3120, Due 11/10/2026, Total RM 4,013",4013,Open,,08/10/2026
+891,Quantum Dynamics,"Inv #INV-3121, Due 14/11/2026, Total RM 8,620",8620,Open,Follow up,2026-11-13
+892,Unity Networks,"Inv #INV-3122, Due 28/10/2026, Total RM 3,945",3945,Paid,,26/10/2026
+893,Kinabalu Traders,"Inv #INV-3123, Due 16/11/2026, Total RM 7,291",7291,Open,,14/11/2026
+894,Unity Networks,"Inv #INV-3124, Due 04/10/2026, Total RM 7,412",7412,Open,Urgent payment,"Sep 29, 2026"
+895,Delta Corp,"Inv #INV-3125, Due 01/12/2026, Total RM 531",531,Open,,28/11/2026
+896,Unity Networks,"Inv #INV-3126, Due 07/11/2026, Total RM 6,416",6416,Paid,Partial payment,2026-11-04
+897,Wira Logistics,"Inv #INV-3127, Due 07/10/2026, Total RM 4,387",4387,Open,Partial payment,06/10/2026
+898,Wira Logistics,"Inv #INV-3128, Due 10/12/2026, Total RM 2,748",2748,Open,Partial payment,09/12/2026
+899,Wira Logistics,"Inv #INV-3129, Due 27/12/2026, Total RM 3,167",3167,Paid,,23/12/2026
+900,Acme Sdn Bhd,"Inv #INV-3130, Due 03/11/2026, Total RM 5,846",5846,Paid,Escalate,01/11/2026
+901,Melaka Marine,"Inv #INV-3131, Due 27/12/2026, Total RM 7,651","RM 7,651.00",Paid,Escalate,23/12/2026
+902,Zenith Foods,"Inv #INV-3132, Due 13/11/2026, Total RM 9,905",9905,Open,Follow up,10/11/2026
+903,Riverstone Sdn Bhd,"Inv #INV-3133, Due 07/11/2026, Total RM 6,445",6445,Open,,2026-11-05
+904,Riverstone Sdn Bhd,"Inv #INV-3134, Due 04/12/2026, Total RM 11,723",11723,Open,Partial payment,30/11/2026
+905,Kinabalu Traders,"Inv #INV-3135, Due 10/10/2026, Total RM 7,273",7273,Open,,2026-10-05
+906,Zenith Foods,"Inv #INV-3136, Due 01/12/2026, Total RM 7,796",7796,Open,,29/11/2026
+907,Global Tech,"Inv #INV-3137, Due 11/10/2026, Total RM 8,321",8321,Open,,07/10/2026
+908,Terra Energy,"Inv #INV-3138, Due 10/10/2026, Total RM 7,554",7554,Open,,05/10/2026
+909,Terra Energy,"Inv #INV-3139, Due 21/12/2026, Total RM 10,319",10319,Open,Check PO,2026-12-19
+910,Beta Trading,"Inv #INV-3140, Due 18/11/2026, Total RM 1,244",1244,Open,,15/11/2026
+911,Nexus Solutions,"Inv #INV-3141, Due 20/10/2026, Total RM 7,868",7868,Open,,2026-10-19
+912,Pioneer Resources,INV-3142 | Due | RM 980,5449,Open,Partial payment,10/11/2026
+913,Horizon Systems,"Inv #INV-3143, Due 01/10/2026, Total RM 9,212",9212,Open,Urgent payment,2026-09-29
+914,Delta Corp,"Inv #INV-3144, Due 23/12/2026, Total RM 1,762",1762,Paid,,2026-12-19
+915,Quantum Dynamics,"Inv #INV-3145, Due 28/12/2026, Total RM 10,654",10654,Open,Partial payment,2026-12-25
+916,Unity Networks,"Inv #INV-3146, Due 06/10/2026, Total RM 2,294",2294,Paid,Escalate,2026-10-01
+917,Nexus Solutions,"Inv #INV-3147, Due 19/11/2026, Total RM 11,714",11714,Open,Urgent payment,"Nov 18, 2026"
+918,Pioneer Resources,"Inv #INV-3148, Due 03/11/2026, Total RM 8,334",8334,Open,,31/10/2026
+919,Zenith Foods,"Inv #INV-3149, Due 17/12/2026, Total RM 9,530",9530, paid ,,16/12/2026
+920,Beta Trading,"Inv #INV-3150, Due 14/10/2026, Total RM 5,820",5820,Open,,10/10/2026
+921,Vertex Industries,"Inv #INV-3151, Due 17/11/2026, Total RM 9,331",9331,Paid,,13/11/2026
+922,Acme Sdn Bhd,"Inv #INV-3152, Due 17/12/2026, Total RM 11,905",11905,Open,Urgent payment,2026-12-16
+923,  Quantum Dynamics ,"Inv #INV-3153, Due 22/10/2026, Total RM 1,281",1281,Open,Partial payment,2026-10-21
+924,Evergreen Ltd,"Inv #INV-3154, Due 10/10/2026, Total RM 235",235,Open,,2026-10-05
+925,Global Tech,"Inv #INV-3155, Due 28/10/2026, Total RM 9,694",9694,Paid,,24/10/2026
+926,Orion Ventures,"Inv #INV-3156, Due 17/12/2026, Total RM 955",RM 955.00,Paid,Escalate,14/12/2026
+927,Evergreen Ltd,"Inv #INV-3157, Due 13/11/2026, Total RM 6,809",6809,Paid,,2026-11-09
+928,Melaka Marine,"Inv #INV-3158, Due 03/10/2026, Total RM 7,696",7696,PAID,Urgent payment,28/09/2026
+929,Zenith Foods,"Inv #INV-3159, Due 18/11/2026, Total RM 939",939,Paid,,15/11/2026
+930,Terra Energy,"Inv #INV-3160, Due 17/10/2026, Total RM 4,550",4550,Paid,,15/10/2026
+931,Summit Global,"Inv #INV-3161, Due 09/10/2026, Total RM 8,480",8480,Open,Partial payment,06/10/2026
+932,Vertex Industries,"Inv #INV-3162, Due 28/10/2026, Total RM 12,273",12273,Paid,Follow up,25/10/2026
+933,Pioneer Resources,"Inv #INV-3163, Due 03/10/2026, Total RM 8,245",8245,Open,Escalate,30/09/2026
+934,Quantum Dynamics,"Inv #INV3164 Due 10/10/2026 Total RMX,500",6094,Open,Check PO,09/11/2026
+935,Riverstone Sdn Bhd,"Inv #INV-3165, Due 01/12/2026, Total RM 1,112",1112,Paid,Follow up,2026-11-26
+936,Riverstone Sdn Bhd,"Inv #INV-3166, Due 25/11/2026, Total RM 356",356,Open,Partial payment,2026-11-23
+937,Vertex Industries,"Inv #INV-3167, Due 28/11/2026, Total RM 2,797",2797,Open,Urgent payment,"Nov 23, 2026"
+938,Quantum Dynamics,"Inv #INV-3168, Due 28/12/2026, Total RM 4,764","RM 4,764.00",Open,,2026-12-24
+939,Riverstone Sdn Bhd,"Inv #INV-3169, Due 11/12/2026, Total RM 6,636",6636,Open,Urgent payment,06/12/2026
+940,Orion Ventures,"Inv #INV-3170, Due 24/11/2026, Total RM 12,160","RM 12,160.00",Open,Partial payment,23/11/2026
+941,Zenith Foods,"Inv #INV-3171, Due 22/10/2026, Total RM 2,496",2496, open ,,2026-10-21
+942,Zenith Foods,"Inv #INV-3172, Due 12/11/2026, Total RM 5,137",5137,Open,Urgent payment,09/11/2026
+943,Zenith Foods,"Inv #INV-3173, Due 03/12/2026, Total RM 12,190",12190,Open,,"Dec 02, 2026"
+944,Orion Ventures,"Inv #INV-3174, Due 03/12/2026, Total RM 9,384",9384,Open,Escalate,29/11/2026
+945,Acme Sdn Bhd,"Inv #INV-3175, Due 05/11/2026, Total RM 7,423",7423,Open,Follow up,04/11/2026
+946,Selangor Steel,"Inv #INV-3176, Due 23/11/2026, Total RM 8,690",8690,Open,,19/11/2026
+947,Riverstone Sdn Bhd,"Inv #INV-3177, Due 09/12/2026, Total RM 519",519,Paid,Escalate,04/12/2026
+948,Nexus Solutions,"Inv #INV-3178, Due 14/12/2026, Total RM 4,565",4565,Open,,2026-12-10
+949,Orion Ventures,"Inv #INV-3179, Due 22/12/2026, Total RM 6,772","RM 6,772.00",Open,Follow up,2026-12-20
+950,Horizon Systems,"Inv #INV-3180, Due 26/12/2026, Total RM 1,480",1480,Paid,,25/12/2026
+951,Wira Logistics,"Invoice INV-3181 - Due 31-04-2026 - RM 2,300","RM 4,927.00",Open,Escalate,13/10/2026
+952,Global Tech,"Inv #INV-3182, Due 22/11/2026, Total RM 7,222",7222,Open,Follow up,2026-11-18
+953,Zenith Foods,"Inv #INV-3183, Due 27/11/2026, Total RM 7,113",7113, open ,,26/11/2026
+954,Riverstone Sdn Bhd,"Inv #INV-3184, Due 08/12/2026, Total RM 9,872",9872,Paid,Urgent payment,05/12/2026
+955,Selangor Steel,"Inv #INV-3185, Due 24/11/2026, Total RM 7,285",7285,Paid,,22/11/2026
+956,Horizon Systems,"Inv #INV-3186, Due 06/10/2026, Total RM 2,551",2551,Open,,03/10/2026
+957,Zenith Foods,"Inv #INV-3187, Due 05/10/2026, Total RM 11,906",11906,Open,Urgent payment,2026-10-03
+958,Nexus Solutions,"Inv #INV-3188, Due 15/11/2026, Total RM 1,221",1221,Open,,14/11/2026
+959,Melaka Marine,"Inv #INV-3189, Due 19/10/2026, Total RM 10,763",10763,Paid,,2026-10-15
+960,Riverstone Sdn Bhd,"Inv #INV-3190, Due 02/11/2026, Total RM 6,856",6856,Paid,,29/10/2026
+961,Nexus Solutions,"Inv #INV-3191, Due 13/11/2026, Total RM 9,935",9935,Open,Follow up,2026-11-08
+962,Summit Global,"Inv #INV-3192, Due 14/12/2026, Total RM 6,007",6007,Paid,,2026-12-13
+963,Summit Global,"Inv #INV-3193, Due 18/10/2026, Total RM 347",347,Open,Escalate,13/10/2026
+964,Global Tech,"Inv #INV-3194, Due 07/10/2026, Total RM 9,511",9511,Open,,"Oct 03, 2026"
+965,Orion Ventures,"Inv #INV-3195, Due 08/10/2026, Total RM 12,235",12235,Open,,03/10/2026
+966,Beta Trading,"Inv #INV-3196, Due 02/11/2026, Total RM 5,856",5856,Open,Partial payment,01/11/2026
+967,Terra Energy,"Inv #INV-3197, Due 27/10/2026, Total RM 10,473",10473,Open,,25/10/2026
+968,Summit Global,"Inv #INV-3198, Due 27/10/2026, Total RM 1,424",1424,Open,,2026-10-23
+969,Terra Energy,"Inv #INV-3199, Due 19/11/2026, Total RM 12,072",12072,Open,,18/11/2026
+970,Selangor Steel,"Inv #INV-3200, Due 24/10/2026, Total RM 12,296",12296,Open,,20/10/2026
+971,  Unity Networks ,"Inv #INV-3201, Due 19/12/2026, Total RM 7,649",7649,Open,,17/12/2026
+972,Summit Global,"Inv #INV-3202, Due 20/12/2026, Total RM 7,629",7629,Paid,Check PO,"Dec 19, 2026"
+973,Zenith Foods,"Inv #INV-3203, Due 15/12/2026, Total RM 6,662",6662,Open,Partial payment,10/12/2026
+974,Summit Global,"Inv #INV-3204, Due 07/10/2026, Total RM 1,405",1405,Paid,Follow up,2026-10-03
+975,Orion Ventures,"Inv #INV-3205, Due 24/11/2026, Total RM 9,614",9614,Paid,Follow up,22/11/2026
+976,Orion Ventures,"Inv #INV-3206, Due 09/12/2026, Total RM 9,640",9640,Open,,06/12/2026
+977,Wira Logistics,"Inv #INV-3207, Due 23/11/2026, Total RM 5,630",5630,Paid,,22/11/2026
+978,Zenith Foods,"Inv #INV-3208, Due 19/12/2026, Total RM 8,372",8372,Open,Follow up,2026-12-15
+979,Riverstone Sdn Bhd,"Inv #INV-3209, Due 21/11/2026, Total RM 7,694",7694,Open,Urgent payment,17/11/2026
+980,Summit Global,"Inv #INV-3210, Due 09/11/2026, Total RM 3,109",3109,Open,,08/11/2026
+981,Unity Networks,"Inv #INV-3211, Due 23/11/2026, Total RM 2,565",2565,Paid,Urgent payment,"Nov 18, 2026"
+982,Pioneer Resources,"Inv #INV-3212, Due 20/12/2026, Total RM 651",651,PAID,,19/12/2026
+983,Acme Sdn Bhd,"Inv #INV-3213, Due 26/11/2026, Total RM 12,156","RM 12,156.00", open ,Partial payment,2026-11-23
+984,  Unity Networks ,"Inv #INV-3214, Due 25/10/2026, Total RM 6,789",6789,Open,,"Oct 22, 2026"
+985,Quantum Dynamics,"Inv #INV-3215, Due 07/10/2026, Total RM 2,616",2616,Open,Check PO,03/10/2026
+986,  Evergreen Ltd ,"Inv #INV-3216, Due 23/11/2026, Total RM 4,745","RM 4,745.00",Paid,,19/11/2026
+987,Beta Trading,"Inv #INV-3217, Due 20/11/2026, Total RM 6,405",6405,OPEN,Urgent payment,2026-11-15
+988,Kinabalu Traders,"Inv #INV-3218, Due 16/12/2026, Total RM 3,002",3002,Open,,13/12/2026
+989,Quantum Dynamics,"Inv #INV-3219, Due 19/11/2026, Total RM 2,945",2945,Open,Follow up,"Nov 15, 2026"
+990,Summit Global,"Invoice INV3220, Due 2026-13-01, Total RM 1,900",10272,Open,,2026-11-12
+991,  Quantum Dynamics ,"Inv #INV-3221, Due 11/12/2026, Total RM 1,959",1959,Paid,Partial payment,08/12/2026
+992,Delta Corp,"Inv #INV-3222, Due 24/12/2026, Total RM 11,959",11959,Open,Follow up,20/12/2026
+993,Unity Networks,"Inv #INV-3223, Due 28/10/2026, Total RM 6,571",6571,Open,Escalate,2026-10-27
+994,Melaka Marine,"Inv #INV-3224, Due 14/10/2026, Total RM 1,467",1467,Open,Escalate,12/10/2026
+995,Global Tech,"Inv #INV-3225, Due 15/10/2026, Total RM 409",409,Open,Partial payment,14/10/2026
+996,Nexus Solutions,"Inv #INV-3226, Due 17/10/2026, Total RM 3,043",3043,Open,,2026-10-12
+997,Global Tech,"Inv #INV-3227, Due 22/10/2026, Total RM 12,347",12347,Open,,17/10/2026
+998,Summit Global,"Inv #INV-3228, Due 07/12/2026, Total RM 12,368",12368,Open,Escalate,04/12/2026
+999,Kinabalu Traders,"Inv #INV-3229, Due 26/12/2026, Total RM 590",590,Open,,22/12/2026
+1000,Terra Energy,"Inv #INV-3230, Due 17/10/2026, Total RM 2,491",2491,Paid,Partial payment,12/10/2026
