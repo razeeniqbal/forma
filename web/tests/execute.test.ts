@@ -49,3 +49,26 @@ describe("invoice acceptance scenario (PRD §25)", () => {
     expect(py).not.toMatch(/password|secret/i);
   });
 });
+
+describe("reshape and combine", () => {
+  it("holds flagged rows before grouping and numbers new rows after the source", async () => {
+    const sheet = await sampleSheet();
+    const spec = invoicePipeline("f1");
+    spec.steps.push({ id: "g", type: "group", by: ["status"], aggs: [{ column: "total", fn: "sum", as: "total" }, { column: "invoice_no", fn: "count", as: "n" }] });
+    const res = execute(spec, sheet);
+    expect(res.steps.every((s) => !s.error)).toBe(true);
+    expect(res.output.columns).toEqual(["status", "total", "n"]);
+    expect(res.output.rows.map((r) => r[0]).sort()).toEqual(["Open", "Paid"]);
+    const counted = res.output.rows.reduce((a, r) => a + (r[2] as number), 0);
+    expect(counted + res.reviewRows.length).toBe(1001);
+    expect(Math.min(...res.output.rowIds)).toBeGreaterThan(Math.max(...res.input.rowIds));
+  });
+
+  it("reports a missing side source instead of crashing", async () => {
+    const sheet = await sampleSheet();
+    const spec = invoicePipeline("f1");
+    spec.steps.push({ id: "a", type: "append", source: { type: "csv", file: "gone.csv", fileId: "missing", headerRow: 0, startCol: 0, endCol: 1 } });
+    const res = execute(spec, sheet);
+    expect(res.steps.at(-1)!.error).toMatch(/not available/);
+  });
+});

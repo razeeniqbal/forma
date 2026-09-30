@@ -177,7 +177,7 @@ function Workspace() {
         description: t.description,
         keywords: t.keywords,
         icon: <Plus size={16} />,
-        run: () => ws.addStep(t.type as StepType),
+        run: () => ws.addStep(t.type as StepType | "lookup"),
       })),
       { id: "run", group: "Pipeline", title: "Run pipeline", icon: <Play size={16} />, run: () => ws.setRunModal(true) },
       { id: "test", group: "Pipeline", title: "Test run", icon: <FlaskConical size={16} />, run: testRun },

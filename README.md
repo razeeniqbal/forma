@@ -44,6 +44,9 @@ The full V1 loop from PRD §28 works end to end:
   - convert to number (currency-aware), standardise date (format detection)
   - pattern extraction with live match rates and failed-row inspection, key-value parsing, split
   - filter, sort, remove duplicates, formula, round
+  - group/aggregate (sum, average, min, max, count, count distinct, first), pivot, unpivot
+  - lookup/join against another file (first match or every match, keep or drop unmatched rows, optional review of unmatched rows), append
+  - Rows with open review items are held back *before* any step that changes row identity (group, pivot, unpivot, join). Bad rows never distort aggregates, and review corrections flow into totals on the next run.
 - **Validation:** explicit rules (not blank, pattern, valid date, numeric bounds, allowed set, unique). "Validation health" is reported with its context and quality dimensions, never as an unexplained score.
 - **Review queue:** rows that can't be transformed or validated confidently are held back instead of silently loaded. For each one you can correct the value, keep the original, exclude the row, ignore the warning, or apply the same decision to similar rows. Decisions are fingerprinted to the source row, so they never carry over to a changed row.
 - **Runs:** test runs execute the draft on a sample. Manual runs execute on every row in a Web Worker against an immutable version, and record a timeline, per-step metrics, logs, output data and a comparison with the previous run. You can rerun on a new compatible file without repeating any cleaning.
@@ -73,7 +76,6 @@ These are marked "Later" or "V1.x" in the PRD and shown as such in the UI:
 
 - scheduling
 - database/API/Google Sheets/cloud **sources**
-- joins, append, lookup, group/aggregate and pivot
 - SQL and Polars targets
 - Airflow and Prefect exports
 - collaboration, comments and approvals

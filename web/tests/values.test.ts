@@ -20,6 +20,8 @@ describe("values", () => {
     expect(parseMoney("RM3.1k")).toBeNull();
     expect(parseMoney("RM3,OOO")).toBeNull();
     expect(parseMoney("12,34")).toBeNull();
+    expect(parseMoney("INV-2231")).toBeNull(); // IDs are not amounts
+    expect(parseMoney("S$ 12.50")).toBe(12.5);
   });
   it("strict numbers", () => {
     expect(toNum("12.5")).toBe(12.5);

@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Code2, Copy, Download, FolderDown, FileCode2, Folder, File, Info, Database, CheckCircle2, Loader2, Maximize2, Workflow, Terminal } from "lucide-react";
 import { usePipeline, useApp } from "@/store/app";
 import { getRawFile } from "@/store/db";
-import { generateConfigYaml, generatePipelineJson, generatePython, generateReadme, generateRequirements, stepFunctionName } from "@/codegen/python";
+import { sideSteps, generateConfigYaml, generatePipelineJson, generatePython, generateReadme, generateRequirements, stepFunctionName } from "@/codegen/python";
 import { stepTitle, STAGE_OF } from "@/engine/registry";
 import { CodeView, findStepRange } from "@/components/CodeView";
 import { Empty, Modal, Tabs } from "@/components/ui";
@@ -62,7 +62,13 @@ export function ExportPage() {
   const downloadProject = async () => {
     setBusy(true);
     try {
-      const files = projectFiles(spec, { ...opts, expected: out, source: includeSource ? raw : undefined });
+      const extraSources: Record<string, Blob> = {};
+      if (includeSource)
+        for (const s of sideSteps(spec)) {
+          const blob = await getRawFile(s.source.fileId);
+          if (blob) extraSources[s.source.file] = blob;
+        }
+      const files = projectFiles(spec, { ...opts, expected: out, source: includeSource ? raw : undefined, extraSources });
       download(`${base}.zip`, await zipProject(base, files), "application/zip");
       toast("success", "Project downloaded");
     } finally {
@@ -133,7 +139,7 @@ export function ExportPage() {
                     {raw && spec.source && (
                       <label className="row" style={{ gap: 6, marginTop: 4 }}>
                         <input type="checkbox" checked={includeSource} onChange={(e) => setIncludeSource(e.target.checked)} />
-                        Include source file <span className="mono">{spec.source.file}</span>
+                        Include source file{sideSteps(spec).length ? "s" : ""} <span className="mono">{[spec.source.file, ...new Set(sideSteps(spec).map((s) => s.source.file))].join(", ")}</span>
                       </label>
                     )}
                   </div>

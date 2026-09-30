@@ -46,8 +46,11 @@ export function toNum(v: Cell): number | null {
  * suffixes (RM, USD, $), thousands separators and signs. Rejects anything
  * ambiguous such as "RM3.1k" or "RM3,OOO".
  */
-export const MONEY_RE =
-  /^\s*([-+])?\s*(?:([A-Za-z]{1,3}|[$€£¥₹])\.?\s*)?([-+])?\s*(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s*(?:[A-Z]{2,3}|[$€£¥₹])?\s*$/;
+/** Currency markers accepted around amounts. Only real currency codes, so IDs like "INV-2231" never parse as numbers. */
+export const CURRENCY = "USD|EUR|GBP|MYR|SGD|IDR|THB|PHP|VND|INR|CNY|JPY|KRW|HKD|TWD|AUD|NZD|CAD|CHF|AED|SAR|BND|RM|Rm|rm|Rp|Rs|S\\$|US\\$|A\\$|[$€£¥₹]";
+export const MONEY_RE = new RegExp(
+  `^\\s*([-+])?\\s*(?:(${CURRENCY})\\.?\\s*)?([-+])?\\s*(\\d{1,3}(?:,\\d{3})+|\\d+)(\\.\\d+)?\\s*(?:${CURRENCY})?\\s*$`,
+);
 
 export function parseMoney(v: Cell): number | null {
   if (v === null || v === undefined) return null;

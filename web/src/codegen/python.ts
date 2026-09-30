@@ -1,9 +1,9 @@
 // Deterministic Python (pandas) generator (PRD §9). Each pipeline step maps to
 // one clearly named function whose header comment matches the visual pipeline.
 
-import type { PipelineSpec, Step, ValidationRule } from "@/engine/types";
+import type { PipelineSpec, SourceSpec, Step, ValidationRule } from "@/engine/types";
 import { STAGE_OF, stepTitle } from "@/engine/registry";
-import { ruleLabel } from "@/engine/execute";
+import { isReshaping, ruleLabel } from "@/engine/execute";
 import { formulaToPython, parseFormula } from "@/engine/formula";
 import { runtimePython } from "./runtime";
 
@@ -107,7 +107,7 @@ function stepBody(step: Step): string[] {
   const id = pyStr(step.id);
   switch (step.type) {
     case "select":
-      return [`df = df[${pyLit(step.columns)}].copy()`, `prune_issues(df)`];
+      return [`before = set(df.index)`, `df = df[${pyLit(step.columns)}].copy()`, `prune_issues(df, before)`];
     case "rename":
       return [`mapping = ${pyLit(step.mapping, "    ")}`, `df = df.rename(columns=mapping)`, `rename_issues(mapping)`];
     case "trim": {
@@ -275,7 +275,7 @@ function stepBody(step: Step): string[] {
       };
       const numOp = { gt: ">", gte: ">=", lt: "<", lte: "<=" }[step.op as "gt"];
       const test = cond[step.op] ?? `to_num(v) is not None and to_num(${v}) is not None and to_num(v) ${numOp} to_num(${v})`;
-      return [`keep = [${test} for v in df[${col}]]`, `df = df[keep].copy()`, `prune_issues(df)`];
+      return [`before = set(df.index)`, `keep = [${test} for v in df[${col}]]`, `df = df[keep].copy()`, `prune_issues(df, before)`];
     }
     case "sort": {
       const col = pyStr(step.column);
@@ -293,6 +293,7 @@ function stepBody(step: Step): string[] {
     case "remove_duplicates": {
       const cols = step.columns.length ? pyLit(step.columns) : "list(df.columns)";
       return [
+        `before = set(df.index)`,
         `key_columns = ${cols}`,
         `keys = [tuple(to_text(v) for v in row) for row in df[key_columns].itertuples(index=False, name=None)]`,
         `seen, keep = set(), []`,
@@ -300,7 +301,7 @@ function stepBody(step: Step): string[] {
         `    keep.append(k not in seen)`,
         `    seen.add(k)`,
         `df = df[keep].copy()`,
-        `prune_issues(df)`,
+        `prune_issues(df, before)`,
       ];
     }
     case "formula": {
@@ -314,6 +315,38 @@ function stepBody(step: Step): string[] {
         `df[${col}] = column((round_half_even(to_num(v), ${step.decimals}) if to_num(v) is not None else v for v in df[${col}]), df.index)`,
       ];
     }
+    case "group":
+      return [
+        `by = ${pyLit(step.by)}`,
+        `aggregations = [  # (column, function, output name)`,
+        ...step.aggs.map((a) => `    (${pyStr(a.column)}, ${pyStr(a.fn)}, ${pyStr(a.as || `${a.column}_${a.fn}`)}),`),
+        `]`,
+        `return group_rows(df, by, aggregations)`,
+      ];
+    case "pivot":
+      return [`return pivot_rows(df, index=${pyLit(step.index)}, column=${pyStr(step.column)}, value=${pyStr(step.value)}, fn=${pyStr(step.fn)})`];
+    case "unpivot":
+      return [
+        `return unpivot_rows(df, keep=${pyLit(step.keep)}, columns=${pyLit(step.columns)}, name_column=${pyStr(step.nameColumn || "variable")}, value_column=${pyStr(step.valueColumn || "value")})`,
+      ];
+    case "join":
+      return [
+        `other = side_source(${pyStr(step.id)})  # ${step.source.file}`,
+        `return combine_rows(`,
+        `    df,`,
+        `    other,`,
+        `    on=${pyLit(step.on.map((o) => [o.left, o.right]))},`,
+        `    columns=${pyLit(step.columns)},`,
+        `    prefix=${pyStr(step.prefix)},`,
+        `    how=${pyStr(step.how)},`,
+        `    mode=${pyStr(step.mode)},`,
+        `    flag_unmatched=${step.flagUnmatched ? "True" : "False"},`,
+        `    step=${id},`,
+        `    source_name=${pyStr(step.source.file)},`,
+        `)`,
+      ];
+    case "append":
+      return [`other = side_source(${pyStr(step.id)})  # ${step.source.file}`, `return append_rows(df, other)`];
     case "validate": {
       const lines: string[] = [`rules = [`];
       for (const r of step.rules) {
@@ -380,12 +413,11 @@ export function generateStep(step: Step, index: number): string {
     `def ${stepFunctionName(step, index)}(df: pd.DataFrame) -> pd.DataFrame:`,
     `    """${doc}"""`,
     ...body.map((l) => (l ? "    " + l : "")),
-    `    return df`,
+    ...(body.some((l) => l.startsWith("return ")) ? [] : [`    return df`]),
   ].join("\n");
 }
 
-function sourceConfig(spec: PipelineSpec) {
-  const s = spec.source!;
+function sourceConfig(s: SourceSpec) {
   return {
     path: s.file,
     type: s.type,
@@ -405,9 +437,15 @@ export function outputConfig(spec: PipelineSpec, opts: GenOptions = {}) {
   return { type: "file", format, path: d?.path || `output/${slug(spec.name)}.${format}` };
 }
 
+/** Steps that read an additional source file (join / lookup / append). */
+export function sideSteps(spec: PipelineSpec) {
+  return spec.steps.filter((s): s is Extract<Step, { type: "join" | "append" }> => s.type === "join" || s.type === "append");
+}
+
 export function configObject(spec: PipelineSpec, opts: GenOptions = {}) {
   return {
-    source: sourceConfig(spec),
+    source: sourceConfig(spec.source!),
+    ...(sideSteps(spec).length ? { sources: Object.fromEntries(sideSteps(spec).map((s) => [s.id, sourceConfig(s.source)])) } : {}),
     output: outputConfig(spec, opts),
     review_output: "output/review_items.csv",
   };
@@ -417,7 +455,10 @@ export function generatePython(spec: PipelineSpec, opts: GenOptions = {}): strin
   const version = opts.version ?? 1;
   const when = (opts.generatedAt ?? new Date()).toISOString().replace("T", " ").slice(0, 19);
   const steps = spec.steps.map((s, i) => generateStep(s, i));
-  const calls = spec.steps.map((s, i) => `    df = ${stepFunctionName(s, i)}(df)`);
+  const calls = spec.steps.flatMap((s, i) => [
+    ...(isReshaping(s) ? [`    df = hold_for_review(df)  # rows with open issues are held before row identity changes`] : []),
+    `    df = ${stepFunctionName(s, i)}(df)`,
+  ]);
   const decisions = spec.reviewDecisions.map((d) => ({
     row: d.row,
     column: d.column,
@@ -487,12 +528,15 @@ ${steps.join("\n\n\n")}
 
 def run(config: dict = CONFIG):
     """Execute the pipeline. Returns (output, review_items)."""
-    ISSUES.clear()
-    FINGERPRINTS.clear()
-    RULE_RESULTS.clear()
+    for state in (ISSUES, FINGERPRINTS, RULE_RESULTS, HELD["review"], HELD["excluded"], RUN_CONFIG):
+        state.clear()
+    RUN_CONFIG.update(config)
     df = load_source(config["source"])
+    NEXT_ROW_ID[0] = int(max(df.index)) + 1 if len(df) else 1
 ${calls.join("\n") || "    pass"}
     output, review_ids, excluded_ids = apply_review_gate(df, REVIEW_DECISIONS)
+    review_ids = HELD["review"] + review_ids
+    excluded_ids = HELD["excluded"] + excluded_ids
     RUN_STATS.update(review_ids=review_ids, excluded_ids=excluded_ids)
     review_set = set(review_ids)
     review = pd.DataFrame([i for i in ISSUES if i["row"] in review_set], columns=["row", "column", "step", "kind", "message", "value"])
@@ -563,8 +607,8 @@ def load_config() -> dict:
 
         loaded = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
         for key, value in loaded.items():
-            if isinstance(value, dict):
-                config.setdefault(key, {}).update(value)
+            if isinstance(value, dict) and isinstance(config.get(key), dict):
+                config[key].update(value)
             else:
                 config[key] = value
     return config
@@ -594,7 +638,7 @@ if __name__ == "__main__":
 
 export function generateRequirements(spec: PipelineSpec): string {
   const lines = ["pandas>=2.1", "numpy>=1.24", "pyyaml>=6.0"];
-  if (spec.source?.type === "excel" || spec.destination?.format === "xlsx") lines.push("openpyxl>=3.1");
+  if (spec.source?.type === "excel" || sideSteps(spec).some((s) => s.source.type === "excel") || spec.destination?.format === "xlsx") lines.push("openpyxl>=3.1");
   if (spec.destination?.type === "database") lines.push("sqlalchemy>=2.0", "psycopg2-binary>=2.9");
   return lines.join("\n") + "\n";
 }
@@ -608,12 +652,16 @@ function yamlScalar(v: unknown): string {
 export function generateConfigYaml(spec: PipelineSpec, opts: GenOptions = {}): string {
   const cfg = configObject(spec, opts) as Record<string, unknown>;
   const lines = [`# ${spec.name} — FORMA configuration`, `# Credentials are never stored here: use environment variables.`, ""];
-  for (const [k, v] of Object.entries(cfg)) {
-    if (v && typeof v === "object") {
-      lines.push(`${k}:`);
-      for (const [k2, v2] of Object.entries(v)) lines.push(`  ${k2}: ${yamlScalar(v2)}`);
-    } else lines.push(`${k}: ${yamlScalar(v)}`);
-  }
+  const walk = (obj: Record<string, unknown>, indent: string) => {
+    for (const [k, v] of Object.entries(obj)) {
+      const key = /^[A-Za-z_][\w-]*$/.test(k) ? k : JSON.stringify(k);
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        lines.push(`${indent}${key}:`);
+        walk(v as Record<string, unknown>, indent + "  ");
+      } else lines.push(`${indent}${key}: ${yamlScalar(v)}`);
+    }
+  };
+  walk(cfg, "");
   return lines.join("\n") + "\n";
 }
 
@@ -639,7 +687,7 @@ python pipeline.py                          # uses config.yaml
 python pipeline.py --source path/to/new.${spec.source?.type === "excel" ? "xlsx" : spec.source?.type ?? "csv"}   # rerun on a compatible file
 \`\`\`
 
-Place the source file (\`${spec.source?.file ?? "source"}\`) next to \`pipeline.py\` or pass \`--source\`.
+Place the source file (\`${spec.source?.file ?? "source"}\`)${sideSteps(spec).length ? ` and ${[...new Set(sideSteps(spec).map((s) => `\`${s.source.file}\``))].join(", ")}` : ""} next to \`pipeline.py\` or pass \`--source\`.
 
 ${
   out.type === "database"

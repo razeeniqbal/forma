@@ -35,11 +35,12 @@ export const TRANSFORMS: TransformMeta[] = [
   { type: "filter", title: "Filter rows", category: "Reshape", description: "Keep rows matching a condition", keywords: "filter where condition rows keep" },
   { type: "sort", title: "Sort", category: "Reshape", description: "Order rows by a column", keywords: "sort order ascending descending" },
   { type: "validate", title: "Validate", category: "Validate", description: "Explicit data-quality rules", keywords: "validate rule check quality test" },
-  { type: "group", title: "Group / Aggregate", category: "Reshape", description: "Coming in V1.x", keywords: "group aggregate sum", later: true },
-  { type: "pivot", title: "Pivot / Unpivot", category: "Reshape", description: "Coming in V1.x", keywords: "pivot unpivot melt", later: true },
-  { type: "join", title: "Join", category: "Combine", description: "Coming in V1.x", keywords: "join merge", later: true },
-  { type: "append", title: "Append", category: "Combine", description: "Coming in V1.x", keywords: "append union concat", later: true },
-  { type: "lookup", title: "Lookup", category: "Combine", description: "Coming in V1.x", keywords: "lookup vlookup", later: true },
+  { type: "group", title: "Group / Aggregate", category: "Reshape", description: "Summarise rows: sum, mean, count, min, max…", keywords: "group aggregate sum count total summarise" },
+  { type: "pivot", title: "Pivot", category: "Reshape", description: "Turn row values into columns", keywords: "pivot wide crosstab" },
+  { type: "unpivot", title: "Unpivot", category: "Reshape", description: "Turn columns into rows (melt)", keywords: "unpivot melt long" },
+  { type: "lookup", title: "Lookup", category: "Combine", description: "Bring columns from another file by key (first match)", keywords: "lookup vlookup enrich" },
+  { type: "join", title: "Join", category: "Combine", description: "Combine with another file on key columns", keywords: "join merge combine" },
+  { type: "append", title: "Append", category: "Combine", description: "Stack rows from another file", keywords: "append union concat stack" },
 ];
 
 export const STAGE_OF: Record<StepType, string> = {
@@ -60,6 +61,11 @@ export const STAGE_OF: Record<StepType, string> = {
   formula: "Transform",
   round: "Transform",
   validate: "Validate",
+  group: "Transform",
+  pivot: "Transform",
+  unpivot: "Transform",
+  join: "Combine",
+  append: "Combine",
 };
 
 let counter = 0;
@@ -107,6 +113,19 @@ export function describeStep(step: Step): { title: string; detail: string } {
         title: "Validate",
         detail: step.rules.length ? step.rules.slice(0, 3).map((r) => `${r.column}: ${ruleLabel(r)}`).join("; ") : "No rules yet",
       };
+    case "group":
+      return { title: `Group by ${step.by.join(", ") || "all rows"}`, detail: step.aggs.map((a) => `${a.fn}(${a.column})`).join(", ") };
+    case "pivot":
+      return { title: `Pivot ${step.column}`, detail: `${step.fn}(${step.value}) by ${step.index.join(", ") || "all rows"}` };
+    case "unpivot":
+      return { title: "Unpivot columns", detail: `${step.columns.length} columns → ${step.nameColumn}, ${step.valueColumn}` };
+    case "join":
+      return {
+        title: `${step.mode === "lookup" ? "Lookup" : "Join"} ${step.source.file}`,
+        detail: `${step.how} on ${step.on.map((o) => (o.left === o.right ? o.left : `${o.left}=${o.right}`)).join(", ")}${step.columns.length ? ` → ${step.columns.join(", ")}` : ""}`,
+      };
+    case "append":
+      return { title: `Append ${step.source.file}`, detail: step.source.sheet ? `sheet ${step.source.sheet}` : "all rows" };
   }
 }
 
@@ -129,6 +148,16 @@ export function stepColumns(step: Step): string[] {
       return [...step.expression.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1]);
     case "validate":
       return [...new Set(step.rules.map((r) => r.column))];
+    case "group":
+      return [...step.by, ...step.aggs.map((a) => a.column)];
+    case "pivot":
+      return [...step.index, step.column, step.value];
+    case "unpivot":
+      return [...step.keep, ...step.columns];
+    case "join":
+      return step.on.map((o) => o.left);
+    case "append":
+      return [];
     default:
       return [step.column];
   }

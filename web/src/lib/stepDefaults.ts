@@ -1,4 +1,4 @@
-import type { Dataset, Step, StepType, ValidationRule } from "@/engine/types";
+import type { Dataset, SourceSpec, Step, StepType, ValidationRule } from "@/engine/types";
 import { newId } from "@/engine/registry";
 import { profileColumn } from "@/engine/profile";
 import { detectDateFormats, toText } from "@/engine/values";
@@ -76,7 +76,10 @@ export function suggestRules(ds: Dataset, column?: string): ValidationRule[] {
   return rules;
 }
 
-export function makeStep(type: StepType, ds: Dataset | undefined, column: string | undefined, dateFormat = "YYYY-MM-DD"): Step {
+export const EMPTY_SOURCE: SourceSpec = { type: "csv", file: "", fileId: "", headerRow: 0, startCol: 0, endCol: 0 };
+
+export function makeStep(kind: StepType | "lookup", ds: Dataset | undefined, column: string | undefined, dateFormat = "YYYY-MM-DD"): Step {
+  const type: StepType = kind === "lookup" ? "join" : kind;
   const id = newId(type.slice(0, 4));
   const cols = ds?.columns ?? [];
   const col = column && cols.includes(column) ? column : cols[0] ?? "";
@@ -124,5 +127,34 @@ export function makeStep(type: StepType, ds: Dataset | undefined, column: string
       return { id, type, column: col, decimals: 2 };
     case "validate":
       return { id, type, rules: ds ? suggestRules(ds, column) : [] };
+    case "group": {
+      const numeric = ds ? cols.filter((c, i) => c !== col && profileColumn(ds, i, 300).type === "number") : [];
+      return {
+        id,
+        type,
+        by: col ? [col] : [],
+        aggs: [{ column: col, fn: "count", as: "row_count" }, ...numeric.slice(0, 2).map((c) => ({ column: c, fn: "sum" as const, as: `${c}_sum`.toLowerCase().replace(/\W+/g, "_") }))],
+      };
+    }
+    case "pivot": {
+      const numeric = ds ? cols.filter((c, i) => c !== col && profileColumn(ds, i, 300).type === "number") : [];
+      return { id, type, index: cols.filter((c) => c !== col).slice(0, 1), column: col, value: numeric[0] ?? col, fn: numeric.length ? "sum" : "count" };
+    }
+    case "unpivot":
+      return { id, type, keep: cols.filter((c) => c !== col).slice(0, 1), columns: col ? [col] : [], nameColumn: "variable", valueColumn: "value" };
+    case "join":
+      return {
+        id,
+        type,
+        source: EMPTY_SOURCE,
+        mode: kind === "lookup" ? "lookup" : "join",
+        how: "left",
+        on: col ? [{ left: col, right: col }] : [],
+        columns: [],
+        prefix: "right_",
+        flagUnmatched: kind === "lookup",
+      };
+    case "append":
+      return { id, type, source: EMPTY_SOURCE };
   }
 }

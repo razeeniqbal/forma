@@ -65,7 +65,8 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   const issueColumns = useMemo(() => {
     const c = new Map<string, number>();
     for (const it of items) for (const col of it.columns) c.set(col, (c.get(col) ?? 0) + 1);
-    return [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k]) => k).sort((a, b) => run.columns.indexOf(a) - run.columns.indexOf(b));
+    const order = (c: string) => (run.columns.includes(c) ? run.columns.indexOf(c) : 1000);
+    return [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k]) => k).sort((a, b) => order(a) - order(b));
   }, [items, run.columns]);
 
   const fp = (row: number) => (run.reviewSource[row] ? fingerprint(run.reviewSource[row]) : undefined);
@@ -97,10 +98,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   useEffect(() => setPage(0), [tab, q, perPage]);
 
   const original = (it: Item): string => originalText(run, it);
-  const valueOf = (row: number, col: string) => {
-    const idx = run.columns.indexOf(col);
-    return idx >= 0 ? run.reviewValues[row]?.[idx] ?? null : null;
-  };
+  const valueOf = (row: number, col: string) => run.reviewValues[row]?.[col] ?? null;
 
   const record = (decisions: ReviewDecision[], message: string) => {
     if (!pipeline) return;

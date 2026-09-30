@@ -2,6 +2,7 @@
 // generated-Python counterpart in codegen/python.ts; keep them in lock-step.
 
 import type {
+  AggFn,
   Cell,
   Dataset,
   ExecutionResult,
@@ -44,7 +45,66 @@ export class StepError extends Error {
 interface Ctx {
   issues: Issue[];
   step: Step;
+  env: Env;
 }
+
+/** Execution-wide state shared by steps that create new rows. */
+export interface Env {
+  /** Raw sheets of additional sources (join / append), by file id. */
+  sheets: Map<string, RawSheet>;
+  /** Next row id for rows created by reshaping, appending or joining (unique across the run). */
+  nextId: number;
+  fingerprints: Map<number, string>;
+}
+
+/** Steps that change row identity: the review gate runs before them. */
+export function isReshaping(step: Step): boolean {
+  return step.type === "group" || step.type === "pivot" || step.type === "unpivot" || (step.type === "join" && step.mode === "join");
+}
+
+function newRows(ctx: Ctx, columns: string[], rows: Cell[][]): Dataset {
+  const rowIds = rows.map((row) => {
+    const id = ctx.env.nextId++;
+    ctx.env.fingerprints.set(id, fingerprint(row));
+    return id;
+  });
+  return { columns, rows, rowIds };
+}
+
+function sideSource(ctx: Ctx, spec: import("./types").SourceSpec): Dataset {
+  const sheet = ctx.env.sheets.get(spec.fileId);
+  if (!sheet) throw new StepError(ctx.step.id, `Source file "${spec.file}" is not available. Re-upload it in the step settings.`);
+  return loadDataset(sheet, spec);
+}
+
+/** Aggregate a list of values (mirrors Python `aggregate_values`). */
+export function aggregate(values: Cell[], fn: AggFn): Cell {
+  if (fn === "first") {
+    for (const v of values) if (!isBlank(v)) return v;
+    return null;
+  }
+  if (fn === "count") return values.filter((v) => !isBlank(v)).length;
+  if (fn === "count_distinct") return new Set(values.filter((v) => !isBlank(v)).map((v) => toText(v))).size;
+  let total = 0;
+  let n = 0;
+  let lo: number | null = null;
+  let hi: number | null = null;
+  for (const v of values) {
+    const x = toNum(v);
+    if (x === null) continue;
+    total += x;
+    n++;
+    if (lo === null || x < lo) lo = x;
+    if (hi === null || x > hi) hi = x;
+  }
+  if (!n) return null;
+  if (fn === "sum") return total;
+  if (fn === "mean") return total / n;
+  if (fn === "min") return lo;
+  return hi;
+}
+
+const keyOf = (row: Cell[], idx: number[]) => JSON.stringify(idx.map((i) => toText(row[i])));
 
 function colIndex(ds: Dataset, name: string, step: Step): number {
   const i = ds.columns.indexOf(name);
@@ -386,6 +446,129 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
         return n === null ? v : roundHalfEven(n, step.decimals);
       });
     }
+    case "group": {
+      if (!step.aggs.length) throw new StepError(step.id, "Add at least one aggregation");
+      const by = step.by.map((c) => colIndex(ds, c, step));
+      const aggIdx = step.aggs.map((a) => colIndex(ds, a.column, step));
+      const names = [...step.by, ...step.aggs.map((a) => a.as || `${a.column}_${a.fn}`)];
+      if (new Set(names).size !== names.length) throw new StepError(step.id, "Output column names must be unique");
+      const groups = new Map<string, number[]>();
+      ds.rows.forEach((row, r) => {
+        const k = keyOf(row, by);
+        const g = groups.get(k);
+        if (g) g.push(r);
+        else groups.set(k, [r]);
+      });
+      const rows = [...groups.values()].map((members) => [
+        ...by.map((i) => ds.rows[members[0]][i]),
+        ...step.aggs.map((a, k) => aggregate(members.map((r) => ds.rows[r][aggIdx[k]]), a.fn)),
+      ]);
+      return newRows(ctx, names, rows);
+    }
+    case "pivot": {
+      const idx = step.index.map((c) => colIndex(ds, c, step));
+      const pc = colIndex(ds, step.column, step);
+      const vc = colIndex(ds, step.value, step);
+      const pivotValues: string[] = [];
+      const seenP = new Set<string>();
+      const groups = new Map<string, { first: number; cells: Map<string, Cell[]> }>();
+      ds.rows.forEach((row, r) => {
+        const p = toText(row[pc]) ?? "(blank)";
+        if (!seenP.has(p)) {
+          seenP.add(p);
+          pivotValues.push(p);
+        }
+        const k = keyOf(row, idx);
+        let g = groups.get(k);
+        if (!g) {
+          g = { first: r, cells: new Map() };
+          groups.set(k, g);
+        }
+        const list = g.cells.get(p);
+        if (list) list.push(row[vc]);
+        else g.cells.set(p, [row[vc]]);
+      });
+      const colNames = pivotValues.map((p) => (step.index.includes(p) ? `${p}_${step.column}` : p));
+      const rows = [...groups.values()].map((g) => [
+        ...idx.map((i) => ds.rows[g.first][i]),
+        ...pivotValues.map((p) => (g.cells.has(p) ? aggregate(g.cells.get(p)!, step.fn) : null)),
+      ]);
+      return newRows(ctx, [...step.index, ...colNames], rows);
+    }
+    case "unpivot": {
+      if (!step.columns.length) throw new StepError(step.id, "Choose the columns to unpivot");
+      const keep = step.keep.map((c) => colIndex(ds, c, step));
+      const cols = step.columns.map((c) => colIndex(ds, c, step));
+      const names = [...step.keep, step.nameColumn || "variable", step.valueColumn || "value"];
+      if (new Set(names).size !== names.length) throw new StepError(step.id, "Output column names must be unique");
+      const rows: Cell[][] = [];
+      for (const row of ds.rows) cols.forEach((ci, k) => rows.push([...keep.map((i) => row[i]), step.columns[k], row[ci]]));
+      return newRows(ctx, names, rows);
+    }
+    case "join": {
+      if (!step.on.length) throw new StepError(step.id, "Choose at least one key column");
+      const right = sideSource(ctx, step.source);
+      const li = step.on.map((o) => colIndex(ds, o.left, step));
+      const ri = step.on.map((o) => {
+        const i = right.columns.indexOf(o.right);
+        if (i < 0) throw new StepError(step.id, `Column "${o.right}" not found in ${step.source.file}`);
+        return i;
+      });
+      const bring = step.columns.map((c) => {
+        const i = right.columns.indexOf(c);
+        if (i < 0) throw new StepError(step.id, `Column "${c}" not found in ${step.source.file}`);
+        return i;
+      });
+      const outNames = step.columns.map((c) => (ds.columns.includes(c) ? `${step.prefix}${c}` : c));
+      const columns = [...ds.columns, ...outNames];
+      if (new Set(columns).size !== columns.length) throw new StepError(step.id, "Joined column names clash; change the prefix");
+      const index = new Map<string, number[]>();
+      right.rows.forEach((row, r) => {
+        if (ri.some((i) => isBlank(row[i]))) return; // blank keys never match
+        const k = keyOf(row, ri);
+        const list = index.get(k);
+        if (list) list.push(r);
+        else index.set(k, [r]);
+      });
+      const blank = () => bring.map(() => null as Cell);
+      const pick = (r: number) => bring.map((i) => right.rows[r][i]);
+      if (step.mode === "lookup") {
+        const rows: Cell[][] = [];
+        const rowIds: number[] = [];
+        ds.rows.forEach((row, r) => {
+          const hit = li.some((i) => isBlank(row[i])) ? undefined : index.get(keyOf(row, li))?.[0];
+          if (hit === undefined) {
+            if (step.how === "inner") return;
+            if (step.flagUnmatched) issue(ctx, ds, r, step.on[0].left, "missing_value", `No match in ${step.source.file} for ${step.on.map((o) => toText(row[ds.columns.indexOf(o.left)]) ?? "blank").join(", ")}`, row[li[0]]);
+          }
+          rows.push([...row, ...(hit === undefined ? blank() : pick(hit))]);
+          rowIds.push(ds.rowIds[r]);
+        });
+        return { columns, rows, rowIds };
+      }
+      const rows: Cell[][] = [];
+      ds.rows.forEach((row) => {
+        const hits = li.some((i) => isBlank(row[i])) ? undefined : index.get(keyOf(row, li));
+        if (!hits) {
+          if (step.how === "left") rows.push([...row, ...blank()]);
+          return;
+        }
+        for (const h of hits) rows.push([...row, ...pick(h)]);
+      });
+      return newRows(ctx, columns, rows);
+    }
+    case "append": {
+      const other = sideSource(ctx, step.source);
+      const columns = [...ds.columns, ...other.columns.filter((c) => !ds.columns.includes(c))];
+      const pad = columns.length - ds.columns.length;
+      const map = columns.map((c) => other.columns.indexOf(c));
+      const extra = newRows(ctx, columns, other.rows.map((row) => map.map((i) => (i < 0 ? null : row[i]))));
+      return {
+        columns,
+        rows: [...ds.rows.map((row) => (pad ? [...row, ...new Array(pad).fill(null)] : row)), ...extra.rows],
+        rowIds: [...ds.rowIds, ...extra.rowIds],
+      };
+    }
     case "validate": {
       for (const rule of step.rules) {
         const i = colIndex(ds, rule.column, step);
@@ -451,16 +634,21 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
   }
 }
 
-/** Keep issue bookkeeping aligned with column renames / drops and removed rows. */
-function reconcileIssues(issues: Issue[], step: Step, out: Dataset): Issue[] {
+/**
+ * Keep issue bookkeeping aligned with column renames / drops and removed rows.
+ * Only rows present before the step are affected, so issues of rows already
+ * held for review at an earlier gate are kept.
+ */
+function reconcileIssues(issues: Issue[], step: Step, before: Dataset, out: Dataset): Issue[] {
   let next = issues;
   if (step.type === "rename") {
     next = next.map((i) => (step.mapping[i.column] ? { ...i, column: step.mapping[i.column] } : i));
   }
-  if (step.type === "select" || step.type === "filter" || step.type === "remove_duplicates") {
+  if (step.type === "select" || step.type === "filter" || step.type === "remove_duplicates" || (step.type === "join" && step.how === "inner")) {
     const cols = new Set(out.columns);
-    const rows = new Set(out.rowIds);
-    next = next.filter((i) => cols.has(i.column) && rows.has(i.row));
+    const kept = new Set(out.rowIds);
+    const present = new Set(before.rowIds);
+    next = next.filter((i) => !present.has(i.row) || (kept.has(i.row) && cols.has(i.column)));
   }
   return next;
 }
@@ -509,6 +697,8 @@ export interface ExecuteOptions {
   keepSnapshots?: boolean;
   /** Execute only steps up to and including this index (for step previews). */
   uptoStep?: number;
+  /** Raw sheets for join / append sources, by file id. */
+  sheets?: Map<string, RawSheet> | Record<string, RawSheet>;
 }
 
 export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOptions = {}): ExecutionResult {
@@ -519,6 +709,15 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
   }
   const fingerprints = new Map<number, string>();
   input.rows.forEach((row, r) => fingerprints.set(input.rowIds[r], fingerprint(row)));
+
+  const env: Env = {
+    sheets: opts.sheets instanceof Map ? opts.sheets : new Map(Object.entries(opts.sheets ?? {})),
+    nextId: (input.rowIds.length ? Math.max(...input.rowIds) : 0) + 1,
+    fingerprints,
+  };
+  const gated: Dataset[] = [];
+  const held: number[] = [];
+  const excluded: number[] = [];
 
   let ds = input;
   let issues: Issue[] = [];
@@ -531,8 +730,7 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
   for (let s = 0; s <= last && s < spec.steps.length; s++) {
     const step = spec.steps[s];
     const t0 = performance.now();
-    const before = ds;
-    const ctx: Ctx = { issues: [], step };
+    const ctx: Ctx = { issues: [], step, env };
     if (failed) {
       results.push({
         stepId: step.id, rowsIn: 0, rowsOut: 0, changedCells: 0, addedColumns: [], removedColumns: [],
@@ -541,9 +739,18 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
       if (opts.keepSnapshots) snapshots.push(ds);
       continue;
     }
+    if (!failed && isReshaping(step)) {
+      // Hold rows with unresolved issues (and apply decisions) before row identity changes.
+      gated.push(ds);
+      const g = applyReviewGate(ds, issues, spec.reviewDecisions, fingerprints);
+      held.push(...g.reviewRows);
+      excluded.push(...g.excludedRows);
+      ds = g.output;
+    }
+    const before = ds;
     try {
       ds = applyStep(ds, step, ctx, ruleResults);
-      issues = reconcileIssues(issues, step, ds).concat(ctx.issues);
+      issues = reconcileIssues(issues, step, before, ds).concat(ctx.issues);
       const changed = countChanges(before, ds);
       results.push({
         stepId: step.id,
@@ -566,6 +773,7 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
     if (opts.keepSnapshots) snapshots.push(ds);
   }
 
+  gated.push(ds);
   const gate = applyReviewGate(ds, issues, spec.reviewDecisions, fingerprints);
   return {
     input,
@@ -573,10 +781,11 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
     output: gate.output,
     steps: results,
     issues,
-    reviewRows: gate.reviewRows,
-    excludedRows: gate.excludedRows,
+    reviewRows: [...held, ...gate.reviewRows],
+    excludedRows: [...excluded, ...gate.excludedRows],
     ruleResults,
     snapshots: opts.keepSnapshots ? snapshots : undefined,
+    gated,
   };
 }
 

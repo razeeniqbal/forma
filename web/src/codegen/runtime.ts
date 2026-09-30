@@ -28,6 +28,9 @@ export function runtimePython(): string {
 
 ISSUES: list[dict] = []
 FINGERPRINTS: dict[int, str] = {}
+HELD: dict = {"review": [], "excluded": []}
+NEXT_ROW_ID = [1]
+RUN_CONFIG: dict = {}
 
 
 class Flag(Exception):
@@ -233,9 +236,10 @@ def rename_issues(mapping: dict) -> None:
         i["column"] = mapping.get(i["column"], i["column"])
 
 
-def prune_issues(df: pd.DataFrame) -> None:
-    cols, rows = set(df.columns), set(int(r) for r in df.index)
-    ISSUES[:] = [i for i in ISSUES if i["column"] in cols and i["row"] in rows]
+def prune_issues(df: pd.DataFrame, before: set) -> None:
+    """Drop issues of rows removed by this step (rows held earlier keep theirs)."""
+    cols, rows, before = set(df.columns), set(int(r) for r in df.index), set(int(r) for r in before)
+    ISSUES[:] = [i for i in ISSUES if i["row"] not in before or (i["row"] in rows and i["column"] in cols)]
 
 
 def apply_review_gate(df: pd.DataFrame, decisions: list[dict]):
@@ -282,6 +286,164 @@ def apply_review_gate(df: pd.DataFrame, decisions: list[dict]):
     return out, review_ids, excluded_ids
 
 
+def hold_for_review(df: pd.DataFrame) -> pd.DataFrame:
+    """Review gate before a reshaping step: hold rows with open issues, apply decisions."""
+    out, review_ids, excluded_ids = apply_review_gate(df, REVIEW_DECISIONS)
+    HELD["review"].extend(review_ids)
+    HELD["excluded"].extend(excluded_ids)
+    return out
+
+
+def fingerprint(row) -> str:
+    return "\u241f".join(to_text(v) or "" for v in row)
+
+
+def new_rows(columns: list, rows: list) -> pd.DataFrame:
+    """Rows created by reshaping / joining / appending get new, unique row ids."""
+    ids = []
+    for row in rows:
+        ids.append(NEXT_ROW_ID[0])
+        FINGERPRINTS[NEXT_ROW_ID[0]] = fingerprint(row)
+        NEXT_ROW_ID[0] += 1
+    return pd.DataFrame(rows, columns=columns, index=ids, dtype=object)
+
+
+def key_rows(df: pd.DataFrame, columns: list) -> list:
+    """Per-row tuples of the given columns (one empty tuple per row when no columns)."""
+    return list(zip(*(list(df[c]) for c in columns))) if columns else [()] * len(df)
+
+
+def row_key(values) -> tuple:
+    return tuple(to_text(v) for v in values)
+
+
+def aggregate_values(values: list, fn: str):
+    if fn == "first":
+        return next((v for v in values if not is_blank(v)), None)
+    if fn == "count":
+        return sum(1 for v in values if not is_blank(v))
+    if fn == "count_distinct":
+        return len({to_text(v) for v in values if not is_blank(v)})
+    total, n, lo, hi = 0.0, 0, None, None
+    for v in values:
+        x = to_num(v)
+        if x is None:
+            continue
+        total += x
+        n += 1
+        lo = x if lo is None or x < lo else lo
+        hi = x if hi is None or x > hi else hi
+    if not n:
+        return None
+    return {"sum": total, "mean": total / n, "min": lo, "max": hi}[fn]
+
+
+def group_rows(df: pd.DataFrame, by: list, aggregations: list) -> pd.DataFrame:
+    """Group rows (in order of first appearance) and aggregate columns."""
+    names = by + [name for _, _, name in aggregations]
+    if len(set(names)) != len(names):
+        raise ValueError("Output column names must be unique")
+    keys = key_rows(df, by)
+    values = {c: list(df[c]) for c, _, _ in aggregations}
+    groups: dict = {}
+    for pos, key in enumerate(keys):
+        groups.setdefault(row_key(key), []).append(pos)
+    rows = [list(keys[members[0]]) + [aggregate_values([values[c][m] for m in members], fn) for c, fn, _ in aggregations] for members in groups.values()]
+    return new_rows(names, rows)
+
+
+def pivot_rows(df: pd.DataFrame, index: list, column: str, value: str, fn: str) -> pd.DataFrame:
+    """Turn the distinct values of the pivot column into columns (first-appearance order)."""
+    keys = key_rows(df, index)
+    pivots, values = list(df[column]), list(df[value])
+    pivot_values, seen, groups = [], set(), {}
+    for pos, key in enumerate(keys):
+        p = to_text(pivots[pos])
+        p = "(blank)" if p is None else p
+        if p not in seen:
+            seen.add(p)
+            pivot_values.append(p)
+        g = groups.setdefault(row_key(key), {"first": pos, "cells": {}})
+        g["cells"].setdefault(p, []).append(values[pos])
+    names = [f"{p}_{column}" if p in index else p for p in pivot_values]
+    rows = [
+        list(keys[g["first"]]) + [aggregate_values(g["cells"][p], fn) if p in g["cells"] else None for p in pivot_values]
+        for g in groups.values()
+    ]
+    return new_rows(index + names, rows)
+
+
+def unpivot_rows(df: pd.DataFrame, keep: list, columns: list, name_column: str, value_column: str) -> pd.DataFrame:
+    """Turn columns into rows: one output row per input row and unpivoted column."""
+    names = keep + [name_column, value_column]
+    if len(set(names)) != len(names):
+        raise ValueError("Output column names must be unique")
+    kept = key_rows(df, keep)
+    values = {c: list(df[c]) for c in columns}
+    rows = [list(kept[pos]) + [c, values[c][pos]] for pos in range(len(df)) for c in columns]
+    return new_rows(names, rows)
+
+
+def side_source(step_id: str) -> pd.DataFrame:
+    """Load the additional source used by a join / lookup / append step."""
+    return load_source(RUN_CONFIG.get("sources", CONFIG.get("sources", {}))[step_id], record=False)
+
+
+def combine_rows(df, other, on, columns, prefix, how, mode, flag_unmatched, step, source_name):
+    """Lookup (first match, row ids kept) or join (every match, new row ids) with another source."""
+    left_keys, right_keys = [l for l, _ in on], [r for _, r in on]
+    for c in right_keys + columns:
+        if c not in other.columns:
+            raise ValueError(f'Column "{c}" not found in {source_name}')
+    out_names = [prefix + c if c in df.columns else c for c in columns]
+    names = list(df.columns) + out_names
+    if len(set(names)) != len(names):
+        raise ValueError("Joined column names clash; change the prefix")
+    right = {c: list(other[c]) for c in set(right_keys + columns)}
+    index: dict = {}
+    for pos in range(len(other)):
+        key = [right[c][pos] for c in right_keys]
+        if any(is_blank(v) for v in key):
+            continue  # blank keys never match
+        index.setdefault(row_key(key), []).append(pos)
+    key_pos = [list(df.columns).index(c) for c in left_keys]
+    blank = [None] * len(columns)
+    rows, ids = [], []
+    for row_id, values in zip(df.index, df.itertuples(index=False, name=None)):
+        values = list(values)
+        key = [values[k] for k in key_pos]
+        hits = None if any(is_blank(v) for v in key) else index.get(row_key(key))
+        if mode == "lookup":
+            if not hits:
+                if how == "inner":
+                    continue
+                if flag_unmatched:
+                    shown = ", ".join(to_text(v) if to_text(v) is not None else "blank" for v in key)
+                    flag(row_id, left_keys[0], step, "missing_value", f"No match in {source_name} for {shown}", key[0])
+            rows.append(values + ([right[c][hits[0]] for c in columns] if hits else blank))
+            ids.append(int(row_id))
+        elif hits:
+            rows.extend(values + [right[c][h] for c in columns] for h in hits)
+        elif how == "left":
+            rows.append(values + blank)
+    if mode == "lookup":
+        out = pd.DataFrame(rows, columns=names, index=ids, dtype=object)
+        if how == "inner":
+            prune_issues(out, set(df.index))
+        return out
+    return new_rows(names, rows)
+
+
+def append_rows(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
+    """Stack another source's rows below; columns are matched by name."""
+    names = list(df.columns) + [c for c in other.columns if c not in df.columns]
+    extra = new_rows(names, [[row.get(c) for c in names] for row in other.to_dict("records")])
+    base = df.copy()
+    for c in names[len(df.columns):]:
+        base[c] = column([None] * len(base), base.index)
+    return pd.concat([base, extra])
+
+
 def normalize_cell(v):
     """Normalise a raw file cell the way FORMA does on import."""
     if v is None:
@@ -322,6 +484,8 @@ def _records_to_grid(records) -> list[list]:
 def read_grid(src: dict) -> list[list]:
     """Read the raw grid of cells (rows x columns) from the source file."""
     path, kind = src["path"], src["type"]
+    if not os.path.isabs(path) and not os.path.exists(path):
+        path = str(HERE / path)  # relative paths resolve next to pipeline.py
     if kind == "excel":
         from openpyxl import load_workbook
 
@@ -354,7 +518,7 @@ def _col_letter(i: int) -> str:
     return s
 
 
-def load_source(src: dict) -> pd.DataFrame:
+def load_source(src: dict, record: bool = True) -> pd.DataFrame:
     """Load the detected data region. The index is the source row number."""
     grid = read_grid(src)
     header_row, start, end = src["header_row"], src["start_col"], src["end_col"]
@@ -373,7 +537,8 @@ def load_source(src: dict) -> pd.DataFrame:
             continue
         rows.append(row)
         ids.append(r + 1)
-        FINGERPRINTS[r + 1] = "␟".join(to_text(v) or "" for v in row)
+        if record:
+            FINGERPRINTS[r + 1] = fingerprint(row)
     return pd.DataFrame(rows, columns=names, index=ids, dtype=object)
 `;
 }

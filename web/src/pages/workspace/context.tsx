@@ -33,7 +33,7 @@ interface Ctx {
   updateDraft(step: Step): void;
   applyDraft(): void;
   discardDraft(): void;
-  addStep(type: StepType, column?: string): void;
+  addStep(type: StepType | "lookup", column?: string): void;
   editStep(i: number): void;
   removeStep(i: number): void;
   moveStep(from: number, to: number): void;
@@ -110,7 +110,7 @@ export function WorkspaceProvider({ pipeline, children }: { pipeline: Pipeline; 
   }, []);
 
   const addStep = useCallback(
-    (type: StepType, col?: string) => {
+    (type: StepType | "lookup", col?: string) => {
       const at = draft ? draft.index : Math.min(Math.max(sel, SOURCE) + 1, spec.steps.length);
       const base = at <= 0 ? preview.result?.input : preview.result?.snapshots?.[at - 1] ?? preview.result?.beforeGate;
       if (!spec.source) {

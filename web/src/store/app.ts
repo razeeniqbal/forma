@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { PipelineSpec, SourceFile, SourceSpec } from "@/engine/types";
+import type { PipelineSpec, RawSheet, SourceFile, SourceSpec } from "@/engine/types";
 import { detectRegion } from "@/engine/load";
 import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
 import { toText } from "@/engine/values";
@@ -113,6 +113,19 @@ export function defaultSourceSpec(file: SourceFile, sheetName?: string): SourceS
     endCol: r.endCol,
     ...(file.kind === "csv" ? { csvDelimiter: file.delimiter ?? "," } : {}),
   };
+}
+
+/** Raw sheets for join / lookup / append steps, keyed by file id. */
+export async function loadSideSheets(spec: PipelineSpec): Promise<Record<string, RawSheet>> {
+  const out: Record<string, RawSheet> = {};
+  for (const s of spec.steps) {
+    if ((s.type === "join" || s.type === "append") && s.source.fileId && !out[s.source.fileId]) {
+      const f = await db.getSourceFile(s.source.fileId);
+      const sh = f && (f.sheets.find((x) => x.name === s.source.sheet) ?? f.sheets[0]);
+      if (sh) out[s.source.fileId] = sh;
+    }
+  }
+  return out;
 }
 
 export const useApp = create<AppState>((set, get) => ({
@@ -325,7 +338,8 @@ export const useApp = create<AppState>((set, get) => ({
 
     let finished: Run;
     try {
-      const res = await executeInWorker(runSpec, sheet, mode === "test" ? get().settings.testRunRows : undefined);
+      const sheets = await loadSideSheets(runSpec);
+      const res = await executeInWorker(runSpec, sheet, mode === "test" ? get().settings.testRunRows : undefined, sheets);
       let t = started;
       const tick = (ms: number) => (t += Math.max(1, Math.round(ms)));
       logs.push({ t: tick(1), level: "success", step: "Source", message: `Loaded ${file.name} (${res.input.rows.length.toLocaleString()} rows, ${res.input.columns.length} columns)` });
@@ -348,12 +362,18 @@ export const useApp = create<AppState>((set, get) => ({
       const reviewSource: Run["reviewSource"] = {};
       const reviewValues: Run["reviewValues"] = {};
       const inIdx = new Map(res.input.rowIds.map((r, i) => [r, i]));
-      const outIdx = new Map(res.beforeGate.rowIds.map((r, i) => [r, i]));
+      // A row is held at the gate before a reshaping step or at the end; find its values there.
+      const gateIdx = res.gated.map((g) => new Map(g.rowIds.map((r, i) => [r, i])));
       for (const row of res.reviewRows.slice(0, 2000)) {
         const a = inIdx.get(row);
         if (a !== undefined) reviewSource[row] = res.input.rows[a].map(toText);
-        const b = outIdx.get(row);
-        if (b !== undefined) reviewValues[row] = res.beforeGate.rows[b].map(toText);
+        for (let g = res.gated.length - 1; g >= 0; g--) {
+          const b = gateIdx[g].get(row);
+          if (b === undefined) continue;
+          const ds = res.gated[g];
+          reviewValues[row] = Object.fromEntries(ds.columns.map((c, ci) => [c, toText(ds.rows[b][ci])]));
+          break;
+        }
       }
       if (!failed) {
         tick(5);

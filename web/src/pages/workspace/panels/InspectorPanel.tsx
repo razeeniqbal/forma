@@ -19,6 +19,7 @@ import { PanelFrame } from "./PanelFrame";
 import { StepForm } from "../editors/StepEditor";
 import { ExtractEditor } from "../editors/ExtractEditor";
 import { ValidateEditor } from "../editors/ValidateEditor";
+import { CombineEditor, ReshapeEditor } from "../editors/ReshapeEditor";
 import { BeforeAfterTable } from "./BeforeAfterPanel";
 
 export function InspectorPanel() {
@@ -59,6 +60,8 @@ function DraftEditor() {
   let form: React.ReactNode;
   if (d.step.type === "extract" || d.step.type === "extract_kv" || d.step.type === "split") form = <ExtractEditor step={d.step} onChange={onChange} before={before} />;
   else if (d.step.type === "validate") form = <ValidateEditor step={d.step} onChange={onChange} before={before} results={results} />;
+  else if (d.step.type === "group" || d.step.type === "pivot" || d.step.type === "unpivot") form = <ReshapeEditor step={d.step} onChange={onChange} before={before} />;
+  else if (d.step.type === "join" || d.step.type === "append") form = <CombineEditor step={d.step} onChange={onChange} before={before} />;
   else form = <StepForm step={d.step} onChange={onChange} before={before} />;
 
   return (

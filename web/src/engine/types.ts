@@ -88,7 +88,33 @@ export type Step =
   | { id: string; type: "remove_duplicates"; label?: string; columns: string[] }
   | { id: string; type: "formula"; label?: string; output: string; expression: string }
   | { id: string; type: "round"; label?: string; column: string; decimals: number }
-  | { id: string; type: "validate"; label?: string; rules: ValidationRule[] };
+  | { id: string; type: "validate"; label?: string; rules: ValidationRule[] }
+  | { id: string; type: "group"; label?: string; by: string[]; aggs: Aggregation[] }
+  | { id: string; type: "pivot"; label?: string; index: string[]; column: string; value: string; fn: AggFn }
+  | { id: string; type: "unpivot"; label?: string; keep: string[]; columns: string[]; nameColumn: string; valueColumn: string }
+  | {
+      id: string;
+      type: "join";
+      label?: string;
+      /** Second source (another uploaded file / sheet). */
+      source: SourceSpec;
+      /** lookup: first match, row identity kept. join: every match (rows can multiply). */
+      mode: "lookup" | "join";
+      how: "left" | "inner";
+      on: { left: string; right: string }[];
+      columns: string[];
+      prefix: string;
+      flagUnmatched: boolean;
+    }
+  | { id: string; type: "append"; label?: string; source: SourceSpec };
+
+export type AggFn = "sum" | "mean" | "min" | "max" | "count" | "count_distinct" | "first";
+
+export interface Aggregation {
+  column: string;
+  fn: AggFn;
+  as: string;
+}
 
 export type StepType = Step["type"];
 
@@ -198,4 +224,6 @@ export interface ExecutionResult {
   excludedRows: number[];
   ruleResults: RuleResult[];
   snapshots?: Dataset[];
+  /** Datasets entering each review gate (a gate runs before every reshaping step and at the end). */
+  gated: Dataset[];
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Search, Sparkles, Hash, CalendarDays, PaintBucket, Replace, Type, CaseSensitive, CopyMinus, ScanText, SlidersHorizontal, Split,
-  FunctionSquare, Percent, Columns3, PenLine, Filter, ArrowUpDown, ShieldCheck, Group, Table, Merge, ListPlus, Search as Lookup, CornerDownLeft,
+  FunctionSquare, Percent, Columns3, PenLine, Filter, ArrowUpDown, ShieldCheck, Group, Table, Merge, ListPlus, Search as Lookup, CornerDownLeft, Rows3,
 } from "lucide-react";
 import type { StepType } from "@/engine/types";
 import { TRANSFORMS, type TransformMeta } from "@/engine/registry";
@@ -15,7 +15,7 @@ const ICONS: Record<string, React.ReactNode> = {
   trim: <Type size={16} />, change_case: <CaseSensitive size={16} />, remove_duplicates: <CopyMinus size={16} />, extract: <ScanText size={16} />,
   extract_kv: <SlidersHorizontal size={16} />, split: <Split size={16} />, formula: <FunctionSquare size={16} />, round: <Percent size={16} />,
   select: <Columns3 size={16} />, rename: <PenLine size={16} />, filter: <Filter size={16} />, sort: <ArrowUpDown size={16} />, validate: <ShieldCheck size={16} />,
-  group: <Group size={16} />, pivot: <Table size={16} />, join: <Merge size={16} />, append: <ListPlus size={16} />, lookup: <Lookup size={16} />,
+  group: <Group size={16} />, pivot: <Table size={16} />, unpivot: <Rows3 size={16} />, join: <Merge size={16} />, append: <ListPlus size={16} />, lookup: <Lookup size={16} />,
 };
 
 const ORDER = ["Clean", "Text", "Numeric", "Reshape", "Validate", "Combine"];
@@ -54,7 +54,7 @@ export function TransformPicker() {
   if (!ws.pickerOpen) return null;
   const choose = (t: TransformMeta | undefined) => {
     if (!t || t.later) return;
-    ws.addStep(t.type as StepType, column);
+    ws.addStep(t.type as StepType | "lookup", column);
   };
   let last = "";
   return createPortal(

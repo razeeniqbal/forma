@@ -73,8 +73,8 @@ export interface Run {
   /** Source columns and original values (canonical text) for review rows, keyed by row id. */
   sourceColumns: string[];
   reviewSource: Record<number, (string | null)[]>;
-  /** Values after all steps (before the review gate) for review rows; columns in `columns`. */
-  reviewValues: Record<number, (string | null)[]>;
+  /** Values entering the review gate that held each review row, by column. */
+  reviewValues: Record<number, Record<string, string | null>>;
   ruleResults: RuleResult[];
   columns: string[];
   error?: string;

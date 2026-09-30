@@ -97,4 +97,10 @@ const csvEsc = (v) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 writeFileSync(join(OUT, "invoices.csv"), [header, ...rows].map((r) => r.map(csvEsc).join(",")).join("\n") + "\n");
+// Customer master for lookup / join demos (one customer intentionally missing).
+const REGIONS = ["Central", "North", "South", "East", "West"];
+const TIERS = ["Gold", "Silver", "Bronze"];
+const custRows = CUSTOMERS.filter((c) => c !== "Zenith Foods").map((c, i) => [c, REGIONS[i % REGIONS.length], TIERS[i % TIERS.length], 30 + (i % 3) * 15]);
+writeFileSync(join(OUT, "customers.csv"), [["customer", "region", "tier", "payment_terms_days"], ...custRows].map((r) => r.map(csvEsc).join(",")).join("\n") + "\n");
+
 console.log(`samples: ${rows.length} invoice rows → public/samples/invoices.{xlsx,csv}`);

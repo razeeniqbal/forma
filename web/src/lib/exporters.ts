@@ -12,7 +12,7 @@ export interface ProjectFiles {
   [path: string]: string | Blob;
 }
 
-export function projectFiles(spec: PipelineSpec, opts: GenOptions & { expected?: Dataset; source?: Blob }): ProjectFiles {
+export function projectFiles(spec: PipelineSpec, opts: GenOptions & { expected?: Dataset; source?: Blob; extraSources?: Record<string, Blob> }): ProjectFiles {
   const files: ProjectFiles = {
     "pipeline.py": generatePython(spec, opts),
     "requirements.txt": generateRequirements(spec),
@@ -23,6 +23,7 @@ export function projectFiles(spec: PipelineSpec, opts: GenOptions & { expected?:
   };
   if (opts.expected) files["expected/forma_output.csv"] = toCsv(opts.expected);
   if (opts.source && spec.source) files[spec.source.file] = opts.source;
+  for (const [name, blob] of Object.entries(opts.extraSources ?? {})) files[name] = blob;
   return files;
 }
 
