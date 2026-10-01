@@ -9,7 +9,7 @@ export function fmtInt(n: number): string {
 }
 
 export function fmtPct(part: number, total: number, digits = 1): string {
-  if (!total) return "—";
+  if (!total) return "-";
   const f = Math.pow(10, digits);
   let v = (part / total) * 100;
   if (part < total) v = Math.min(v, 100 - 1 / f); // never round up to 100% while something failed

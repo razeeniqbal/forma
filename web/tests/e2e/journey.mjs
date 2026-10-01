@@ -7,7 +7,7 @@ const { page, shot, finish } = await start({ prefix: "j" });
 const preview = page.locator('section[aria-label="Data preview"]');
 const inspector = page.locator('section[aria-label="Step Inspector"], section[aria-label="New transformation"], section[aria-label="Edit step"], section[aria-label="Column details"], section[aria-label="Source"], section[aria-label="Load"]');
 const header = (name) => preview.locator(".gh", { hasText: new RegExp(`^\\S*\\s*${name}$`) }).first();
-const card = (stage, nth = 0) => page.locator(".flow-card", { has: page.locator(".fc-stage", { hasText: new RegExp(`^${stage}$`, "i") }) }).nth(nth);
+const card = (stage, nth = 0) => page.locator(".cnode", { has: page.locator(".fc-stage", { hasText: new RegExp(`^${stage}$`, "i") }) }).nth(nth);
 const expect = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
@@ -56,7 +56,7 @@ const pid = page.url().split("/pipelines/")[1];
 // 7. Pipeline view is the default
 step("7. pipeline view opens by default: Source → Load");
 await card("Source").waitFor();
-await card("Load").waitFor();
+await card("Destination").waitFor();
 expect((await card("Source").innerText()).includes("1,001"), "source card shows row count");
 await shot("new-pipeline-view");
 
@@ -104,7 +104,7 @@ expect(undone === before - 1 && (await page.locator(".step-item").count()) === b
 step("8. back in pipeline view: Source → Extract → Clean → Validate → Load");
 await pipelineView(page);
 const stages = (await page.locator(".fc-stage").allInnerTexts()).map((s) => s.trim().toUpperCase());
-expect(stages[0] === "SOURCE" && stages.at(-1) === "LOAD", `flow order: ${stages}`);
+expect(stages[0] === "SOURCE" && stages.at(-1) === "DESTINATION", `flow order: ${stages}`);
 for (const s of ["EXTRACT", "CLEAN", "VALIDATE"]) expect(stages.includes(s), `missing ${s} in ${stages}`);
 expect(stages.indexOf("EXTRACT") < stages.indexOf("VALIDATE"), `extract before validate: ${stages}`);
 await shot("pipeline-view");
@@ -136,7 +136,7 @@ await card("Source").waitFor();
 step("14–15. run the pipeline and watch it progress");
 await page.getByRole("button", { name: "Run", exact: true }).click();
 await page.getByRole("button", { name: /Run v1/ }).click();
-await page.locator(".flow-card.running").first().waitFor({ timeout: 5000 });
+await page.locator(".cnode.running").first().waitFor({ timeout: 5000 });
 await page.locator(".run-banner.running").waitFor();
 await shot("running");
 await page.locator(".run-banner.review, .run-banner.success").waitFor({ timeout: 20000 });

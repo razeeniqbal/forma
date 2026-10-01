@@ -116,7 +116,7 @@ function DraftEditor() {
         Cancel
       </button>
       {showAll && (
-        <Modal title={`Before / After — ${stepTitle(d.step)}`} size="xl" onClose={() => setShowAll(false)}>
+        <Modal title={`Before / After: ${stepTitle(d.step)}`} size="xl" onClose={() => setShowAll(false)}>
           <div style={{ height: "62vh" }}>
             <BeforeAfterTable index={d.index} initialView="all" />
           </div>
@@ -161,7 +161,7 @@ function StepSummary({ index }: { index: number }) {
         <div>Stage</div>
         <div>{STAGE_OF[step.type]}</div>
         <div>Affects</div>
-        <div>{stepColumns(step).join(", ") || "—"}</div>
+        <div>{stepColumns(step).join(", ") || "-"}</div>
         <div>Position</div>
         <div>
           Step {index + 2} of {ws.spec.steps.length + 2} (after Source)

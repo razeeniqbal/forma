@@ -49,7 +49,7 @@ export async function openPipeline(page, projectId, name) {
   else await page.goto(`${BASE}/projects/${projectId}/pipelines`);
   await page.getByRole("link", { name, exact: true }).first().click();
   await page.waitForURL(/\/pipelines\/p_/);
-  await page.locator(".flow-card, .grid-row").first().waitFor();
+  await page.locator(".cnode, .grid-row").first().waitFor();
   return page.url().split("/pipelines/")[1].split(/[?/]/)[0];
 }
 
@@ -62,7 +62,7 @@ export async function workbench(page, view) {
 
 export async function pipelineView(page) {
   await page.getByRole("button", { name: /Pipeline view|^Pipeline$/ }).first().click();
-  await page.locator(".flow-card").first().waitFor();
+  await page.locator(".cnode").first().waitFor();
 }
 
 /** Opens the transformation picker and chooses the first match for `q`. */

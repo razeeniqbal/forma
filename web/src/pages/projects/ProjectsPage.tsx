@@ -56,7 +56,7 @@ export function ProjectsPage() {
           <img src="/brand/forma-symbol-blue.svg" width={36} height={36} alt="" />
           <h1>Create your first project</h1>
           <p>
-            A project holds the data for one problem — its sources, the pipelines that shape them, and every run. Your pipelines stay readable Python you
+            A project holds the data for one problem: its sources, the pipelines that shape them, and every run. Your pipelines stay readable Python you
             own.
           </p>
           <div className="row" style={{ gap: 10 }}>

@@ -123,6 +123,7 @@ export type PanelId =
   | "source"
   | "preview"
   | "pipeline"
+  | "canvas"
   | "inspector"
   | "beforeAfter"
   | "profile"

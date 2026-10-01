@@ -57,7 +57,7 @@ export function ValidatePage() {
 
   const exportReport = () => {
     const lines = [
-      `# Validation report — ${pipeline.spec.name}`,
+      `# Validation report: ${pipeline.spec.name}`,
       "",
       `${fmtPct(health.passed, health.evaluated)} of ${fmtInt(health.evaluated)} evaluated values passed configured quality rules.`,
       "",
@@ -81,7 +81,7 @@ export function ValidatePage() {
       <div className="page-head" style={{ alignItems: "center" }}>
         <div>
           <h1 style={{ fontSize: 24 }}>Validate</h1>
-          <p>Explicit rules on every row — {result ? `${fmtInt(result.input.rows.length)} rows evaluated` : "evaluating…"}. Problems are surfaced, never silently changed.</p>
+          <p>Explicit rules on every row: {result ? `${fmtInt(result.input.rows.length)} rows evaluated` : "evaluating…"}. Problems are surfaced, never silently changed.</p>
         </div>
         <div className="actions">
           <Link className="btn" to={`/pipelines/${pipeline.id}`}>
@@ -298,7 +298,7 @@ export function ValidatePage() {
                   </div>
                 );
               })}
-              {rules.length === 0 && <div className="small muted">—</div>}
+              {rules.length === 0 && <div className="small muted">-</div>}
             </div>
           </div>
           <div className="card card-pad">

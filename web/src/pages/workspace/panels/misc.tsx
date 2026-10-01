@@ -63,14 +63,14 @@ export function ProfilePanel() {
                         <Bar value={ok / ev} />
                       </>
                     ) : (
-                      <span className="subtle small" title="No validation rules on this column">—</span>
+                      <span className="subtle small" title="No validation rules on this column">-</span>
                     )}
                   </td>
                   <td>
                     <div className="num small">{fmtPct(p.unique, p.filled)}</div>
                     <Bar value={p.uniqueness} tone="blue" />
                   </td>
-                  <td className="small muted num">{p.numericMin !== undefined ? `${p.numericMin.toLocaleString()} – ${p.numericMax!.toLocaleString()}` : p.min ? `${p.min.slice(0, 12)} – ${p.max!.slice(0, 12)}` : "—"}</td>
+                  <td className="small muted num">{p.numericMin !== undefined ? `${p.numericMin.toLocaleString()} – ${p.numericMax!.toLocaleString()}` : p.min ? `${p.min.slice(0, 12)} – ${p.max!.slice(0, 12)}` : "-"}</td>
                 </tr>
               );
             })}

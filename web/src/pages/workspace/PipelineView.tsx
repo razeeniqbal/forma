@@ -1,14 +1,16 @@
-// Pipeline view (level 1 of PIPELINE → PREVIEW → EXPAND): the ordered flow of steps with status and row impact.
-// Not a node editor: steps are an ordered list, connectors carry row counts, and there are no handles or free canvas.
-import { Fragment, useEffect, useMemo, useState } from "react";
+// Pipeline view (level 1 of CANVAS → NODE → PREVIEW → EXPAND): the data flow on a free-movable canvas,
+// with status and row impact per step. Status comes from the live run, the latest run of this spec,
+// or the live preview. Layout lives in the canvas state and never changes execution.
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Maximize2, Pencil, X, AlertTriangle, XCircle, CheckCircle2, Loader2, Circle, ArrowDownToLine, Database, ListChecks, Rows3, LayoutList, Trash2 } from "lucide-react";
+import { Plus, Maximize2, Pencil, X, AlertTriangle, XCircle, CheckCircle2, Loader2, ListChecks, Trash2 } from "lucide-react";
 import type { Dataset, Step, StepResult } from "@/engine/types";
 import { describeStep, STAGE_OF, stepColumns, stepTitle } from "@/engine/registry";
 import { toText } from "@/engine/values";
 import { useApp, type LiveRun } from "@/store/app";
 import type { Run } from "@/store/model";
-import { FileIcon } from "@/components/ui";
+import { deriveGraph, LOAD_ID, SOURCE_ID, type PipelineNode } from "@/canvas/graph";
+import { PipelineCanvas, StatusChip } from "./canvas/PipelineCanvas";
 import { fmtDuration, fmtInt, fmtTime } from "@/lib/format";
 import { useWs, SOURCE } from "./context";
 import { InspectorPanel } from "./panels/InspectorPanel";
@@ -33,17 +35,6 @@ export interface FlowNode {
   step?: Step;
 }
 
-const STATUS_LABEL: Record<NodeStatus, string> = {
-  draft: "Draft",
-  ready: "Ready",
-  review: "Review",
-  failed: "Failed",
-  pending: "Pending",
-  running: "Running",
-  success: "Success",
-  skipped: "Skipped",
-  idle: "Not set",
-};
 
 const STEP_MS = 260;
 
@@ -207,152 +198,105 @@ export function useFlow(): FlowState {
   }, [ws.spec.source, ws.spec.destination, ws.draft, steps, preview, live, liveActive, revealed, current, latest, runs]);
 }
 
-function StatusChip({ status }: { status: NodeStatus }) {
-  const icon =
-    status === "running" ? (
-      <Loader2 size={12} className="spin" />
-    ) : status === "success" || status === "ready" ? (
-      <CheckCircle2 size={12} />
-    ) : status === "review" ? (
-      <AlertTriangle size={12} />
-    ) : status === "failed" ? (
-      <XCircle size={12} />
-    ) : (
-      <Circle size={12} />
-    );
-  return (
-    <span className={`st-chip ${status}`}>
-      {icon}
-      {STATUS_LABEL[status]}
-    </span>
-  );
-}
-
-type Density = "cards" | "compact";
-const DENSITY_KEY = "forma.flowDensity";
-function readDensity(): Density {
-  try {
-    return localStorage.getItem(DENSITY_KEY) === "compact" ? "compact" : "cards";
-  } catch {
-    return "cards";
-  }
-}
+/** Graph node id of a flow node index (main chain). */
+const idOfIndex = (index: number, steps: Step[]) => (index === SOURCE ? SOURCE_ID : index >= steps.length ? LOAD_ID : steps[index].id);
 
 export function PipelineView({ onExpand }: { onExpand: (index: number) => void }) {
   const ws = useWs();
   const flow = useFlow();
-  const [open, setOpen] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [density, setDensityState] = useState<Density>(readDensity);
-  const setDensity = (d: Density) => {
-    setDensityState(d);
-    try {
-      localStorage.setItem(DENSITY_KEY, d);
-    } catch {
-      /* per-viewer preference only */
-    }
+  const steps = ws.effective.steps;
+  const total = steps.length;
+  const graph = useMemo(() => deriveGraph(ws.effective), [ws.effective]);
+  const indexOf = useCallback((id: string) => graph.nodes.find((n) => n.id === id)?.index, [graph]);
+  // Supporting sources select the first step that reads them.
+  const sideConsumer = (id: string) => {
+    const g = graph.nodes.find((n) => n.id === id);
+    return g?.side ? steps.findIndex((s) => s.id === g.side!.consumers[0]) : undefined;
   };
-  const total = ws.effective.steps.length;
-  // A draft (new or edited step) always shows its editor beside the flow.
+  // A draft (new or edited step) always shows its editor beside the canvas.
   const showEditor = !!ws.draft || editing;
-  const selected = ws.draft ? ws.draft.index : open;
+  const selectedId = ws.draft ? idOfIndex(ws.draft.index, steps) : openId;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (ws.draft || open === null || (e.target as HTMLElement).closest?.("input,textarea,select")) return;
+      if (ws.draft || openId === null || (e.target as HTMLElement).closest?.("input,textarea,select")) return;
       if (e.key === "Escape") {
-        setOpen(null);
+        setOpenId(null);
         setEditing(false);
-      } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !editing) {
-        // Walk the pipeline with the preview open.
-        e.preventDefault();
-        const next = Math.max(SOURCE, Math.min(total, open + (e.key === "ArrowDown" ? 1 : -1)));
-        setOpen(next);
-        ws.setSel(next);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, ws, editing, total]);
+  }, [openId, ws.draft]);
 
-  const select = (i: number) => {
-    if (ws.draft) return;
-    setEditing(false);
-    setOpen((o) => (o === i ? null : i));
-    ws.setSel(i);
+  const open = useCallback(
+    (id: string | null) => {
+      if (ws.draft) return;
+      setEditing(false);
+      setOpenId(id);
+      if (id === null) return;
+      const i = indexOf(id) ?? sideConsumer(id);
+      if (i !== undefined && i >= -1) ws.setSel(i);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ws.draft, ws.setSel, indexOf, graph],
+  );
+  const expand = (id: string) => {
+    const i = indexOf(id) ?? sideConsumer(id);
+    if (i !== undefined && i >= -1) onExpand(i);
   };
-  const addAfter = (i: number) => {
-    if (ws.draft) return;
-    ws.setSel(i);
-    ws.openPicker();
-  };
+  const addAfter = useCallback(
+    (i: number) => {
+      if (ws.draft) return;
+      ws.setSel(i);
+      ws.openPicker();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ws.draft, ws.setSel, ws.openPicker],
+  );
 
-  const run = flow.run;
-  const basis = flow.basis;
   const remoteRunning = useApp((s) => s.runs.find((r) => r.pipelineId === ws.pipeline.id && r.status === "running" && r.remoteId));
+  const basis = flow.basis;
+  const run = flow.run;
+  const openNode = selectedId ? graph.nodes.find((n) => n.id === selectedId) : undefined;
+  const openView = openNode?.index !== undefined ? flow.nodes.find((n) => n.index === openNode.index) : undefined;
 
   return (
-    <div className={`flow-wrap ${selected !== null ? "with-side" : ""}`}>
-      <div className="flow-canvas" aria-label="Pipeline flow">
-        <div className="flow-bar">
+    <div className={`flow-wrap ${selectedId ? "with-side" : ""}`}>
+      <div className="flow-stage" aria-label="Pipeline flow">
+        <div className="flow-overlay">
           <FlowBasis flow={flow} />
-          <div className="seg sm" role="group" aria-label="Density" style={{ marginLeft: "auto" }}>
-            <button className={density === "cards" ? "on" : ""} onClick={() => setDensity("cards")} title="Step cards">
-              <LayoutList size={13} /> Cards
-            </button>
-            <button className={density === "compact" ? "on" : ""} onClick={() => setDensity("compact")} title="Compact overview">
-              <Rows3 size={13} /> Compact
-            </button>
-          </div>
+          {remoteRunning ? (
+            <div className="run-banner running" role="status">
+              <Loader2 size={14} className="spin" />
+              <span>Running on the FORMA Server. Step results appear when the server finishes.</span>
+              <Link className="btn ghost xs" to={`/runs/${remoteRunning.id}`} style={{ marginLeft: "auto" }}>
+                View run
+              </Link>
+            </div>
+          ) : basis.kind === "live" || (basis.kind === "run" && run) ? (
+            <RunBanner flow={flow} />
+          ) : null}
+          {total === 0 && !ws.draft && basis.kind !== "live" && (
+            <div className="flow-empty">
+              <div>
+                <b>Shape this data step by step.</b> Add the first transformation, or open the{" "}
+                <button className="link" onClick={() => onExpand(total)}>
+                  Analyst workbench
+                </button>{" "}
+                and click a column to transform it directly.
+              </div>
+              <button className="btn primary sm" onClick={() => addAfter(SOURCE)}>
+                <Plus size={14} /> Add step
+              </button>
+            </div>
+          )}
         </div>
-        {remoteRunning ? (
-          <div className="run-banner running" role="status">
-            <Loader2 size={14} className="spin" />
-            <span>Running on the FORMA Server · step results appear when the server finishes</span>
-            <Link className="btn ghost xs" to={`/runs/${remoteRunning.id}`} style={{ marginLeft: "auto" }}>
-              View run
-            </Link>
-          </div>
-        ) : basis.kind === "live" || (basis.kind === "run" && run) ? (
-          <RunBanner flow={flow} />
-        ) : null}
-        <ol className={`flow ${density}`} role="list">
-          {flow.nodes.map((n, k) => {
-            const next = flow.nodes[k + 1];
-            const isLoad = n.index === total;
-            return (
-              <Fragment key={n.step?.id ?? (n.index === SOURCE ? "source" : "load")}>
-                <li>
-                  <FlowCard node={n} active={selected === n.index} onClick={() => select(n.index)} density={density} pipelineId={ws.pipeline.id} runId={run?.id} basisKind={basis.kind} />
-                </li>
-                {!isLoad && next && total === 0 && !ws.draft && basis.kind !== "live" && (
-                  <li className="flow-empty">
-                    <div>
-                      <b>Shape this data step by step.</b> Add the first transformation — or open the{" "}
-                      <button className="link" onClick={() => onExpand(total)}>
-                        Analyst workbench
-                      </button>{" "}
-                      and click a column to transform it directly.
-                    </div>
-                    <button className="btn primary sm" onClick={() => addAfter(SOURCE)}>
-                      <Plus size={14} /> Add step
-                    </button>
-                  </li>
-                )}
-                {!isLoad && next && (
-                  <li className={`flow-link ${next.status === "running" ? "flowing" : ""} ${n.status === "pending" ? "dim" : ""}`} aria-hidden={density === "compact"}>
-                    <span className="flow-rows">{n.rowsOut !== undefined ? `${fmtInt(n.rowsOut)} rows` : ""}</span>
-                    <button className="flow-add" onClick={() => addAfter(n.index)} disabled={!!ws.draft || basis.kind === "live"} aria-label={`Add a step after ${n.stage}`} title="Add a step here">
-                      <Plus size={12} />
-                    </button>
-                  </li>
-                )}
-              </Fragment>
-            );
-          })}
-        </ol>
+        <PipelineCanvas flow={flow} openId={selectedId} onOpen={open} onExpand={expand} onAddAfter={addAfter} />
       </div>
-      {selected !== null && (
+      {selectedId && (
         <aside className={`flow-side ${showEditor ? "editing" : ""}`} aria-label="Step preview">
           {showEditor ? (
             <div className="flow-editor">
@@ -363,17 +307,79 @@ export function PipelineView({ onExpand }: { onExpand: (index: number) => void }
               )}
               <InspectorPanel />
             </div>
-          ) : (
+          ) : openNode?.side ? (
+            <SidePreview node={openNode} onClose={() => setOpenId(null)} onExpand={() => expand(openNode.id)} onOpenStep={(id) => open(id)} />
+          ) : openView ? (
             <StepPreview
-              node={flow.nodes.find((n) => n.index === selected)!}
+              node={openView}
               flow={flow}
-              onClose={() => setOpen(null)}
-              onEdit={() => (selected >= 0 && selected < total ? ws.editStep(selected) : setEditing(true))}
-              onExpand={() => onExpand(selected)}
+              onClose={() => setOpenId(null)}
+              onEdit={() => (openView.index >= 0 && openView.index < total ? ws.editStep(openView.index) : setEditing(true))}
+              onExpand={() => onExpand(openView.index)}
             />
-          )}
+          ) : null}
         </aside>
       )}
+    </div>
+  );
+}
+
+/** A supporting project source: which steps read it, and a link to the source itself. */
+function SidePreview({ node, onClose, onExpand, onOpenStep }: { node: PipelineNode; onClose: () => void; onExpand: () => void; onOpenStep: (id: string) => void }) {
+  const ws = useWs();
+  const meta = useApp((s) => s.sources.find((x) => x.id === node.side!.fileId));
+  const sh = meta?.sheets.find((x) => x.name === node.side!.sheet) ?? meta?.sheets[0];
+  const consumers = node.side!.consumers.map((id) => ({ id, i: ws.effective.steps.findIndex((s) => s.id === id) })).filter((c) => c.i >= 0);
+  return (
+    <div className="sp">
+      <div className="sp-head">
+        <span className="sp-crumb">PROJECT SOURCE</span>
+        <button className="btn ghost xs icon" aria-label="Close preview" onClick={onClose} style={{ marginLeft: "auto" }}>
+          <X size={14} />
+        </button>
+      </div>
+      <h2 className="sp-title">
+        {node.side!.file}
+        {node.side!.sheet && meta && meta.sheets.length > 1 && <span className="muted"> / {node.side!.sheet}</span>}
+      </h2>
+      {meta ? (
+        <dl className="sp-metrics">
+          <div>
+            <dd>{fmtInt(sh?.rows ?? 0)}</dd>
+            <dt>rows</dt>
+          </div>
+          <div>
+            <dd>{sh?.cols ?? 0}</dd>
+            <dt>columns</dt>
+          </div>
+        </dl>
+      ) : (
+        <div className="callout red">
+          <XCircle size={16} /> This source is no longer in the project. Choose another one in the step that reads it.
+        </div>
+      )}
+      <div className="small muted">Referenced by this pipeline, not copied. Read by:</div>
+      <ul className="sp-rules">
+        {consumers.map((c) => {
+          const st = ws.effective.steps[c.i];
+          return (
+            <li key={c.id}>
+              <span className="fc-num">{String(c.i + 2).padStart(2, "0")}</span>
+              <button className="link" onClick={() => onOpenStep(c.id)}>
+                {stepTitle(st)}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="sp-actions">
+        <Link className="btn" to={`/projects/${ws.pipeline.projectId}/sources?source=${node.side!.fileId}${node.side!.sheet ? `&sheet=${encodeURIComponent(node.side!.sheet)}` : ""}`}>
+          Open in Sources
+        </Link>
+        <button className="btn primary" onClick={onExpand}>
+          <Maximize2 size={14} /> Expand step
+        </button>
+      </div>
     </div>
   );
 }
@@ -430,89 +436,6 @@ function RunBanner({ flow }: { flow: FlowState }) {
       <Link className="btn ghost xs" to={`/runs/${run.id}`} style={{ marginLeft: "auto" }}>
         View run
       </Link>
-    </div>
-  );
-}
-
-function FlowCard({
-  node,
-  active,
-  onClick,
-  density,
-  pipelineId,
-  runId,
-  basisKind,
-}: {
-  node: FlowNode;
-  active: boolean;
-  onClick: () => void;
-  density: Density;
-  pipelineId: string;
-  runId?: string;
-  basisKind: FlowState["basis"]["kind"];
-}) {
-  const isSource = node.index === SOURCE;
-  const isLoad = !node.step && !isSource;
-  const ready = node.rowsOut !== undefined && node.reviewRows ? node.rowsOut - (isLoad ? 0 : node.reviewRows) : node.rowsOut;
-  const reviewHref = runId && basisKind !== "preview" ? `/runs/${runId}/review${node.step ? `?step=${node.step.id}` : ""}` : `/pipelines/${pipelineId}/review`;
-  return (
-    <div
-      className={`flow-card ${node.status} ${active ? "on" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={active}
-      aria-label={`${node.num} ${node.stage}: ${node.title} — ${STATUS_LABEL[node.status]}`}
-      onClick={onClick}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onClick())}
-    >
-      <div className="fc-head">
-        <span className="fc-num">{node.num}</span>
-        <span className="fc-stage">{node.stage}</span>
-        {density === "compact" && <span className="fc-title-inline clamp-1">{node.title}</span>}
-        <StatusChip status={node.status} />
-      </div>
-      {density === "cards" && (
-        <>
-          <div className="fc-title clamp-1">
-            {isSource && <FileIcon kind={node.title.endsWith(".csv") ? "csv" : "excel"} />}
-            {isLoad && (node.title.includes(".") ? <ArrowDownToLine size={14} /> : <Database size={14} />)}
-            {node.title}
-          </div>
-          {node.detail && <div className="fc-detail clamp-1">{node.detail}</div>}
-        </>
-      )}
-      {(node.rowsOut !== undefined || node.status === "running" || node.error) && (
-        <div className="fc-metrics">
-          {node.status === "running" ? (
-            <span>{node.rowsIn !== undefined ? `${fmtInt(node.rowsIn)} rows in · processing` : "loading"}</span>
-          ) : node.error ? (
-            <span className="err clamp-1">{node.error}</span>
-          ) : isSource ? (
-            <span>
-              <b>{fmtInt(node.rowsOut!)}</b> rows
-            </span>
-          ) : (
-            <>
-              {node.rowsIn !== undefined && node.rowsIn !== node.rowsOut && !isLoad && (
-                <span>
-                  {fmtInt(node.rowsIn)} → <b>{fmtInt(node.rowsOut!)}</b> rows
-                </span>
-              )}
-              {(node.rowsIn === node.rowsOut || isLoad) && (
-                <span>
-                  <b>{fmtInt(ready ?? 0)}</b> {isLoad ? (basisKind === "preview" ? "to load" : "loaded") : "ready"}
-                </span>
-              )}
-              {node.reviewRows ? (
-                <Link className="fc-review" to={reviewHref} onClick={(e) => e.stopPropagation()}>
-                  <AlertTriangle size={12} /> {fmtInt(node.reviewRows)} review
-                </Link>
-              ) : null}
-              {node.durationMs !== undefined && basisKind !== "preview" && <span className="subtle">{fmtDuration(node.durationMs)}</span>}
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -600,7 +523,7 @@ function StepPreview({ node, flow, onClose, onEdit, onExpand }: { node: FlowNode
               <ListChecks size={16} />
               <span>
                 <b>{fmtInt(node.reviewRows)} rows need review</b>
-                <span className="small"> — open the review queue{node.step ? " for this step" : ""}</span>
+                <span className="small">. Open the review queue{node.step ? " for this step" : ""}.</span>
               </span>
             </Link>
           ) : null}
@@ -646,10 +569,53 @@ function Metrics({ node, isSource, isLoad }: { node: FlowNode; isSource: boolean
   );
 }
 
+/** Join / lookup / append: both sides, keys, type and row impact. Configuration stays in the workbench. */
+function CombineBody({ index }: { index: number }) {
+  const ws = useWs();
+  const step = ws.effective.steps[index] as Extract<Step, { type: "join" | "append" }>;
+  const res = ws.preview.result?.steps[index];
+  const meta = useApp((s) => s.sources.find((x) => x.id === step.source.fileId));
+  const sh = meta && (meta.sheets.find((x) => x.name === step.source.sheet) ?? meta.sheets[0]);
+  const right = `${step.source.file || "Choose a source"}${step.source.sheet && meta && meta.sheets.length > 1 ? ` / ${step.source.sheet}` : ""}`;
+  return (
+    <dl className="kv sp-combine">
+      <dt>Left</dt>
+      <dd>
+        {ws.spec.name} <span className="subtle">({fmtInt(res?.rowsIn ?? 0)} rows)</span>
+      </dd>
+      <dt>{step.type === "append" ? "Appended" : "Right"}</dt>
+      <dd>
+        {right} {sh && <span className="subtle">({fmtInt(sh.rows)} rows)</span>}
+      </dd>
+      {step.type === "join" && (
+        <>
+          <dt>Keys</dt>
+          <dd className="mono">{step.on.length ? step.on.map((k) => `${k.left} = ${k.right}`).join(", ") : "None yet"}</dd>
+          <dt>Type</dt>
+          <dd>
+            {step.mode === "lookup" ? "Lookup (first match)" : "Join (every match)"}, {step.how === "left" ? "keep unmatched rows" : "drop unmatched rows"}
+          </dd>
+          <dt>Brings in</dt>
+          <dd className="mono">{step.columns.join(", ") || "No columns"}</dd>
+        </>
+      )}
+      {res && (
+        <>
+          <dt>Rows</dt>
+          <dd className="num">
+            {fmtInt(res.rowsIn)} → {fmtInt(res.rowsOut)}
+          </dd>
+        </>
+      )}
+    </dl>
+  );
+}
+
 function StepBody({ index }: { index: number }) {
   const ex = useExamples(index);
   const ws = useWs();
   const step = ws.effective.steps[index];
+  if (step?.type === "join" || step?.type === "append") return <CombineBody index={index} />;
   if (step?.type === "validate") {
     const results = ws.preview.result?.ruleResults ?? [];
     return (
@@ -723,7 +689,7 @@ function LoadBody({ node }: { node: FlowNode }) {
   const out = ws.preview.result?.output;
   return (
     <div className="col" style={{ gap: 10 }}>
-      {!ws.spec.destination && <div className="small muted">No destination yet — choose where rows that pass review are written. Edit to set one.</div>}
+      {!ws.spec.destination && <div className="small muted">No destination yet. Choose where rows that pass review are written. Edit to set one.</div>}
       {out && out.rows.length > 0 && <MiniTable ds={out} />}
       {node.reviewRows ? <div className="small muted">Rows needing review are held back and never loaded until resolved.</div> : null}
     </div>

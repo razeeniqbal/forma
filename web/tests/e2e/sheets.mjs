@@ -27,14 +27,14 @@ await detail.getByRole("link", { name: "Create pipeline from Summary" }).click()
 await page.getByRole("radio", { name: /Summary/, checked: true }).waitFor();
 await page.getByRole("button", { name: "Create Pipeline" }).click();
 await page.waitForURL(/\/pipelines\/p_/);
-await page.locator(".flow-card", { hasText: "invoices.xlsx / Summary" }).waitFor();
+await page.locator(".cnode.source", { hasText: "Summary" }).waitFor();
 
 step("switch the pipeline to the Archive sheet from the source preview");
-await page.locator(".flow-card", { hasText: "Source" }).first().click();
+await page.locator(".cnode.source").first().click();
 const sheetSelect = page.getByRole("complementary", { name: "Step preview" }).getByLabel("Source sheet");
 await sheetSelect.selectOption("Archive");
-await page.locator(".flow-card", { hasText: "invoices.xlsx / Archive" }).waitFor();
-await page.locator(".flow-card", { hasText: "25 rows" }).first().waitFor();
+await page.locator(".cnode.source", { hasText: "Archive" }).waitFor();
+await page.locator(".cnode.source", { hasText: "25 rows" }).first().waitFor();
 await shot("switched");
 
 step("one pipeline per sheet");
@@ -54,7 +54,7 @@ await page.waitForURL(/\/pipelines\/p_/);
 await page.getByRole("radio", { name: /Archive/, checked: true }).waitFor();
 await shot("append-draft");
 await apply(page);
-await page.waitForFunction(() => [...document.querySelectorAll(".flow-card")].some((c) => /Combine/i.test(c.textContent ?? "") && /1,026/.test(c.textContent ?? "")));
+await page.waitForFunction(() => [...document.querySelectorAll(".cnode")].some((c) => /Append/i.test(c.textContent ?? "") && /1,026/.test(c.textContent ?? "")));
 await shot("appended");
 
 step("sources list shows which pipelines read each sheet");

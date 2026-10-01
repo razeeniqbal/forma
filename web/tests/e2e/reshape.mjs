@@ -36,8 +36,8 @@ await page.getByRole("button", { name: "Pipeline view" }).click();
 await page.getByRole("button", { name: "Run", exact: true }).click();
 await page.getByRole("button", { name: /Run v1/ }).click();
 await page.locator(".run-banner.review, .run-banner.success, .run-banner.failed").waitFor({ timeout: 20000 });
-if (await page.locator(".flow-card.failed").count()) throw new Error("a step failed");
-const combine = await page.locator(".flow-card", { hasText: "Lookup" }).first().innerText();
+if (await page.locator(".cnode.failed").count()) throw new Error("a step failed");
+const combine = await page.locator(".cnode", { hasText: "Lookup" }).first().innerText();
 await shot("run");
 
 step("export project");

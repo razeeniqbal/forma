@@ -87,7 +87,7 @@ export function ProjectSettings() {
                 {configured
                   ? health
                     ? "Runs through the connected FORMA execution server."
-                    : "A server is configured but not reachable right now — runs fall back to this browser."
+                    : "A server is configured but not reachable right now. Runs fall back to this browser."
                   : <>Connect one in <Link to="/settings">Settings</Link> to run large files, databases and schedules.</>}
               </div>
             </div>

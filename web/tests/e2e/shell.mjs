@@ -51,7 +51,7 @@ await phone.getByRole("button", { name: "Create Project" }).click();
 await phone.waitForURL(/\/projects\/proj_/);
 await phone.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Pipelines", exact: true }).click();
 await phone.getByRole("link", { name: "Clean Invoices", exact: true }).first().click();
-await phone.locator(".flow-card").first().waitFor();
+await phone.locator(".cnode").first().waitFor();
 if (await phone.locator(".panel .grid-row").count()) throw new Error("workbench panels shown at phone width");
 const scrollW = await phone.evaluate(() => document.documentElement.scrollWidth);
 if (scrollW > 392) throw new Error(`horizontal page scroll at phone width (${scrollW}px)`);

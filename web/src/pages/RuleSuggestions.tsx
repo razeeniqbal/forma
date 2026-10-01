@@ -36,7 +36,7 @@ export function RuleSuggestions({ pipelineId }: { pipelineId: string }) {
         <h3>
           Update rules from review {base.loading ? <Loader2 size={13} className="spin" /> : <span className="badge sm amber">{suggestions.length}</span>}
         </h3>
-        <span className="small muted">Deterministic changes proposed from these review items and your corrections — preview the impact before applying.</span>
+        <span className="small muted">Deterministic changes proposed from these review items and your corrections. Preview the impact before applying.</span>
         {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
       </div>
       {open && (

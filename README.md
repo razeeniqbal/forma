@@ -36,10 +36,25 @@ Choose **Explore the example project** on the Projects home for the prebuilt Inv
 
 - **Projects** are the home screen. A project holds the sources, pipelines and runs for one data problem, plus its settings (name, description, default execution target).
 - **Sources** belong to a project and are stored once. Pipelines *reference* them, so several pipelines can read the same file, and Join / Lookup / Append pick from the project's sources (or add a new one to the project). Every sheet of a workbook is its own selectable source.
-- **The project overview** is a read-only data map — sources → pipelines → outputs — with recent activity.
-- **Pipelines open in Pipeline view**: the ordered flow of steps with status and row impact. Interaction follows **PIPELINE → PREVIEW → EXPAND**: click a step for a quick preview (input → output examples, ready / review counts, Edit), expand it into the panel workbench for deep work, and come back.
-- **Runs are visible events.** The engine reports the source load and each completed step; the flow shows them in order with their real row counts and timings, then summarises *1,001 input · 986 ready · 15 review*. Review counts link straight to that step's rows in the review queue.
+- **The project overview** is a read-only data map (sources → pipelines → outputs) with recent activity.
+- **Pipelines open on the pipeline canvas** (see below). Interaction follows **CANVAS → NODE → PREVIEW → EXPAND → WORKBENCH**: click a node for a quick preview (input → output examples, ready / review counts, Edit), double-click or Expand to open the panel workbench for deep work, and come back to the same view.
+- **Runs are visible events.** The engine reports the source load and each completed step; the canvas shows them in order with their real row counts and timings, then summarises *1,001 input · 986 ready · 15 review*. Review counts link straight to that step's rows in the review queue.
 - **Execution** is explicit: *Local* (runs in this browser) or *FORMA Server* (runs through the connected execution server), per project and per run.
+
+## Pipeline canvas
+
+**Position is visual. Connection is logical. Execution is deterministic.**
+
+- Every pipeline opens on a free-movable canvas: drag nodes anywhere, pan by dragging the background or scrolling, zoom with Ctrl/⌘ + scroll or pinch, and use the toolbar for zoom, **Fit**, **Auto layout** and **Undo layout change**. Positions and the viewport are remembered per pipeline, including when you come back from the workbench or the review queue.
+- **Nodes** are semantic: Source, transformation steps (Select, Extract, Clean, Lookup, Join, Append, Group and so on), Validate (quality) and Destination. Each shows its operation, row impact, status (Ready, Running, Success, Review, Failed, Skipped) and review count.
+- **Connections** are data flow, drawn as orthogonal paths with row counts where the number of rows changes. They come from the PipelineSpec: the main chain in execution order, plus a supporting-source node for every project source that a Join, Lookup or Append step reads. Press **+** on a connection to insert a step there.
+- **Project sources tray:** drag a project source onto the canvas (or click it) to start a Lookup or Append step that reads it. The source is referenced, never copied.
+- **Auto layout** arranges the chain in execution order, wrapping long pipelines into rows like text, with supporting sources below the step they feed.
+- **Engineer view** puts the canvas next to the generated Python: selecting a node shows that step's function.
+
+Moving nodes never changes execution. The PipelineSpec stays the only execution model; node positions and the viewport live in a separate `PipelineCanvasState` per pipeline (`web/src/canvas/graph.ts`). The derived graph already has the `nodes` + `edges` shape a future graph executor could adopt, but connections cannot be rewired, and there is no branching, until the engine and the generated Python can honour them. A test moves every node to random positions and checks that the output, review rows and generated Python are unchanged.
+
+**Library decision.** The canvas uses [React Flow](https://reactflow.dev) (`@xyflow/react`, MIT). It provides pan, zoom, dragging, fit view, custom nodes and edges, keyboard access (Tab to a node, Enter to preview it, arrow keys to move it) and only re-renders nodes whose data changed, and it supports connection editing for a later graph phase. Its default node-editor look is replaced by FORMA components: no visible ports, no minimap, FORMA cards and restrained connectors.
 
 Data stored before projects existed is migrated once, deterministically, into **My FORMA Project** with every pipeline id, version, review decision and run kept.
 
@@ -50,7 +65,7 @@ The full V1 loop from PRD §28 works end to end:
 **SOURCE → INSPECT → SELECT → TRANSFORM → VALIDATE → REVIEW → RUN → EXPORT**
 
 - **Sources:** CSV, Excel (multi-sheet, merged cells), JSON, JSONL and text. Every sheet of a workbook is its own source: pick the sheet when creating a pipeline (or create one pipeline per sheet), switch it from the preview header, and add other sheets with Append or Lookup / Join. Header and data-region detection, with advisory quality observations (mixed date formats, blanks, duplicates, stray whitespace). Uploaded files are immutable.
-- **Views:** Pipeline view (default) plus the panel workbench views Analyst, Extraction, Compare, Engineer and Monitor. Workbench panels can be shown/hidden, resized, moved and maximized, and custom layouts can be saved. The 12 panels are: Source Viewer, Data Preview, Pipeline, Step Inspector, Before/After, Data Profile, Quality, Failed Rows, Python, Pipeline Spec, Run Logs and Run History. At phone width FORMA shows the pipeline, run status and review rather than the workbench.
+- **Views:** the pipeline canvas (default) plus the panel workbench views Analyst, Extraction, Compare, Engineer and Monitor. Workbench panels can be shown/hidden, resized, moved and maximized, and custom layouts can be saved. The 13 panels are: Pipeline Canvas, Source Viewer, Data Preview, Pipeline, Step Inspector, Before/After, Data Profile, Quality, Failed Rows, Python, Pipeline Spec, Run Logs and Run History. At phone width FORMA shows the pipeline, run status and review rather than the workbench.
 - **Direct manipulation:** select a column to see its profile, detected patterns and suggested actions. A floating action bar offers Extract, Split, Clean, Replace, Convert, Profile and Formula, and there's a right-click menu plus a searchable transformation picker.
 - **Transformations** (each one previews before it's applied):
   - select/reorder, rename, trim, change case, replace (exact/contains/regex), fill blanks

@@ -138,7 +138,7 @@ export function RunPage() {
                   <td />
                   <td className="num" style={{ textAlign: "right" }}>{fmtInt(run.rowsIn)}</td>
                   <td className="small muted">Read {run.sourceName}</td>
-                  <td>{run.rowsIn ? <span className="row small"><StatusIcon status="success" size={14} /> Success</span> : <span className="small muted">—</span>}</td>
+                  <td>{run.rowsIn ? <span className="row small"><StatusIcon status="success" size={14} /> Success</span> : <span className="small muted">-</span>}</td>
                 </tr>
                 {run.steps.map((s, i) => (
                   <tr key={s.stepId}>
@@ -289,7 +289,7 @@ export function RunPage() {
       {modal === "output" && <OutputModal run={run} onClose={() => setModal(null)} />}
       {modal === "compare" && prev && <CompareModal run={run} prev={prev} onClose={() => setModal(null)} />}
       {modal === "spec" && (
-        <Modal title={`Pipeline spec — ${run.mode === "test" ? "draft at run time" : `v${run.version}`}`} size="lg" onClose={() => setModal(null)}>
+        <Modal title={`Pipeline spec: ${run.mode === "test" ? "draft at run time" : `v${run.version}`}`} size="lg" onClose={() => setModal(null)}>
           {version || pipeline ? <CodeView code={generatePipelineJson((version ?? pipeline!.versions.at(-1) ?? { spec: pipeline!.spec }).spec, run.version)} /> : <div className="muted">The pipeline was deleted.</div>}
         </Modal>
       )}
@@ -353,7 +353,7 @@ function OutputModal({ run, onClose }: { run: Run; onClose: () => void }) {
   const base = run.pipelineName.toLowerCase().replace(/\W+/g, "_");
   return (
     <Modal
-      title={`Output data — ${fmtInt(ds?.rows.length ?? run.rowsOut)} rows`}
+      title={`Output data: ${fmtInt(ds?.rows.length ?? run.rowsOut)} rows`}
       size="xl"
       onClose={onClose}
       footer={
@@ -420,7 +420,7 @@ function CompareModal({ run, prev, onClose }: { run: Run; prev: Run; onClose: ()
               <td className="num" style={{ textAlign: "right" }}>{fmtInt(a)}</td>
               <td className="num" style={{ textAlign: "right" }}>{fmtInt(b)}</td>
               <td className="num" style={{ textAlign: "right", color: b === a ? "var(--muted)" : undefined }}>
-                {b === a ? "—" : `${b > a ? "+" : ""}${fmtInt(b - a)}`}
+                {b === a ? "-" : `${b > a ? "+" : ""}${fmtInt(b - a)}`}
               </td>
             </tr>
           ))}

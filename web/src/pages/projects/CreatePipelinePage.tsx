@@ -16,7 +16,7 @@ export function suggestName(meta: SourceMeta | undefined, sheet?: string): strin
   return `Clean ${titleCase(sheet && meta.sheets.length > 1 ? sheet : meta.name)}`;
 }
 
-/** Create a pipeline on a project source. Project, source and sheet are already known — nothing is re-uploaded. */
+/** Create a pipeline on a project source. Project, source and sheet are already known; nothing is re-uploaded. */
 export function CreatePipelinePage() {
   const { projectId = "" } = useParams();
   const [params] = useSearchParams();

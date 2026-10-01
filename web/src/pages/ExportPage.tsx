@@ -170,7 +170,7 @@ export function ExportPage() {
                           Schedule: <span className="mono">{pipeline.schedule.cron}</span> (UTC)
                         </>
                       ) : (
-                        "No schedule set — runs when triggered."
+                        "No schedule set. Runs when triggered."
                       )}
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export function ExportPage() {
                   </div>
                 </div>
               ) : (
-                <div className="small muted">No external connections — this pipeline reads a file and writes a {(spec.destination?.format ?? "csv").toUpperCase()} file.</div>
+                <div className="small muted">No external connections. This pipeline reads a file and writes a {(spec.destination?.format ?? "csv").toUpperCase()} file.</div>
               )}
               <div className="callout">
                 <Info size={16} />
@@ -260,7 +260,7 @@ export function ExportPage() {
               <CodeView code={shown[tab]} />
             </div>
             <div className="small muted" style={{ padding: "8px 14px", borderTop: "1px solid var(--border)" }}>
-              {spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")} ${STAGE_OF[s.type]} — ${stepTitle(s)}`).join(" · ") || "No steps yet"}
+              {spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")} ${STAGE_OF[s.type]}: ${stepTitle(s)}`).join(" · ") || "No steps yet"}
             </div>
           </div>
 

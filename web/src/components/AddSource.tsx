@@ -84,12 +84,12 @@ export function AddSourceOptions({ add, compact }: { add: ReturnType<typeof useA
       >
         {add.busy ? <Loader2 size={18} className="spin" /> : <FileUp size={18} />}
         <span className="t">{add.busy ?? "Upload file"}</span>
-        <span className="d">CSV · Excel · JSON · JSONL · Text — or drop files here</span>
+        <span className="d">CSV · Excel · JSON · JSONL · Text, or drop files here</span>
       </button>
       <button className={`add-option ${needs ? "needs" : ""}`} onClick={() => server("database")} title={needs ? "Connect a FORMA server in Settings to read databases" : undefined}>
         <Database size={18} />
         <span className="t">Database</span>
-        <span className="d">PostgreSQL, MySQL, SQLite — SQL query</span>
+        <span className="d">PostgreSQL, MySQL, SQLite (SQL query)</span>
         {needs && <ServerHint />}
       </button>
       <button className={`add-option ${needs ? "needs" : ""}`} onClick={() => server("api")} title={needs ? "Connect a FORMA server in Settings to read APIs" : undefined}>

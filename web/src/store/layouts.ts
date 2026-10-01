@@ -4,6 +4,7 @@ export const PANEL_TITLES: Record<PanelId, string> = {
   source: "Source Viewer",
   preview: "Data Preview",
   pipeline: "Pipeline",
+  canvas: "Pipeline Canvas",
   inspector: "Step Inspector",
   beforeAfter: "Before / After",
   profile: "Data Profile",
@@ -52,9 +53,8 @@ export const PRESETS: Record<Exclude<PresetId, "custom" | "pipeline">, Workspace
     name: "Engineer",
     builtIn: true,
     columns: [
-      { panels: ["pipeline"], size: 18 },
-      { panels: ["preview", "logs"], size: 44, heights: [60, 40] },
-      { panels: ["python"], size: 38 },
+      { panels: ["canvas", "logs"], size: 52, heights: [64, 36] },
+      { panels: ["python", "spec"], size: 48, heights: [64, 36] },
     ],
   },
   monitor: {

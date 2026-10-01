@@ -105,7 +105,7 @@ export function useHotkeys(map: Record<string, Handler>, deps: unknown[] = []) {
   }, deps);
 }
 
-/** Executes the full dataset in a Web Worker (debounced) — used where exact numbers matter. */
+/** Executes the full dataset in a Web Worker (debounced), used where exact numbers matter. */
 export function useFullExecution(spec: PipelineSpec | undefined): { result?: ExecutionResult; error?: string; loading: boolean } {
   const { file } = useSourceFile(spec?.source?.fileId);
   const sheets = useSideSheets(spec);

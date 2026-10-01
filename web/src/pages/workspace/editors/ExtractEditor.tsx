@@ -137,7 +137,7 @@ export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; o
             <span className="label grow">Fields</span>
             {health?.features.ai && (
               <button className="btn xs soft" disabled={aiBusy} title="Ask Claude (via your FORMA server) to propose patterns. You review them before applying." onClick={async () => {
-                const hint = window.prompt("What should be extracted? (optional — e.g. invoice number, due date and total)") ?? undefined;
+                const hint = window.prompt("What should be extracted? (optional, e.g. invoice number, due date and total)") ?? undefined;
                 setAiBusy(true);
                 try {
                   const failing = stats ? stats.failed.map((r) => texts[r]).filter(Boolean) : [];

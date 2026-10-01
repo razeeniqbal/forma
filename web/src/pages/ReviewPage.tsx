@@ -38,7 +38,7 @@ export function ReviewPage() {
     return (
       <div className="page">
         <Empty icon={<ListChecks size={22} />} title="Nothing to review yet" action={pipelineId ? <Link className="btn primary" to={`/pipelines/${pipelineId}`}>Open workspace</Link> : <Link className="btn" to="/projects">Projects</Link>}>
-          Run the pipeline. Rows that cannot be transformed or validated confidently appear here — no rows need review yet.
+          Run the pipeline. Rows that cannot be transformed or validated confidently appear here. No rows need review yet.
         </Empty>
       </div>
     );
@@ -261,7 +261,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
                         const v = valueOf(it.row, c);
                         return (
                           <td key={c} className="small num" style={{ color: it.columns.includes(c) ? "var(--red-text)" : undefined }}>
-                            {v ?? "—"}
+                            {v ?? "-"}
                           </td>
                         );
                       })}
@@ -392,7 +392,7 @@ function ReviewDetail({
             </summary>
             <div className="kv" style={{ marginTop: 6 }}>
               {run.sourceColumns.map((c, i) => (
-                <FragmentKV key={c} k={c} v={source[i] ?? "—"} />
+                <FragmentKV key={c} k={c} v={source[i] ?? "-"} />
               ))}
             </div>
           </details>
@@ -431,7 +431,7 @@ function ReviewDetail({
             </div>
           ))}
           <div className="small" style={{ opacity: 0.85 }}>
-            Deterministic rule result — confidence scores apply only to AI-assisted suggestions.
+            Deterministic rule result. Confidence scores apply only to AI-assisted suggestions.
           </div>
         </div>
 

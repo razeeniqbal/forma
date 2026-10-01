@@ -100,7 +100,7 @@ export function ProjectPipelines() {
                     </td>
                     <td>{last ? <StatusBadge status={last.status} short /> : <span className="subtle small">Never run</span>}</td>
                     <td className="num" style={{ textAlign: "right", color: last?.reviewCount ? "var(--amber-text)" : undefined }}>
-                      {last ? fmtInt(last.reviewCount) : "—"}
+                      {last ? fmtInt(last.reviewCount) : "-"}
                     </td>
                     <td className="muted small">{fmtAgo(p.updatedAt)}</td>
                     <td onClick={(e) => e.stopPropagation()}>

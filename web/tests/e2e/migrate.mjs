@@ -76,6 +76,6 @@ step("run history and pipeline open as before");
 await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Runs", exact: true }).click();
 if ((await page.locator("tbody tr").count()) !== before.runs.length) throw new Error("run history incomplete");
 await page.goto(`${BASE}/pipelines/${pid}`);
-await page.locator(".flow-card").first().waitFor();
+await page.locator(".cnode").first().waitFor();
 if (!/Showing run of v1/.test(await page.locator(".flow-basis").innerText())) throw new Error("run results not shown after migration");
 await finish("migration walkthrough");

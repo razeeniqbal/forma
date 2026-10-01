@@ -9,7 +9,7 @@ import { useApp, usePipeline, useProject, defaultSourceSpec } from "@/store/app"
 import type { PanelId, PresetId, WorkspaceLayout } from "@/store/model";
 import { ALL_PANELS, cloneLayout, PANEL_TITLES, PRESET_LABEL, PRESET_ORDER, PRESETS } from "@/store/layouts";
 import { STAGE_OF, stepTitle, describeStep, TRANSFORMS } from "@/engine/registry";
-import type { Step, StepType } from "@/engine/types";
+import type { StepType } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { ACCEPT, parseFile } from "@/parsers";
 import { confirmAction, Empty, Modal, Seg, Toggle, useMenu } from "@/components/ui";
@@ -28,16 +28,15 @@ import { BeforeAfterPanel } from "./panels/BeforeAfterPanel";
 import { FailedRowsPanel, LogsPanel, ProfilePanel, PythonPanel, QualityPanel, RunsPanel, SpecPanel } from "./panels/misc";
 import { TransformPicker } from "./TransformPicker";
 import { PipelineView } from "./PipelineView";
-import { withSource } from "./editors/ReshapeEditor";
-import { makeStep } from "@/lib/stepDefaults";
-import { getSourceFile } from "@/store/db";
-import { sheetOf } from "@/lib/hooks";
+import { CanvasPanel } from "./panels/CanvasPanel";
+import { startCombineDraft } from "./combine";
 import { projectPath } from "@/lib/project";
 
 const PANELS: Record<PanelId, () => JSX.Element> = {
   source: SourcePanel,
   preview: PreviewPanel,
   pipeline: PipelinePanel,
+  canvas: CanvasPanel,
   inspector: InspectorPanel,
   beforeAfter: BeforeAfterPanel,
   profile: ProfilePanel,
@@ -86,7 +85,7 @@ function Workspace() {
   const { health } = useServerHealth();
   const serverUrl = useApp((s) => s.settings.serverUrl);
   const execution = project?.execution === "server" && serverUrl ? "server" : "local";
-  // Phones get the pipeline, run status and review — not the three-panel workbench.
+  // Phones get the pipeline, run status and review, not the three-panel workbench.
   const narrow = useNarrow();
   const isFlow = pipeline.preset === "pipeline" || narrow;
   const [params, setParams] = useSearchParams();
@@ -103,16 +102,7 @@ function Workspace() {
     const as = params.get("as") === "append" ? "append" : "lookup";
     const sheetName = params.get("sheet") ?? undefined;
     setParams({}, { replace: true });
-    void (async () => {
-      const f = await getSourceFile(use);
-      if (!f) return;
-      const at = ws.spec.steps.length;
-      const before = ws.datasetAfter(at - 1);
-      const step = makeStep(as, before, undefined) as Extract<Step, { type: "join" | "append" }>;
-      const src = defaultSourceSpec(f, sheetName);
-      const ds = loadDataset(sheetOf(f, src.sheet)!, src);
-      ws.startDraft({ step: withSource(step, src, ds, before), index: at, isNew: true });
-    })();
+    void startCombineDraft(ws, use, sheetName, as);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, ws.preview.result]);
 
@@ -288,9 +278,9 @@ function Workspace() {
             aria-label={`Execution: ${execution === "server" ? "FORMA Server" : "Local"}`}
             onClick={(e) =>
               execMenu.open(e.currentTarget.getBoundingClientRect(), [
-                { label: "Local — runs in this browser", icon: execution === "local" ? <Check size={15} /> : <Monitor size={15} />, onClick: () => project && app.updateProject(project.id, { execution: "local" }) },
+                { label: "Local. Runs in this browser.", icon: execution === "local" ? <Check size={15} /> : <Monitor size={15} />, onClick: () => project && app.updateProject(project.id, { execution: "local" }) },
                 {
-                  label: serverUrl ? `FORMA Server${health ? "" : " (not reachable)"}` : "FORMA Server — connect in Settings",
+                  label: serverUrl ? `FORMA Server${health ? "" : " (not reachable)"}` : "FORMA Server (connect in Settings)",
                   icon: execution === "server" ? <Check size={15} /> : <Server size={15} />,
                   onClick: () => (serverUrl ? project && app.updateProject(project.id, { execution: "server" }) : nav("/settings")),
                 },
@@ -648,7 +638,7 @@ function RunModal({ onClose }: { onClose: () => void }) {
           <input type="radio" checked={mode === "other"} onChange={() => setMode("other")} />
           <div className="grow">
             <div className="t">A new compatible file</div>
-            <div className="d">Rerun the same pipeline on new data — no cleaning steps repeated.</div>
+            <div className="d">Rerun the same pipeline on new data. No cleaning steps are repeated.</div>
             {mode === "other" && (
               <div style={{ marginTop: 8 }}>
                 <button className="btn sm" onClick={() => inputRef.current?.click()} disabled={busy}>
@@ -716,7 +706,7 @@ function ScheduleModal({ onClose }: { onClose: () => void }) {
         <div className="field">
           <label>Cron expression (UTC)</label>
           <input className={`input mono ${valid ? "" : "invalid"}`} value={cron} onChange={(e) => setCron(e.target.value)} />
-          <div className="hint">minute · hour · day of month · month · day of week — e.g. <code>0 6 * * 1-5</code></div>
+          <div className="hint">minute · hour · day of month · month · day of week, e.g. <code>0 6 * * 1-5</code></div>
         </div>
         {valid && (
           <div className="small">
@@ -728,7 +718,7 @@ function ScheduleModal({ onClose }: { onClose: () => void }) {
           <Info size={16} />
           <div className="small">
             Scheduled runs execute the latest saved version on{" "}
-            {serverUrl ? <>the FORMA server at <span className="mono">{serverUrl}</span></> : <>a FORMA server (Settings → Server) or</>} in the Airflow / Prefect project you export — a browser tab can't run jobs while it's closed.
+            {serverUrl ? <>the FORMA server at <span className="mono">{serverUrl}</span></> : <>a FORMA server (Settings → Server) or</>} in the Airflow / Prefect project you export. A browser tab can't run jobs while it's closed.
           </div>
         </div>
       </div>

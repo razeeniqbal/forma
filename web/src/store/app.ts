@@ -8,6 +8,7 @@ import { toText } from "@/engine/values";
 import { executeInWorker, type RunProgress } from "@/lib/runner";
 import * as db from "./db";
 import { migrate, SCHEMA_VERSION, type StoredData } from "./migrate";
+import type { PipelineCanvasState, Viewport, XY } from "@/canvas/graph";
 import type {
   Connection,
   Pipeline,
@@ -69,6 +70,8 @@ interface AppState {
   toasts: Toast[];
   runningPipelines: Record<string, string>;
   liveRuns: Record<string, LiveRun>;
+  /** Canvas presentation per pipeline (positions, viewport). Never part of the PipelineSpec. */
+  canvases: Record<string, PipelineCanvasState>;
 
   hydrate(): Promise<void>;
   toast(kind: Toast["kind"], message: string): void;
@@ -107,6 +110,10 @@ interface AppState {
   importServerRuns(): Promise<number>;
   refreshServerRun(runId: string): Promise<void>;
   deleteRun(id: string): void;
+
+  /** Merge (or with `replace`, set) node positions. Layout only: execution is untouched. */
+  setCanvasLayout(pipelineId: string, nodes: Record<string, XY>, replace?: boolean): void;
+  setCanvasViewport(pipelineId: string, viewport: Viewport): void;
 
   savePreset(name: string, steps: Step[], description?: string): TransformPreset;
   deletePreset(id: string): void;
@@ -278,9 +285,10 @@ export const useApp = create<AppState>((set, get) => ({
   toasts: [],
   runningPipelines: {},
   liveRuns: {},
+  canvases: {},
 
   async hydrate() {
-    const [schema, projects, pipelines, runs, sources, connections, layouts, settings, presets] = await Promise.all([
+    const [schema, projects, pipelines, runs, sources, connections, layouts, settings, presets, canvases] = await Promise.all([
       db.load<number>("schema"),
       db.load<Project[]>("projects"),
       db.load<StoredData["pipelines"]>("pipelines"),
@@ -290,6 +298,7 @@ export const useApp = create<AppState>((set, get) => ({
       db.load<WorkspaceLayout[]>("layouts"),
       db.load<Settings>("settings"),
       db.load<TransformPreset[]>("presets"),
+      db.load<Record<string, PipelineCanvasState>>("canvases"),
     ]);
     const m = migrate({ schema, projects, pipelines: pipelines ?? [], sources: sources ?? [], runs: runs ?? [], settings });
     if (m.changed) {
@@ -312,6 +321,7 @@ export const useApp = create<AppState>((set, get) => ({
       connections: connections ?? [],
       layouts: layouts ?? [],
       presets: presets ?? [],
+      canvases: canvases ?? {},
       settings: { ...DEFAULT_SETTINGS, ...(m.settings ?? {}) },
     });
   },
@@ -348,8 +358,10 @@ export const useApp = create<AppState>((set, get) => ({
       runs: runs.filter((r) => r.projectId !== id),
       sources: sources.filter((s) => s.projectId !== id),
     };
-    set(next);
-    for (const [k, v] of Object.entries(next)) persist(k, v, true);
+    const gonePipelines = new Set(pipelines.filter((p) => p.projectId === id).map((p) => p.id));
+    const canvases = Object.fromEntries(Object.entries(get().canvases).filter(([pid]) => !gonePipelines.has(pid)));
+    set({ ...next, canvases });
+    for (const [k, v] of Object.entries({ ...next, canvases })) persist(k, v, true);
     await Promise.all([...goneSources.map((s) => db.deleteSourceFile(s.id)), ...goneRuns.map((r) => db.remove(`out:${r.id}`))]);
   },
 
@@ -452,7 +464,7 @@ export const useApp = create<AppState>((set, get) => ({
       const p = get().pipelines.find((x) => x.id === id)!;
       server
         .sync(p, p.versions.at(-1)!.spec, version, get().connections)
-        .then((r) => get().toast("success", schedule?.enabled ? `Scheduled on the FORMA server${r.nextRun ? ` — next run ${r.nextRun.replace("T", " ").slice(0, 16)} UTC` : ""}` : "Schedule updated on the FORMA server"))
+        .then((r) => get().toast("success", schedule?.enabled ? `Scheduled on the FORMA server${r.nextRun ? `. Next run ${r.nextRun.replace("T", " ").slice(0, 16)} UTC` : ""}` : "Schedule updated on the FORMA server"))
         .catch((e) => get().toast("error", `Could not sync the schedule: ${(e as Error).message}`));
     }
   },
@@ -474,13 +486,19 @@ export const useApp = create<AppState>((set, get) => ({
   duplicatePipeline(id) {
     const p = get().pipelines.find((x) => x.id === id);
     if (!p) return;
-    return get().createPipelineFromSpec({ ...JSON.parse(JSON.stringify(p.spec)), name: `${p.spec.name} (copy)` }, p.projectId, p.preset);
+    const copy = get().createPipelineFromSpec({ ...JSON.parse(JSON.stringify(p.spec)), name: `${p.spec.name} (copy)` }, p.projectId, p.preset);
+    const layout = get().canvases[id];
+    if (layout) get().setCanvasLayout(copy.id, layout.nodes, true);
+    return copy;
   },
 
   deletePipeline(id) {
     const pipelines = get().pipelines.filter((x) => x.id !== id);
-    set({ pipelines });
+    const canvases = { ...get().canvases };
+    delete canvases[id];
+    set({ pipelines, canvases });
     persist("pipelines", pipelines, true);
+    persist("canvases", canvases);
   },
 
   async runPipeline(id, mode, opts = {}) {
@@ -701,6 +719,19 @@ export const useApp = create<AppState>((set, get) => ({
     void db.remove(`out:${id}`);
   },
 
+  setCanvasLayout(pipelineId, nodes, replace = false) {
+    const cur = get().canvases[pipelineId] ?? { pipelineId, nodes: {} };
+    const canvases = { ...get().canvases, [pipelineId]: { ...cur, nodes: replace ? { ...nodes } : { ...cur.nodes, ...nodes } } };
+    set({ canvases });
+    persist("canvases", canvases, true); // discrete user actions (the canvas already batches viewport moves)
+  },
+  setCanvasViewport(pipelineId, viewport) {
+    const cur = get().canvases[pipelineId] ?? { pipelineId, nodes: {} };
+    const canvases = { ...get().canvases, [pipelineId]: { ...cur, viewport } };
+    set({ canvases });
+    persist("canvases", canvases, true); // discrete user actions (the canvas already batches viewport moves)
+  },
+
   savePreset(name, steps, description) {
     const preset: TransformPreset = { id: newId("preset"), name, description, steps: JSON.parse(JSON.stringify(steps)), createdAt: Date.now() };
     const presets = [...get().presets, preset];
@@ -743,7 +774,7 @@ export const useApp = create<AppState>((set, get) => ({
   },
   async resetAll() {
     await db.clearAll();
-    set({ projects: [], pipelines: [], runs: [], sources: [], connections: [], layouts: [], presets: [], settings: DEFAULT_SETTINGS, history: {} });
+    set({ canvases: {}, projects: [], pipelines: [], runs: [], sources: [], connections: [], layouts: [], presets: [], settings: DEFAULT_SETTINGS, history: {} });
   },
 }));
 

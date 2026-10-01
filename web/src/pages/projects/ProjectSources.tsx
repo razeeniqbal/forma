@@ -158,7 +158,7 @@ function SourceDetail({ meta, sheet, projectId, onPreview }: { meta: SourceMeta;
             { label: `Lookup into ${p.spec.name}`, icon: <Combine size={15} />, onClick: () => nav(`/pipelines/${p.id}?use=${meta.id}&as=lookup${sheet ? `&sheet=${encodeURIComponent(sheet)}` : ""}`) },
             { label: `Append to ${p.spec.name}`, icon: <Layers size={15} />, onClick: () => nav(`/pipelines/${p.id}?use=${meta.id}&as=append${sheet ? `&sheet=${encodeURIComponent(sheet)}` : ""}`) },
           ])
-        : [{ label: "No pipelines yet — create one first", disabled: true, onClick: () => undefined }],
+        : [{ label: "No pipelines yet. Create one first.", disabled: true, onClick: () => undefined }],
     );
 
   const perSheet = async () => {
@@ -166,7 +166,7 @@ function SourceDetail({ meta, sheet, projectId, onPreview }: { meta: SourceMeta;
     const sheets = meta.sheets.filter((x) => x.rows > 0);
     const base = meta.name.replace(/\.[^.]+$/, "");
     for (const x of sheets) await app.createPipeline(projectId, `${base} – ${x.name}`, meta, undefined, null, x.name);
-    toast("success", `Created ${sheets.length} pipelines — one per sheet of ${meta.name}`);
+    toast("success", `Created ${sheets.length} pipelines, one per sheet of ${meta.name}`);
     nav(projectPath(projectId, "pipelines"));
   };
 
@@ -284,7 +284,7 @@ function SourceDetail({ meta, sheet, projectId, onPreview }: { meta: SourceMeta;
                     <td className="num" style={{ textAlign: "right" }}>
                       {x.cols}
                     </td>
-                    <td className="small">{by.length ? by.map((p) => p.spec.name).join(", ") : <span className="subtle">—</span>}</td>
+                    <td className="small">{by.length ? by.map((p) => p.spec.name).join(", ") : <span className="subtle">-</span>}</td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                       <button className="btn ghost xs" onClick={() => onPreview(x.name)}>
                         <Eye size={13} /> Preview

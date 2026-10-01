@@ -190,7 +190,7 @@ export function DataGrid(props: Props) {
                 ].join(" ");
                 return (
                   <div key={c} className={cls} style={{ width: widths[c] }} onMouseDown={() => onSelectCell?.({ r, c })} role="gridcell" title={toText(val) ?? ""}>
-                    <span>{renderCell ? renderCell(r, c, val) : blank ? "—" : typeof val === "number" ? val.toLocaleString("en-US", { maximumFractionDigits: 10 }) : toText(val)}</span>
+                    <span>{renderCell ? renderCell(r, c, val) : blank ? "-" : typeof val === "number" ? val.toLocaleString("en-US", { maximumFractionDigits: 10 }) : toText(val)}</span>
                   </div>
                 );
               })}

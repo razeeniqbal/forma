@@ -6,7 +6,7 @@ const FLOW = [
   { icon: <Eye size={18} />, t: "See", d: "Upload CSV, Excel, JSON or text. FORMA detects the header, data region and quality issues." },
   { icon: <MousePointerClick size={18} />, t: "Select", d: "Click a column to inspect its profile, patterns and suggested actions." },
   { icon: <Wand2 size={18} />, t: "Transform", d: "Extract, clean and reshape. Every transformation previews before it's applied." },
-  { icon: <ShieldCheck size={18} />, t: "Verify", d: "Add explicit validation rules. Problem rows go to the review queue — never silently changed." },
+  { icon: <ShieldCheck size={18} />, t: "Verify", d: "Add explicit validation rules. Problem rows go to the review queue and are never silently changed." },
   { icon: <Play size={18} />, t: "Run", d: "Runs execute a saved, immutable version on every row and record step-level results." },
   { icon: <Code2 size={18} />, t: "Keep the code", d: "Export a readable pandas project that produces exactly the same output." },
 ];

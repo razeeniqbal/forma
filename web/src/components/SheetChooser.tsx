@@ -45,7 +45,7 @@ export function SheetChooser({
       }
     >
       <p className="muted" style={{ marginBottom: 12 }}>
-        This workbook has {meta.sheets.length} sheets. Each sheet is a separate source — pick the one this pipeline reads. Other sheets can be added later with
+        This workbook has {meta.sheets.length} sheets. Each sheet is a separate source. Pick the one this pipeline reads. Other sheets can be added later with
         an Append or Lookup / Join step.
       </p>
       <div className="col" style={{ gap: 8 }} role="radiogroup" aria-label="Sheets">
