@@ -9,6 +9,7 @@ import { fmtBytes, fmtInt } from "@/lib/format";
 import { useWs } from "../context";
 import { FloatingBar, useColumnActions } from "../columnActions";
 import { PanelFrame } from "./PanelFrame";
+import { switchSheet } from "../SheetSelect";
 
 function inMerged(merges: string[] | undefined, r: number, c: number): boolean {
   if (!merges?.length) return false;
@@ -54,12 +55,7 @@ export function SourcePanel() {
   const selColName = ws.column;
   const selIdx = selColName ? names.indexOf(selColName) : -1;
   const selected = new Set(selIdx >= 0 ? [src.startCol + selIdx] : []);
-  const setSheet = (name: string) => {
-    const sh = file?.sheets.find((s) => s.name === name);
-    if (!sh) return;
-    const r = detectRegion(sh);
-    ws.update((s) => ({ ...s, source: { ...s.source!, sheet: name, headerRow: r.headerRow, startCol: r.startCol, endCol: r.endCol } }));
-  };
+  const setSheet = (name: string) => file && switchSheet(ws, file, name);
   const rowsInRegion = sheet ? sheet.cells.length - src.headerRow - 1 : 0;
 
   return (

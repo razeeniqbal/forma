@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Issue, PipelineSpec, RawSheet, SourceFile, SourceSpec, Step } from "@/engine/types";
-import { detectRegion, loadDataset } from "@/engine/load";
+import { detectRegion, loadDataset, sideSheetKey } from "@/engine/load";
 import { parseCsv } from "@/parsers";
 import { FormaServer, type ServerRun } from "@/lib/server";
 import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
@@ -61,7 +61,8 @@ interface AppState {
   addSource(file: SourceFile): Promise<SourceMeta>;
   deleteSource(id: string): Promise<void>;
 
-  createPipeline(name: string, source: SourceMeta | null, preset: PresetId, destination?: PipelineSpec["destination"]): Promise<Pipeline>;
+  /** `sheet` picks the worksheet of a multi-sheet workbook (default: the first). */
+  createPipeline(name: string, source: SourceMeta | null, preset: PresetId, destination?: PipelineSpec["destination"], sheet?: string): Promise<Pipeline>;
   createPipelineFromSpec(spec: PipelineSpec, preset?: PresetId): Pipeline;
   updateSpec(id: string, fn: (s: PipelineSpec) => PipelineSpec, coalesceKey?: string): void;
   undo(id: string): void;
@@ -89,9 +90,33 @@ interface AppState {
 }
 
 const timers: Record<string, ReturnType<typeof setTimeout>> = {};
-function persist(key: string, value: unknown) {
+const pending: Record<string, unknown> = {};
+/** Debounced save for rapid edits; `now` writes at once (new or deleted objects must survive an immediate reload). */
+function persist(key: string, value: unknown, now = false) {
   clearTimeout(timers[key]);
-  timers[key] = setTimeout(() => void db.save(key, value), 250);
+  if (now) {
+    delete pending[key];
+    void db.save(key, value);
+    return;
+  }
+  pending[key] = value;
+  timers[key] = setTimeout(() => {
+    delete pending[key];
+    void db.save(key, value);
+  }, 250);
+}
+
+/** Write debounced saves now, so a reload or closed tab right after an edit loses nothing. */
+function flushPersist() {
+  for (const key of Object.keys(pending)) {
+    clearTimeout(timers[key]);
+    void db.save(key, pending[key]);
+    delete pending[key];
+  }
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", flushPersist);
+  document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && flushPersist());
 }
 
 export function sourceMetaFrom(file: SourceFile): SourceMeta {
@@ -130,10 +155,12 @@ export function defaultSourceSpec(file: SourceFile, sheetName?: string): SourceS
 export async function loadSideSheets(spec: PipelineSpec): Promise<Record<string, RawSheet>> {
   const out: Record<string, RawSheet> = {};
   for (const s of spec.steps) {
-    if ((s.type === "join" || s.type === "append") && s.source.fileId && !out[s.source.fileId]) {
+    if ((s.type === "join" || s.type === "append") && s.source.fileId) {
+      const key = sideSheetKey(s.source.fileId, s.source.sheet);
+      if (out[key]) continue;
       const f = await db.getSourceFile(s.source.fileId);
       const sh = f && (f.sheets.find((x) => x.name === s.source.sheet) ?? f.sheets[0]);
-      if (sh) out[s.source.fileId] = sh;
+      if (sh) out[key] = sh;
     }
   }
   return out;
@@ -259,24 +286,24 @@ export const useApp = create<AppState>((set, get) => ({
     const meta = sourceMetaFrom(file);
     const sources = [meta, ...get().sources.filter((s) => s.id !== meta.id)];
     set({ sources });
-    persist("sources", sources);
+    persist("sources", sources, true);
     return meta;
   },
   async deleteSource(id) {
     const sources = get().sources.filter((s) => s.id !== id);
     set({ sources });
-    persist("sources", sources);
+    persist("sources", sources, true);
     await db.deleteSourceFile(id);
   },
 
-  async createPipeline(name, source, preset, destination = null) {
+  async createPipeline(name, source, preset, destination = null, sheet) {
     let spec: PipelineSpec = { name, source: null, steps: [], destination, reviewDecisions: [] };
     if (source) {
       const file = await db.getSourceFile(source.id);
-      if (file) spec = { ...spec, source: defaultSourceSpec(file) };
+      if (file) spec = { ...spec, source: defaultSourceSpec(file, sheet) };
       const sources = get().sources.map((s) => (s.id === source.id ? { ...s, lastUsedAt: Date.now() } : s));
       set({ sources });
-      persist("sources", sources);
+      persist("sources", sources, true);
     }
     return get().createPipelineFromSpec(spec, preset);
   },
@@ -294,7 +321,7 @@ export const useApp = create<AppState>((set, get) => ({
     };
     const pipelines = [p, ...get().pipelines];
     set({ pipelines });
-    persist("pipelines", pipelines);
+    persist("pipelines", pipelines, true);
     return p;
   },
 
@@ -378,7 +405,7 @@ export const useApp = create<AppState>((set, get) => ({
   deletePipeline(id) {
     const pipelines = get().pipelines.filter((x) => x.id !== id);
     set({ pipelines });
-    persist("pipelines", pipelines);
+    persist("pipelines", pipelines, true);
   },
 
   async runPipeline(id, mode, opts = {}) {

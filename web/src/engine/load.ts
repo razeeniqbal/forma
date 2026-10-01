@@ -28,6 +28,11 @@ export function headerNames(raw: Cell[], startCol: number, endCol: number): stri
   return names;
 }
 
+/** Key of an additional source's raw sheet (several sheets of one file can be used side by side). */
+export function sideSheetKey(fileId: string, sheet?: string): string {
+  return sheet ? `${fileId}::${sheet}` : fileId;
+}
+
 export function loadDataset(sheet: RawSheet, spec: SourceSpec): Dataset {
   const { headerRow, startCol, endCol } = spec;
   const columns =

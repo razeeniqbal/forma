@@ -36,7 +36,7 @@ The full V1 loop from PRD §28 works end to end:
 
 **SOURCE → INSPECT → SELECT → TRANSFORM → VALIDATE → REVIEW → RUN → EXPORT**
 
-- **Sources:** CSV, Excel (multi-sheet, merged cells), JSON, JSONL and text. Header and data-region detection, with advisory quality observations (mixed date formats, blanks, duplicates, stray whitespace). Uploaded files are immutable.
+- **Sources:** CSV, Excel (multi-sheet, merged cells), JSON, JSONL and text. Every sheet of a workbook is its own source: pick the sheet when creating a pipeline (or create one pipeline per sheet), switch it from the preview header, and add other sheets with Append or Lookup / Join. Header and data-region detection, with advisory quality observations (mixed date formats, blanks, duplicates, stray whitespace). Uploaded files are immutable.
 - **Workspace:** a panel-based workbench with Analyst, Extraction, Compare, Engineer and Monitor presets. Panels can be shown/hidden, resized, moved and maximized, and custom layouts can be saved. The 13 panels are: Source Viewer, Data Preview, Pipeline, Step Inspector, Before/After, Data Profile, Quality, Failed Rows, Python, SQL (placeholder), Pipeline Spec, Run Logs and Run History.
 - **Direct manipulation:** select a column to see its profile, detected patterns and suggested actions. A floating action bar offers Extract, Split, Clean, Replace, Convert, Profile and Formula, and there's a right-click menu plus a searchable transformation picker.
 - **Transformations** (each one previews before it's applied):

@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { execute } from "@/engine/execute";
 import { invoicePipeline, invoiceSteps } from "@/engine/demo";
 import { generateAirflowDag, generateConfigYaml, generatePrefectFlow, generatePython } from "@/codegen/python";
-import { fingerprint, loadDataset } from "@/engine/load";
+import { fingerprint, loadDataset, sideSheetKey } from "@/engine/load";
 import { toText } from "@/engine/values";
 import { parseCsv, parseJson } from "@/parsers";
 import type { PipelineSpec, RawSheet } from "@/engine/types";
@@ -23,13 +23,13 @@ interface Extra {
   fileId: string;
 }
 
-function runCase(name: string, spec: PipelineSpec, sheet: RawSheet, sourceFile: string, sourceText?: string, extras: Extra[] = []) {
+function runCase(name: string, spec: PipelineSpec, sheet: RawSheet, sourceFile: string, sourceText?: string, extras: Extra[] = [], sideSheets: Record<string, RawSheet> = {}) {
   const dir = join(OUT, name);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   if (sourceText !== undefined) writeFileSync(join(dir, spec.source!.file), sourceText);
   else copyFileSync(sourceFile, join(dir, spec.source!.file));
-  const sheets: Record<string, RawSheet> = {};
+  const sheets: Record<string, RawSheet> = { ...sideSheets };
   for (const x of extras) {
     writeFileSync(join(dir, x.file), x.text);
     sheets[x.fileId] = parseCsv(x.text).sheet;
@@ -259,6 +259,27 @@ describe("parity: TypeScript engine ≡ generated Python", () => {
         steps: [...steps, { id: "ap", type: "append", source: custSource }, { id: "flt", type: "filter", column: "region", op: "not_blank", value: "" }],
       };
       runCase("append", appendSpec, sheet, join(SAMPLES, "invoices.csv"), undefined, [extra]);
+    });
+  });
+
+  describe("several sheets of one workbook", () => {
+    it("appends two other sheets of the source file, each read from its own sheet", async () => {
+      const sheet = await sampleSheet();
+      const base = invoicePipeline("f");
+      const sheetSource = (name: string) => ({ ...base.source!, sheet: name, headerRow: 0, startCol: 0, endCol: name === "Summary" ? 1 : 4 });
+      const spec: PipelineSpec = {
+        ...base,
+        name: "Sheets",
+        steps: [
+          { id: "ap1", type: "append", source: sheetSource("Archive") },
+          { id: "ap2", type: "append", source: sheetSource("Summary") },
+        ],
+      };
+      const side = { [sideSheetKey("f", "Archive")]: await sampleSheet("Archive"), [sideSheetKey("f", "Summary")]: await sampleSheet("Summary") };
+      const ts = runCase("sheets", spec, sheet, join(SAMPLES, "invoices.xlsx"), undefined, [], side);
+      const main = loadDataset(sheet, base.source!);
+      expect(ts.output.rows.length).toBe(main.rows.length + 25 + 2);
+      expect(ts.output.columns).toContain("Metric");
     });
   });
 

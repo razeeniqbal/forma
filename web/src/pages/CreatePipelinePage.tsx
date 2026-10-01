@@ -9,6 +9,7 @@ import { FileIcon } from "@/components/ui";
 import { fmtAgo, fmtBytes, fmtInt } from "@/lib/format";
 import { loadSampleSource } from "@/lib/samples";
 import { ServerSourceModal, useServerHealth } from "@/components/server";
+import { SheetChooser } from "@/components/SheetChooser";
 
 export function CreatePipelinePage() {
   const nav = useNavigate();
@@ -24,6 +25,7 @@ export function CreatePipelinePage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { health } = useServerHealth();
   const [serverSource, setServerSource] = useState(false);
+  const [choose, setChoose] = useState<SourceMeta | null>(null);
 
   const destination = () => {
     if (dest === "later") return null;
@@ -31,9 +33,32 @@ export function CreatePipelinePage() {
     return { type: "database" as const, connectionId: dest.slice(3), table: "", ifExists: "append" as const };
   };
 
-  const start = async (meta: SourceMeta) => {
-    const p = await createPipeline(name.trim() === "Untitled Pipeline" ? meta.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : name.trim() || "Untitled Pipeline", meta, preset, destination());
+  const nameFor = (meta: SourceMeta, sheet?: string) => {
+    const base =
+      name.trim() === "Untitled Pipeline"
+        ? meta.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : name.trim() || "Untitled Pipeline";
+    return sheet ? `${base} – ${sheet}` : base;
+  };
+
+  const create = async (meta: SourceMeta, sheet?: string) => {
+    setChoose(null);
+    // Name the pipeline after its sheet unless it reads the workbook's first sheet.
+    const p = await createPipeline(nameFor(meta, sheet && sheet !== meta.sheets[0]?.name ? sheet : undefined), meta, preset, destination(), sheet);
     nav(`/pipelines/${p.id}`);
+  };
+
+  const createEach = async (meta: SourceMeta, sheets: string[]) => {
+    setChoose(null);
+    for (const sh of sheets) await createPipeline(nameFor(meta, sh), meta, preset, destination(), sh);
+    toast("success", `Created ${sheets.length} pipelines — one per sheet of ${meta.name}`);
+    nav("/pipelines");
+  };
+
+  /** A workbook with several sheets asks which sheet to read; everything else starts straight away. */
+  const start = async (meta: SourceMeta) => {
+    if (meta.sheets.filter((s) => s.rows > 0).length > 1) setChoose(meta);
+    else await create(meta);
   };
 
   const onFiles = async (files: FileList | File[]) => {
@@ -54,7 +79,7 @@ export function CreatePipelinePage() {
   const useSample = async () => {
     setBusy("Loading sample…");
     try {
-      await start(await loadSampleSource());
+      await create(await loadSampleSource(), "Invoices");
     } catch (e) {
       toast("error", (e as Error).message);
     } finally {
@@ -130,7 +155,8 @@ export function CreatePipelinePage() {
                       <td>
                         <div style={{ fontWeight: 600, color: "var(--ink)" }}>{s.name}</div>
                         <div className="small muted">
-                          {s.kind.toUpperCase()} · {fmtInt(s.sheets[0]?.rows ?? 0)} rows · {fmtBytes(s.size)} · Used {fmtAgo(s.lastUsedAt)}
+                          {s.kind.toUpperCase()} · {s.sheets.length > 1 ? `${s.sheets.length} sheets` : `${fmtInt(s.sheets[0]?.rows ?? 0)} rows`} · {fmtBytes(s.size)} · Used{" "}
+                          {fmtAgo(s.lastUsedAt)}
                         </div>
                       </td>
                       <td style={{ textAlign: "right" }}>
@@ -212,6 +238,7 @@ export function CreatePipelinePage() {
           </div>
         </div>
       </div>
+      {choose && <SheetChooser meta={choose} onPick={(sh) => void create(choose, sh)} onEach={(sheets) => void createEach(choose, sheets)} onClose={() => setChoose(null)} />}
       {serverSource && <ServerSourceModal onClose={() => setServerSource(false)} onAdded={(meta) => void start(meta)} />}
     </div>
   );

@@ -16,6 +16,7 @@ import { sheetOf, useSourceFile } from "@/lib/hooks";
 import { copyText, fmtBytes, fmtInt, fmtPct } from "@/lib/format";
 import { useWs, SOURCE } from "../context";
 import { PanelFrame } from "./PanelFrame";
+import { SheetSelect } from "../SheetSelect";
 import { StepForm } from "../editors/StepEditor";
 import { ExtractEditor } from "../editors/ExtractEditor";
 import { ValidateEditor } from "../editors/ValidateEditor";
@@ -403,8 +404,8 @@ function SourceInspector() {
         <div>{{ excel: "Excel workbook", csv: "CSV", json: "JSON", jsonl: "JSON Lines", text: "Text", database: "Database query", api: "API / URL" }[file.kind]}</div>
         {file.kind === "excel" && (
           <>
-            <div>Sheets</div>
-            <div>{file.sheets.length}</div>
+            <div>Sheet</div>
+            <div>{file.sheets.length > 1 ? <SheetSelect showCount /> : sheet.name}</div>
           </>
         )}
         <div>Rows detected</div>

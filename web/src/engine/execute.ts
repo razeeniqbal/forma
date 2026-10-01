@@ -16,7 +16,7 @@ import type {
   StepResult,
   ValidationRule,
 } from "./types";
-import { fingerprint, loadDataset } from "./load";
+import { fingerprint, loadDataset, sideSheetKey } from "./load";
 import { evalFormula, parseFormula } from "./formula";
 import {
   DATE_FORMATS,
@@ -50,7 +50,7 @@ interface Ctx {
 
 /** Execution-wide state shared by steps that create new rows. */
 export interface Env {
-  /** Raw sheets of additional sources (join / append), by file id. */
+  /** Raw sheets of additional sources (join / append), by `sideSheetKey`. */
   sheets: Map<string, RawSheet>;
   /** Next row id for rows created by reshaping, appending or joining (unique across the run). */
   nextId: number;
@@ -72,7 +72,7 @@ function newRows(ctx: Ctx, columns: string[], rows: Cell[][]): Dataset {
 }
 
 function sideSource(ctx: Ctx, spec: import("./types").SourceSpec): Dataset {
-  const sheet = ctx.env.sheets.get(spec.fileId);
+  const sheet = ctx.env.sheets.get(sideSheetKey(spec.fileId, spec.sheet)) ?? ctx.env.sheets.get(spec.fileId);
   if (!sheet) throw new StepError(ctx.step.id, `Source file "${spec.file}" is not available. Re-upload it in the step settings.`);
   return loadDataset(sheet, spec);
 }
@@ -697,7 +697,7 @@ export interface ExecuteOptions {
   keepSnapshots?: boolean;
   /** Execute only steps up to and including this index (for step previews). */
   uptoStep?: number;
-  /** Raw sheets for join / append sources, by file id. */
+  /** Raw sheets for join / append sources, by `sideSheetKey` (or file id). */
   sheets?: Map<string, RawSheet> | Record<string, RawSheet>;
 }
 

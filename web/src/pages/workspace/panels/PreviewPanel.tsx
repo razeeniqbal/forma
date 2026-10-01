@@ -9,6 +9,7 @@ import { fmtInt } from "@/lib/format";
 import { useWs } from "../context";
 import { FloatingBar, useColumnActions } from "../columnActions";
 import { PanelFrame } from "./PanelFrame";
+import { SheetSelect } from "../SheetSelect";
 
 export function PreviewPanel() {
   const ws = useWs();
@@ -68,6 +69,7 @@ export function PreviewPanel() {
       sub={`(after ${title})`}
       actions={
         <>
+          <SheetSelect />
           <div className="row" style={{ width: 170 }}>
             <Search size={14} color="var(--subtle)" />
             <input className="input sm" placeholder="Search data…" value={q} onChange={(e) => setQ(e.target.value)} />

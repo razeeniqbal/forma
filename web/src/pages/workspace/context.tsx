@@ -15,7 +15,7 @@ export interface Draft {
 
 export const SOURCE = -1;
 
-interface Ctx {
+export interface Ctx {
   pipeline: Pipeline;
   spec: PipelineSpec;
   /** Spec including the unapplied draft (what the preview shows). */

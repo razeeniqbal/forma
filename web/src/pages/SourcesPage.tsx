@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderInput, Upload, Eye, Download, Plus, Trash2, Loader2, MoreHorizontal, Database } from "lucide-react";
+import { FolderInput, Upload, Eye, Download, Plus, Trash2, Loader2, MoreHorizontal, Database, Sheet, CornerDownRight } from "lucide-react";
 import { ServerSourceModal, useServerHealth } from "@/components/server";
 import { useApp } from "@/store/app";
 import { getRawFile } from "@/store/db";
@@ -11,13 +11,22 @@ import { colLetter } from "@/engine/load";
 import { sheetOf, useSourceFile } from "@/lib/hooks";
 import { download, fmtAgo, fmtBytes, fmtInt } from "@/lib/format";
 import type { SourceMeta } from "@/store/model";
+import { SheetChooser } from "@/components/SheetChooser";
 
 export function SourcesPage() {
   const sources = useApp((s) => s.sources);
   const pipelines = useApp((s) => s.pipelines);
   const { addSource, deleteSource, createPipeline, toast } = useApp.getState();
   const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<SourceMeta | null>(null);
+  const [preview, setPreview] = useState<{ meta: SourceMeta; sheet?: string } | null>(null);
+  const [choose, setChoose] = useState<SourceMeta | null>(null);
+
+  const newPipeline = async (s: SourceMeta, sheet?: string) => {
+    setChoose(null);
+    const base = s.name.replace(/\.[^.]+$/, "");
+    const name = sheet && s.sheets.length > 1 ? `${base} – ${sheet}` : base;
+    nav(`/pipelines/${(await createPipeline(name, s, useApp.getState().settings.defaultPreset, null, sheet)).id}`);
+  };
   const inputRef = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
   const menu = useMenu();
@@ -77,8 +86,10 @@ export function SourcesPage() {
             <tbody>
               {sources.map((s) => {
                 const used = pipelines.filter((p) => p.spec.source?.fileId === s.id);
+                const multi = s.sheets.length > 1;
                 return (
-                  <tr key={s.id}>
+                  <Fragment key={s.id}>
+                  <tr>
                     <td>
                       <div className="row">
                         <FileIcon kind={s.kind} />
@@ -86,9 +97,9 @@ export function SourcesPage() {
                       </div>
                     </td>
                     <td className="muted">{s.kind.toUpperCase()}</td>
-                    <td className="small">{s.sheets.map((x) => x.name).join(", ")}</td>
+                    <td className="small">{multi ? `${s.sheets.length} sheets` : s.sheets[0]?.name}</td>
                     <td className="num" style={{ textAlign: "right" }}>
-                      {fmtInt(s.sheets[0]?.rows ?? 0)}
+                      {fmtInt(s.sheets.reduce((n, x) => n + x.rows, 0))}
                     </td>
                     <td className="num" style={{ textAlign: "right" }}>
                       {fmtBytes(s.size)}
@@ -96,7 +107,7 @@ export function SourcesPage() {
                     <td className="small">{used.length ? used.map((p) => p.spec.name).join(", ") : <span className="subtle">—</span>}</td>
                     <td className="muted small">{fmtAgo(s.addedAt)}</td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                      <button className="btn sm" onClick={() => setPreview(s)}>
+                      <button className="btn sm" onClick={() => setPreview({ meta: s })}>
                         <Eye size={13} /> Preview
                       </button>{" "}
                       <button
@@ -104,7 +115,7 @@ export function SourcesPage() {
                         aria-label="More"
                         onClick={(e) =>
                           menu.open(e.currentTarget.getBoundingClientRect(), [
-                            { label: "New pipeline from source", icon: <Plus size={15} />, onClick: async () => nav(`/pipelines/${(await createPipeline(s.name.replace(/\.[^.]+$/, ""), s, useApp.getState().settings.defaultPreset)).id}`) },
+                            { label: "New pipeline from source", icon: <Plus size={15} />, onClick: () => (multi ? setChoose(s) : void newPipeline(s)) },
                             {
                               label: "Download original",
                               icon: <Download size={15} />,
@@ -136,22 +147,55 @@ export function SourcesPage() {
                       </button>
                     </td>
                   </tr>
+                  {multi &&
+                    s.sheets.map((sh) => {
+                      const usedBy = used.filter((p) => (p.spec.source?.sheet ?? s.sheets[0].name) === sh.name);
+                      return (
+                        <tr key={sh.name} className="sub-row">
+                          <td>
+                            <div className="row" style={{ paddingLeft: 14 }}>
+                              <CornerDownRight size={14} color="var(--subtle)" />
+                              <Sheet size={15} color="var(--green-text)" />
+                              <span style={{ color: "var(--ink)" }}>{sh.name}</span>
+                            </div>
+                          </td>
+                          <td className="muted small">Sheet</td>
+                          <td className="small muted">{sh.cols} columns</td>
+                          <td className="num" style={{ textAlign: "right" }}>
+                            {sh.rows ? fmtInt(sh.rows) : <span className="subtle">empty</span>}
+                          </td>
+                          <td />
+                          <td className="small">{usedBy.length ? usedBy.map((p) => p.spec.name).join(", ") : <span className="subtle">—</span>}</td>
+                          <td />
+                          <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            <button className="btn ghost sm" onClick={() => setPreview({ meta: s, sheet: sh.name })}>
+                              <Eye size={13} /> Preview
+                            </button>{" "}
+                            <button className="btn ghost sm" disabled={!sh.rows} onClick={() => void newPipeline(s, sh.name)} aria-label={`New pipeline from ${sh.name}`}>
+                              <Plus size={13} /> New pipeline
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </Fragment>
                 );
               })}
             </tbody>
           </table>
         )}
       </div>
-      {preview && <SourcePreview meta={preview} onClose={() => setPreview(null)} />}
+      {preview && <SourcePreview meta={preview.meta} initialSheet={preview.sheet} onClose={() => setPreview(null)} />}
+      {choose && <SheetChooser meta={choose} onPick={(sh) => void newPipeline(choose, sh)} onClose={() => setChoose(null)} />}
       {serverSource && <ServerSourceModal onClose={() => setServerSource(false)} onAdded={() => toast("success", "Source added")} />}
       {menu.node}
     </div>
   );
 }
 
-function SourcePreview({ meta, onClose }: { meta: SourceMeta; onClose: () => void }) {
+function SourcePreview({ meta, initialSheet, onClose }: { meta: SourceMeta; initialSheet?: string; onClose: () => void }) {
   const { file } = useSourceFile(meta.id);
-  const [sheetName, setSheetName] = useState<string | undefined>();
+  const [sheetName, setSheetName] = useState<string | undefined>(initialSheet);
   const sheet = sheetOf(file, sheetName);
   const width = sheet?.cells.reduce((m, r) => Math.max(m, r.length), 0) ?? 0;
   const cols: GridColumn[] = Array.from({ length: width }, (_, c) => ({ name: colLetter(c), width: 140 }));
