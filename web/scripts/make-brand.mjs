@@ -1,5 +1,5 @@
 // Generates FORMA brand assets (PRD §13) into public/brand.
-// Symbol principle: FRAGMENT → ALIGN → FORM — four rounded fragments that
+// Symbol principle: FRAGMENT → ALIGN → FORM: four rounded fragments that
 // progressively align into an "F".
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";

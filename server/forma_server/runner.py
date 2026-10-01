@@ -9,6 +9,8 @@ destination write. The result is written to <run_dir>/result.json.
 """
 from __future__ import annotations
 
+import re
+
 import importlib.util
 import json
 import sys
@@ -62,7 +64,7 @@ def execute(run_dir: Path) -> dict:
             if holds_review:
                 df = p.hold_for_review(df)
             rows_in, issues_before, t = len(df), len(p.ISSUES), time.time()
-            title = label.split(" — ", 1)[-1]
+            title = re.split(r": | \u2014 ", label, maxsplit=1)[-1]  # "03 Clean: Title" (older exports used a dash)
             try:
                 df = fn(df)
             except Exception as e:  # a failing step stops the run, like in FORMA

@@ -72,7 +72,7 @@ rows.splice(500, 0, [...rows[499]]);
 const wb = new ExcelJS.Workbook();
 wb.creator = "FORMA";
 const ws = wb.addWorksheet("Invoices");
-ws.addRow(["Invoice register — Q4 2026"]);
+ws.addRow(["Invoice register: Q4 2026"]);
 ws.mergeCells("A1:D1");
 ws.getCell("A1").font = { bold: true, size: 14 };
 ws.addRow([]);

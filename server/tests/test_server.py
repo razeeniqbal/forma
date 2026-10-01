@@ -46,7 +46,7 @@ def step_03_fail(df):
         raise ValueError("boom")
     return df
 
-STEPS = [("02 Clean — Double", step_02_double, False), ("03 Transform — Maybe fail", step_03_fail, False)]
+STEPS = [("02 Clean: Double", step_02_double, False), ("03 Transform: Maybe fail", step_03_fail, False)]
 
 def finish_run(df):
     bad = {i["row"] for i in ISSUES}

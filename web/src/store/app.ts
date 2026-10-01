@@ -249,7 +249,7 @@ export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, trig
     steps: (res?.steps ?? []).map((s, i) => ({
       stepId: spec?.steps[i]?.id ?? `srv${i}`,
       title: s.title,
-      stage: s.label.split(" — ")[0].replace(/^\d+\s*/, ""),
+      stage: s.label.split(/: | \u2014 /)[0].replace(/^\d+\s*/, ""), // "03 Clean: Title" (older exports used a dash)
       rowsIn: s.rows_in,
       rowsOut: s.rows_out,
       changedCells: 0,

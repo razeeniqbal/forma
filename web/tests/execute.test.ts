@@ -45,7 +45,7 @@ describe("invoice acceptance scenario (PRD §25)", () => {
   it("generates Python with one function per step", async () => {
     const py = generatePython(invoicePipeline("f1"), { version: 7 });
     expect(py).toContain("def step_03_extract_invoice_fields(df: pd.DataFrame) -> pd.DataFrame:");
-    expect(py).toContain("# 03 Extract — Extract invoice fields");
+    expect(py).toContain("# 03 Extract: Extract invoice fields");
     expect(py).not.toMatch(/password|secret/i);
   });
 });
