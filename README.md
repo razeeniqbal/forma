@@ -2,7 +2,7 @@
 
 **Shape messy data into reliable pipelines.**
 
-FORMA is a visual data workbench. Upload messy CSV or Excel data, shape it with previewed transformations, validate it, review exceptions, run it, and export the pipeline as readable Python that produces exactly the same output.
+FORMA is a visual data workbench. Create a project for a data problem, connect its data, build pipelines you can see step by step, review exceptions instead of losing them, run them, and export readable Python that produces exactly the same output.
 
 > See the data. Shape it visually. Verify every change. Keep the code.
 
@@ -18,7 +18,7 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Open **Pipelines → Invoice demo** for the prebuilt acceptance scenario, or **New pipeline → Use sample invoices** to build it yourself.
+Choose **Explore the example project** on the Projects home for the prebuilt Invoice Processing scenario, or **New project** to build it yourself (tick *Start from example* for the sample data).
 
 | Command | What it does |
 | --- | --- |
@@ -27,8 +27,21 @@ Open **Pipelines → Invoice demo** for the prebuilt acceptance scenario, or **N
 | `npm test` | Engine unit tests |
 | `npm run parity` | Runs the TypeScript engine **and** the generated pandas code on the same files and compares every cell (needs Python with `pandas`, `openpyxl`, `pyyaml`) |
 | `npm run check` | Typecheck + unit + parity tests |
-| `npm run e2e` | Browser walkthrough of the PRD §25 acceptance scenario (needs `npm run build && npx vite preview --port 4173` running) |
+| `npm run e2e` | Browser walkthroughs: the canonical project → pipeline → run journey, sheets, reshape, schedules/presets/rule suggestions, shell and data migration (needs `npm run build && npx vite preview --port 4173` running; `tests/e2e/server.mjs` also needs a FORMA server) |
 | `npm run sample` / `npm run brand` | Regenerate the sample workbook / brand assets |
+
+## How FORMA is organised
+
+**PROJECT → SOURCE → PIPELINE → STEP → RUN**
+
+- **Projects** are the home screen. A project holds the sources, pipelines and runs for one data problem, plus its settings (name, description, default execution target).
+- **Sources** belong to a project and are stored once. Pipelines *reference* them, so several pipelines can read the same file, and Join / Lookup / Append pick from the project's sources (or add a new one to the project). Every sheet of a workbook is its own selectable source.
+- **The project overview** is a read-only data map — sources → pipelines → outputs — with recent activity.
+- **Pipelines open in Pipeline view**: the ordered flow of steps with status and row impact. Interaction follows **PIPELINE → PREVIEW → EXPAND**: click a step for a quick preview (input → output examples, ready / review counts, Edit), expand it into the panel workbench for deep work, and come back.
+- **Runs are visible events.** The engine reports the source load and each completed step; the flow shows them in order with their real row counts and timings, then summarises *1,001 input · 986 ready · 15 review*. Review counts link straight to that step's rows in the review queue.
+- **Execution** is explicit: *Local* (runs in this browser) or *FORMA Server* (runs through the connected execution server), per project and per run.
+
+Data stored before projects existed is migrated once, deterministically, into **My FORMA Project** with every pipeline id, version, review decision and run kept.
 
 ## What's in V1
 
@@ -37,7 +50,7 @@ The full V1 loop from PRD §28 works end to end:
 **SOURCE → INSPECT → SELECT → TRANSFORM → VALIDATE → REVIEW → RUN → EXPORT**
 
 - **Sources:** CSV, Excel (multi-sheet, merged cells), JSON, JSONL and text. Every sheet of a workbook is its own source: pick the sheet when creating a pipeline (or create one pipeline per sheet), switch it from the preview header, and add other sheets with Append or Lookup / Join. Header and data-region detection, with advisory quality observations (mixed date formats, blanks, duplicates, stray whitespace). Uploaded files are immutable.
-- **Workspace:** a panel-based workbench with Analyst, Extraction, Compare, Engineer and Monitor presets. Panels can be shown/hidden, resized, moved and maximized, and custom layouts can be saved. The 13 panels are: Source Viewer, Data Preview, Pipeline, Step Inspector, Before/After, Data Profile, Quality, Failed Rows, Python, SQL (placeholder), Pipeline Spec, Run Logs and Run History.
+- **Views:** Pipeline view (default) plus the panel workbench views Analyst, Extraction, Compare, Engineer and Monitor. Workbench panels can be shown/hidden, resized, moved and maximized, and custom layouts can be saved. The 12 panels are: Source Viewer, Data Preview, Pipeline, Step Inspector, Before/After, Data Profile, Quality, Failed Rows, Python, Pipeline Spec, Run Logs and Run History. At phone width FORMA shows the pipeline, run status and review rather than the workbench.
 - **Direct manipulation:** select a column to see its profile, detected patterns and suggested actions. A floating action bar offers Extract, Split, Clean, Replace, Convert, Profile and Formula, and there's a right-click menu plus a searchable transformation picker.
 - **Transformations** (each one previews before it's applied):
   - select/reorder, rename, trim, change case, replace (exact/contains/regex), fill blanks
@@ -68,9 +81,11 @@ web/
                   value semantics, formula language, profiling, detection
   src/codegen/    Spec → readable pandas project (runtime helpers mirror the engine)
   src/parsers/    CSV / Excel / JSON / JSONL / text → raw grids
-  src/store/      App state, undo/redo, versions, runs (IndexedDB persistence)
-  src/workers/    Full runs execute off the main thread
-  src/pages/      Screens; src/pages/workspace/ is the panel workbench
+  src/store/      App state: projects, sources, pipelines, runs, undo/redo, versions,
+                  migrations (IndexedDB persistence)
+  src/workers/    Full runs execute off the main thread and report step progress
+  src/pages/      Screens; src/pages/projects/ is the project layer,
+                  src/pages/workspace/ the pipeline view and panel workbench
   tests/          Unit, parity (TS ≡ Python) and browser e2e tests
 ```
 
@@ -80,7 +95,8 @@ web/
 ## Not in this build yet
 
 - collaboration, comments and approvals (need multi-user accounts)
-- SQL and Polars code targets (the SQL panel is a placeholder)
+- SQL and Polars code targets
+- branching pipelines (a pipeline is an ordered list of steps)
 - an in-browser Python parity check (use `python pipeline.py --check` locally)
 - lineage and Git integration
 

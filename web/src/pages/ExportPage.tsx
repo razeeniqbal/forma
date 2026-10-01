@@ -6,7 +6,7 @@ import { getRawFile } from "@/store/db";
 import { sideSteps, generateConfigYaml, generatePipelineJson, generatePython, generateReadme, generateRequirements, stepFunctionName } from "@/codegen/python";
 import { stepTitle, STAGE_OF } from "@/engine/registry";
 import { CodeView, findStepRange } from "@/components/CodeView";
-import { Empty, Modal, Tabs } from "@/components/ui";
+import { Empty, Modal, Tabs, ProjectCrumbs } from "@/components/ui";
 import { useFullExecution } from "@/lib/hooks";
 import { projectFiles, zipProject, type ExportTarget } from "@/lib/exporters";
 import { copyText, download, fmtInt } from "@/lib/format";
@@ -86,7 +86,7 @@ export function ExportPage() {
   return (
     <div className="page wide">
       <div className="crumbs">
-        <Link to="/pipelines">Pipelines</Link>/<Link to={`/pipelines/${pipeline.id}`}>{spec.name}</Link>/<span className="cur">Export</span>
+        <ProjectCrumbs projectId={pipeline.projectId} section="Pipelines" sectionPath="pipelines" /><Link to={`/pipelines/${pipeline.id}`}>{spec.name}</Link>/<span className="cur">Export</span>
       </div>
       <div className="page-head" style={{ alignItems: "flex-start" }}>
         <div>

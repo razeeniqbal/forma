@@ -8,7 +8,7 @@ import { ruleLabel } from "@/engine/execute";
 import type { Issue } from "@/engine/types";
 import { toText } from "@/engine/values";
 import { DataGrid, estimateWidths } from "@/components/DataGrid";
-import { Bar, Empty, Ring, StatusIcon } from "@/components/ui";
+import { Bar, Empty, Ring, StatusIcon, ProjectCrumbs } from "@/components/ui";
 import { download, fmtInt, fmtPct } from "@/lib/format";
 import { ISSUE_LABEL, makeDecision, removeDecision, upsertDecisions } from "@/lib/review";
 
@@ -76,7 +76,7 @@ export function ValidatePage() {
   return (
     <div className="page wide">
       <div className="crumbs">
-        <Link to="/pipelines">Pipelines</Link>/<Link to={`/pipelines/${pipeline.id}`}>{pipeline.spec.name}</Link>/<span className="cur">Validate</span>
+        <ProjectCrumbs projectId={pipeline.projectId} section="Pipelines" sectionPath="pipelines" /><Link to={`/pipelines/${pipeline.id}`}>{pipeline.spec.name}</Link>/<span className="cur">Validate</span>
       </div>
       <div className="page-head" style={{ alignItems: "center" }}>
         <div>

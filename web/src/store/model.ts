@@ -1,7 +1,22 @@
 // App-level objects around the PipelineSpec (PRD §5, §12, §20).
 import type { Dataset, Issue, PipelineSpec, RuleResult, SourceKind, StepResult } from "@/engine/types";
 
-export type PresetId = "analyst" | "extraction" | "compare" | "engineer" | "monitor" | "custom";
+/** Pipeline view modes. "pipeline" is the visual step flow; the others are workbench panel layouts. */
+export type PresetId = "pipeline" | "analyst" | "extraction" | "compare" | "engineer" | "monitor" | "custom";
+
+/** Where pipeline runs execute. */
+export type ExecutionTarget = "local" | "server";
+
+/** A project groups the sources, pipelines and runs for one data problem. */
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+  /** Default execution target for runs started in this project (server only when one is connected). */
+  execution?: ExecutionTarget;
+}
 
 export interface PipelineVersion {
   version: number;
@@ -12,6 +27,7 @@ export interface PipelineVersion {
 
 export interface Pipeline {
   id: string;
+  projectId: string;
   spec: PipelineSpec;
   /** Last immutable version number (0 = never versioned). */
   version: number;
@@ -28,6 +44,8 @@ export interface Pipeline {
 
 export interface SourceMeta {
   id: string;
+  /** The project this source belongs to. Pipelines reference it; the file is stored once. */
+  projectId: string;
   name: string;
   kind: SourceKind;
   size: number;
@@ -54,6 +72,7 @@ export interface RunStep extends StepResult {
 export interface Run {
   id: string;
   pipelineId: string;
+  projectId?: string;
   pipelineName: string;
   version: number;
   mode: "test" | "manual";
@@ -110,7 +129,6 @@ export type PanelId =
   | "quality"
   | "failedRows"
   | "python"
-  | "sql"
   | "spec"
   | "logs"
   | "runs";

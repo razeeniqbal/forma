@@ -5,12 +5,14 @@ import { parseCsv } from "@/parsers";
 import { FormaServer, type ServerRun } from "@/lib/server";
 import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
 import { toText } from "@/engine/values";
-import { executeInWorker } from "@/lib/runner";
+import { executeInWorker, type RunProgress } from "@/lib/runner";
 import * as db from "./db";
+import { migrate, SCHEMA_VERSION, type StoredData } from "./migrate";
 import type {
   Connection,
   Pipeline,
   PresetId,
+  Project,
   Run,
   RunLog,
   RunStep,
@@ -23,7 +25,7 @@ import type {
 const DEFAULT_SETTINGS: Settings = {
   userName: "You",
   previewRows: 2000,
-  defaultPreset: "analyst",
+  defaultPreset: "pipeline",
   defaultDateFormat: "YYYY-MM-DD",
   testRunRows: 200,
 };
@@ -35,6 +37,18 @@ interface History {
   lastAt?: number;
 }
 
+/** Progress of the latest in-browser run of a pipeline, as reported by the engine (source load, then each step). */
+export interface LiveRun {
+  runId: string;
+  mode: "test" | "manual";
+  /** Step count of the executed spec. */
+  total: number;
+  events: RunProgress[];
+  status: Run["status"];
+  startedAt: number;
+  finishedAt?: number;
+}
+
 interface Toast {
   id: string;
   kind: "info" | "success" | "warning" | "error";
@@ -43,6 +57,7 @@ interface Toast {
 
 interface AppState {
   ready: boolean;
+  projects: Project[];
   pipelines: Pipeline[];
   runs: Run[];
   sources: SourceMeta[];
@@ -53,17 +68,31 @@ interface AppState {
   history: Record<string, History>;
   toasts: Toast[];
   runningPipelines: Record<string, string>;
+  liveRuns: Record<string, LiveRun>;
 
   hydrate(): Promise<void>;
   toast(kind: Toast["kind"], message: string): void;
   dismissToast(id: string): void;
 
-  addSource(file: SourceFile): Promise<SourceMeta>;
+  createProject(p: { name: string; description?: string }): Project;
+  updateProject(id: string, patch: Partial<Pick<Project, "name" | "description" | "execution">>): void;
+  /** Deletes the project with its pipelines, runs and source files. */
+  deleteProject(id: string): Promise<void>;
+
+  /** Stores a source file in a project. The file is kept once; pipelines reference it by id. */
+  addSource(file: SourceFile, projectId: string): Promise<SourceMeta>;
   deleteSource(id: string): Promise<void>;
 
   /** `sheet` picks the worksheet of a multi-sheet workbook (default: the first). */
-  createPipeline(name: string, source: SourceMeta | null, preset: PresetId, destination?: PipelineSpec["destination"], sheet?: string): Promise<Pipeline>;
-  createPipelineFromSpec(spec: PipelineSpec, preset?: PresetId): Pipeline;
+  createPipeline(
+    projectId: string,
+    name: string,
+    source: SourceMeta | null,
+    preset?: PresetId,
+    destination?: PipelineSpec["destination"],
+    sheet?: string,
+  ): Promise<Pipeline>;
+  createPipelineFromSpec(spec: PipelineSpec, projectId: string, preset?: PresetId): Pipeline;
   updateSpec(id: string, fn: (s: PipelineSpec) => PipelineSpec, coalesceKey?: string): void;
   undo(id: string): void;
   redo(id: string): void;
@@ -119,7 +148,7 @@ if (typeof window !== "undefined") {
   document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && flushPersist());
 }
 
-export function sourceMetaFrom(file: SourceFile): SourceMeta {
+export function sourceMetaFrom(file: SourceFile): Omit<SourceMeta, "projectId"> {
   return {
     id: file.id,
     name: file.name,
@@ -186,7 +215,7 @@ async function pollServerRun(runId: string) {
 }
 
 /** Map a FORMA server run into the app's run record. */
-export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, triggeredBy: string): Run {
+export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, triggeredBy: string, projectId?: string): Run {
   const res = r.result;
   const rules = spec?.steps.flatMap((s) => (s.type === "validate" ? s.rules : [])) ?? [];
   const started = r.startedAt * 1000;
@@ -195,6 +224,7 @@ export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, trig
     remoteId: r.id,
     trigger: r.trigger,
     pipelineId: r.pipelineId,
+    projectId,
     pipelineName: r.pipelineName,
     version: r.version,
     mode: "manual",
@@ -236,6 +266,7 @@ export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, trig
 
 export const useApp = create<AppState>((set, get) => ({
   ready: false,
+  projects: [],
   pipelines: [],
   runs: [],
   sources: [],
@@ -246,27 +277,42 @@ export const useApp = create<AppState>((set, get) => ({
   history: {},
   toasts: [],
   runningPipelines: {},
+  liveRuns: {},
 
   async hydrate() {
-    const [pipelines, runs, sources, connections, layouts, settings, presets] = await Promise.all([
-      db.load<Pipeline[]>("pipelines"),
+    const [schema, projects, pipelines, runs, sources, connections, layouts, settings, presets] = await Promise.all([
+      db.load<number>("schema"),
+      db.load<Project[]>("projects"),
+      db.load<StoredData["pipelines"]>("pipelines"),
       db.load<Run[]>("runs"),
-      db.load<SourceMeta[]>("sources"),
+      db.load<StoredData["sources"]>("sources"),
       db.load<Connection[]>("connections"),
       db.load<WorkspaceLayout[]>("layouts"),
       db.load<Settings>("settings"),
       db.load<TransformPreset[]>("presets"),
     ]);
+    const m = migrate({ schema, projects, pipelines: pipelines ?? [], sources: sources ?? [], runs: runs ?? [], settings });
+    if (m.changed) {
+      await Promise.all([
+        db.save("projects", m.projects),
+        db.save("pipelines", m.pipelines),
+        db.save("sources", m.sources),
+        db.save("runs", m.runs),
+        ...(m.settings ? [db.save("settings", m.settings)] : []),
+      ]);
+      await db.save("schema", SCHEMA_VERSION);
+    }
     set({
       ready: true,
-      pipelines: pipelines ?? [],
+      projects: m.projects,
+      pipelines: m.pipelines,
       // Runs interrupted by a reload can never finish.
-      runs: (runs ?? []).map((r) => (r.status === "running" ? { ...r, status: "cancelled" as const } : r)),
-      sources: sources ?? [],
+      runs: m.runs.map((r) => (r.status === "running" ? { ...r, status: "cancelled" as const } : r)),
+      sources: m.sources,
       connections: connections ?? [],
       layouts: layouts ?? [],
       presets: presets ?? [],
-      settings: { ...DEFAULT_SETTINGS, ...(settings ?? {}) },
+      settings: { ...DEFAULT_SETTINGS, ...(m.settings ?? {}) },
     });
   },
 
@@ -279,11 +325,39 @@ export const useApp = create<AppState>((set, get) => ({
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
   },
 
-  async addSource(input) {
+  createProject({ name, description }) {
+    const now = Date.now();
+    const project: Project = { id: newId("proj"), name: name.trim() || "Untitled project", description: description?.trim() || undefined, createdAt: now, updatedAt: now };
+    const projects = [project, ...get().projects];
+    set({ projects });
+    persist("projects", projects, true);
+    return project;
+  },
+  updateProject(id, patch) {
+    const projects = get().projects.map((p) => (p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p));
+    set({ projects });
+    persist("projects", projects, true);
+  },
+  async deleteProject(id) {
+    const { projects, pipelines, runs, sources } = get();
+    const goneRuns = runs.filter((r) => r.projectId === id);
+    const goneSources = sources.filter((s) => s.projectId === id);
+    const next = {
+      projects: projects.filter((p) => p.id !== id),
+      pipelines: pipelines.filter((p) => p.projectId !== id),
+      runs: runs.filter((r) => r.projectId !== id),
+      sources: sources.filter((s) => s.projectId !== id),
+    };
+    set(next);
+    for (const [k, v] of Object.entries(next)) persist(k, v, true);
+    await Promise.all([...goneSources.map((s) => db.deleteSourceFile(s.id)), ...goneRuns.map((r) => db.remove(`out:${r.id}`))]);
+  },
+
+  async addSource(input, projectId) {
     const { raw, ...file } = input;
     if (raw) await db.putRawFile(file.id, raw);
     await db.putSourceFile(file);
-    const meta = sourceMetaFrom(file);
+    const meta: SourceMeta = { ...sourceMetaFrom(file), projectId };
     const sources = [meta, ...get().sources.filter((s) => s.id !== meta.id)];
     set({ sources });
     persist("sources", sources, true);
@@ -296,7 +370,7 @@ export const useApp = create<AppState>((set, get) => ({
     await db.deleteSourceFile(id);
   },
 
-  async createPipeline(name, source, preset, destination = null, sheet) {
+  async createPipeline(projectId, name, source, preset, destination = null, sheet) {
     let spec: PipelineSpec = { name, source: null, steps: [], destination, reviewDecisions: [] };
     if (source) {
       const file = await db.getSourceFile(source.id);
@@ -305,12 +379,13 @@ export const useApp = create<AppState>((set, get) => ({
       set({ sources });
       persist("sources", sources, true);
     }
-    return get().createPipelineFromSpec(spec, preset);
+    return get().createPipelineFromSpec(spec, projectId, preset);
   },
 
-  createPipelineFromSpec(spec, preset) {
+  createPipelineFromSpec(spec, projectId, preset) {
     const p: Pipeline = {
       id: newId("p"),
+      projectId,
       spec,
       version: 0,
       versions: [],
@@ -399,7 +474,7 @@ export const useApp = create<AppState>((set, get) => ({
   duplicatePipeline(id) {
     const p = get().pipelines.find((x) => x.id === id);
     if (!p) return;
-    return get().createPipelineFromSpec({ ...JSON.parse(JSON.stringify(p.spec)), name: `${p.spec.name} (copy)` }, p.preset);
+    return get().createPipelineFromSpec({ ...JSON.parse(JSON.stringify(p.spec)), name: `${p.spec.name} (copy)` }, p.projectId, p.preset);
   },
 
   deletePipeline(id) {
@@ -437,6 +512,7 @@ export const useApp = create<AppState>((set, get) => ({
     const run: Run = {
       id: `run_${new Date(started).toISOString().replace(/[-:T]/g, "").slice(0, 14)}_${Math.random().toString(36).slice(2, 6)}`,
       pipelineId: id,
+      projectId: p.projectId,
       pipelineName: spec.name,
       version,
       mode,
@@ -459,12 +535,18 @@ export const useApp = create<AppState>((set, get) => ({
       ruleResults: [],
       columns: [],
     };
-    set((s) => ({ runs: [run, ...s.runs], runningPipelines: { ...s.runningPipelines, [id]: run.id } }));
+    const live: LiveRun = { runId: run.id, mode, total: runSpec.steps.length, events: [], status: "running", startedAt: started };
+    set((s) => ({ runs: [run, ...s.runs], runningPipelines: { ...s.runningPipelines, [id]: run.id }, liveRuns: { ...s.liveRuns, [id]: live } }));
+    const onProgress = (e: RunProgress) =>
+      set((s) => {
+        const cur = s.liveRuns[id];
+        return cur?.runId === run.id ? { liveRuns: { ...s.liveRuns, [id]: { ...cur, events: [...cur.events, e] } } } : {};
+      });
 
     let finished: Run;
     try {
       const sheets = await loadSideSheets(runSpec);
-      const res = await executeInWorker(runSpec, sheet, mode === "test" ? get().settings.testRunRows : undefined, sheets);
+      const res = await executeInWorker(runSpec, sheet, mode === "test" ? get().settings.testRunRows : undefined, sheets, onProgress);
       let t = started;
       const tick = (ms: number) => (t += Math.max(1, Math.round(ms)));
       logs.push({ t: tick(1), level: "success", step: "Source", message: `Loaded ${file.name} (${res.input.rows.length.toLocaleString()} rows, ${res.input.columns.length} columns)` });
@@ -543,7 +625,9 @@ export const useApp = create<AppState>((set, get) => ({
     const runs = get().runs.map((r) => (r.id === run.id ? finished : r));
     const running = { ...get().runningPipelines };
     delete running[id];
-    set({ runs, runningPipelines: running });
+    const cur = get().liveRuns[id];
+    const liveRuns = cur?.runId === run.id ? { ...get().liveRuns, [id]: { ...cur, status: finished.status, finishedAt: finished.finishedAt } } : get().liveRuns;
+    set({ runs, runningPipelines: running, liveRuns });
     persist("runs", runs.slice(0, 200));
     return finished;
   },
@@ -563,7 +647,7 @@ export const useApp = create<AppState>((set, get) => ({
       get().toast("error", (e as Error).message);
       return;
     }
-    const run = fromServerRun(remote, spec, get().settings.userName);
+    const run = fromServerRun(remote, spec, get().settings.userName, p.projectId);
     set((s) => ({ runs: [run, ...s.runs], runningPipelines: { ...s.runningPipelines, [id]: run.id } }));
     void pollServerRun(run.id);
     return run;
@@ -574,9 +658,13 @@ export const useApp = create<AppState>((set, get) => ({
     if (!server) return 0;
     const remote = await server.listRuns();
     const known = new Set(get().runs.map((r) => r.remoteId).filter(Boolean));
-    const fresh = remote.filter((r) => !known.has(r.id));
+    // Runs of pipelines that no longer exist here have no project to belong to.
+    const fresh = remote.filter((r) => !known.has(r.id) && get().pipelines.some((p) => p.id === r.pipelineId));
     if (!fresh.length) return 0;
-    const added = fresh.map((r) => fromServerRun(r, get().pipelines.find((p) => p.id === r.pipelineId)?.versions.find((v) => v.version === r.version)?.spec, "Schedule"));
+    const added = fresh.map((r) => {
+      const p = get().pipelines.find((x) => x.id === r.pipelineId)!;
+      return fromServerRun(r, p.versions.find((v) => v.version === r.version)?.spec, "Schedule", p.projectId);
+    });
     const runs = [...get().runs, ...added].sort((a, b) => b.startedAt - a.startedAt);
     set({ runs });
     persist("runs", runs.slice(0, 200));
@@ -589,7 +677,7 @@ export const useApp = create<AppState>((set, get) => ({
     if (!run?.remoteId || !server) return;
     const remote = await server.getRun(run.remoteId);
     const spec = get().pipelines.find((p) => p.id === run.pipelineId)?.versions.find((v) => v.version === run.version)?.spec;
-    const next = { ...fromServerRun(remote, spec, run.triggeredBy.split(" · ")[0]), id: run.id };
+    const next = { ...fromServerRun(remote, spec, run.triggeredBy.split(" · ")[0], run.projectId), id: run.id };
     if (next.status !== "running" && remote.status !== "failed") {
       try {
         const csv = await server.output(run.remoteId);
@@ -655,8 +743,9 @@ export const useApp = create<AppState>((set, get) => ({
   },
   async resetAll() {
     await db.clearAll();
-    set({ pipelines: [], runs: [], sources: [], connections: [], layouts: [], presets: [], settings: DEFAULT_SETTINGS, history: {} });
+    set({ projects: [], pipelines: [], runs: [], sources: [], connections: [], layouts: [], presets: [], settings: DEFAULT_SETTINGS, history: {} });
   },
 }));
 
 export const usePipeline = (id: string | undefined) => useApp((s) => s.pipelines.find((p) => p.id === id));
+export const useProject = (id: string | undefined) => useApp((s) => s.projects.find((p) => p.id === id));

@@ -699,6 +699,9 @@ export interface ExecuteOptions {
   uptoStep?: number;
   /** Raw sheets for join / append sources, by `sideSheetKey` (or file id). */
   sheets?: Map<string, RawSheet> | Record<string, RawSheet>;
+  /** Progress callbacks for live run displays. They observe execution and never change it. */
+  onLoaded?: (rows: number, columns: number) => void;
+  onStep?: (index: number, result: StepResult) => void;
 }
 
 export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOptions = {}): ExecutionResult {
@@ -709,6 +712,7 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
   }
   const fingerprints = new Map<number, string>();
   input.rows.forEach((row, r) => fingerprints.set(input.rowIds[r], fingerprint(row)));
+  opts.onLoaded?.(input.rows.length, input.columns.length);
 
   const env: Env = {
     sheets: opts.sheets instanceof Map ? opts.sheets : new Map(Object.entries(opts.sheets ?? {})),
@@ -736,6 +740,7 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
         stepId: step.id, rowsIn: 0, rowsOut: 0, changedCells: 0, addedColumns: [], removedColumns: [],
         issues: 0, durationMs: 0, summary: "Skipped", error: "Skipped (previous step failed)",
       });
+      opts.onStep?.(s, results[results.length - 1]);
       if (opts.keepSnapshots) snapshots.push(ds);
       continue;
     }
@@ -770,6 +775,7 @@ export function execute(spec: PipelineSpec, sheet: RawSheet, opts: ExecuteOption
         issues: 0, durationMs: performance.now() - t0, summary: "Failed", error: (e as Error).message,
       });
     }
+    opts.onStep?.(s, results[results.length - 1]);
     if (opts.keepSnapshots) snapshots.push(ds);
   }
 

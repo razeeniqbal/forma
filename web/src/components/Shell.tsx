@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { NavLink, Link, Outlet, useLocation } from "react-router-dom";
-import { Workflow, FolderInput, Database, History, Settings, LifeBuoy, Search, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useApp } from "@/store/app";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { Workflow, FolderInput, History, Settings, LifeBuoy, Search, PanelLeftClose, PanelLeftOpen, ArrowLeft, LayoutDashboard, SlidersHorizontal, FolderKanban } from "lucide-react";
+import { useApp, useProject } from "@/store/app";
+import { projectPath, useCurrentProjectId } from "@/lib/project";
 import { usePalette } from "./CommandPalette";
 import { MOD } from "@/lib/format";
 import { useHotkeys } from "@/lib/hooks";
@@ -41,32 +42,54 @@ function useSidebar() {
   return { collapsed, toggle };
 }
 
-const NAV = [
-  { to: "/pipelines", label: "Pipelines", icon: Workflow },
-  { to: "/sources", label: "Sources", icon: FolderInput },
-  { to: "/destinations", label: "Destinations", icon: Database },
-  { to: "/runs", label: "Runs", icon: History },
-];
+interface NavEntry {
+  to: string;
+  label: string;
+  icon: typeof Workflow;
+  active: boolean;
+}
 
 export function Shell() {
   const user = useApp((s) => s.settings.userName);
   const openPalette = usePalette((s) => s.setOpen);
-  const loc = useLocation();
+  const { pathname } = useLocation();
   const initials = user.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "U";
   const { collapsed, toggle } = useSidebar();
   useHotkeys({ "mod+b": toggle }, [collapsed]);
   const tip = (label: string) => (collapsed ? label : undefined);
+  const projectId = useCurrentProjectId();
+  const project = useProject(projectId);
+
+  const base = project ? projectPath(project.id) : "";
+  const under = (prefix: string) => pathname === prefix || pathname.startsWith(`${prefix}/`);
+  const nav: NavEntry[] = project
+    ? [
+        { to: base, label: "Overview", icon: LayoutDashboard, active: pathname === base },
+        { to: `${base}/sources`, label: "Sources", icon: FolderInput, active: under(`${base}/sources`) },
+        { to: `${base}/pipelines`, label: "Pipelines", icon: Workflow, active: under(`${base}/pipelines`) || under("/pipelines") },
+        { to: `${base}/runs`, label: "Runs", icon: History, active: under(`${base}/runs`) || under("/runs") },
+        { to: `${base}/settings`, label: "Project Settings", icon: SlidersHorizontal, active: under(`${base}/settings`) },
+      ]
+    : [{ to: "/projects", label: "Projects", icon: FolderKanban, active: under("/projects") || pathname === "/" }];
+
+  const item = ({ to, label, icon: Icon, active }: NavEntry) => (
+    <Link key={to} to={to} title={tip(label)} aria-label={label} aria-current={active ? "page" : undefined} className={`nav-item ${active ? "active" : ""}`}>
+      <Icon size={17} />
+      <span className="nav-label">{label}</span>
+    </Link>
+  );
+
   return (
     <div className={`shell ${collapsed ? "collapsed" : ""}`}>
       <header className="topbar">
-        <Link to="/pipelines" className="brand" aria-label="FORMA home">
+        <Link to="/projects" className="brand" aria-label="FORMA home">
           <img src="/brand/forma-symbol-blue.svg" alt="" />
           <span className="brand-name">FORMA</span>
         </Link>
         <span className="tagline">Shape messy data into reliable pipelines.</span>
         <button className="search-trigger" onClick={() => openPalette(true)}>
           <Search size={15} />
-          Search pipelines, sources, transformations…
+          Search projects, pipelines, sources…
           <kbd>{MOD} K</kbd>
         </button>
         <div className="user-chip">
@@ -75,27 +98,24 @@ export function Shell() {
         </div>
       </header>
       <nav className="sidebar" aria-label="Main">
-        {NAV.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            title={tip(label)}
-            aria-label={label}
-            className={({ isActive }) => `nav-item ${isActive || (to === "/pipelines" && loc.pathname === "/") ? "active" : ""}`}
-          >
-            <Icon size={17} />
-            <span className="nav-label">{label}</span>
-          </NavLink>
-        ))}
+        {project && (
+          <>
+            <Link to="/projects" className="nav-item nav-back" title={tip("All projects")} aria-label="All projects">
+              <ArrowLeft size={16} />
+              <span className="nav-label">Projects</span>
+            </Link>
+            <div className="nav-project" title={project.name}>
+              <span className="nav-project-mark" aria-hidden>
+                {project.name.trim().charAt(0).toUpperCase() || "P"}
+              </span>
+              <span className="nav-label nav-project-name">{project.name}</span>
+            </div>
+          </>
+        )}
+        {nav.map(item)}
         <div className="spacer" />
-        <NavLink to="/settings" title={tip("Settings")} aria-label="Settings" className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
-          <Settings size={17} />
-          <span className="nav-label">Settings</span>
-        </NavLink>
-        <NavLink to="/help" title={tip("Help & Feedback")} aria-label="Help & Feedback" className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
-          <LifeBuoy size={17} />
-          <span className="nav-label">Help &amp; Feedback</span>
-        </NavLink>
+        {item({ to: "/settings", label: "Settings", icon: Settings, active: under("/settings") || under("/destinations") })}
+        {item({ to: "/help", label: "Help & Feedback", icon: LifeBuoy, active: under("/help") })}
         <button
           className="nav-item nav-toggle"
           onClick={toggle}

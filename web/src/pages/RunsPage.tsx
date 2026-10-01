@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { History, Trash2 } from "lucide-react";
 import { useApp } from "@/store/app";
+import { useProjectData } from "@/lib/project";
 import type { RunStatus } from "@/store/model";
 import { confirmAction, Empty, StatusBadge } from "@/components/ui";
 import { fmtDateTime, fmtDuration, fmtInt } from "@/lib/format";
 
+/** Run history of one project. */
 export function RunsPage() {
-  const runs = useApp((s) => s.runs);
-  const pipelines = useApp((s) => s.pipelines);
+  const { projectId } = useParams();
+  const { runs, pipelines } = useProjectData(projectId);
   const del = useApp((s) => s.deleteRun);
   const nav = useNavigate();
   const [status, setStatus] = useState<RunStatus | "all">("all");
@@ -25,7 +27,7 @@ export function RunsPage() {
       <div className="page-head">
         <div>
           <h1>Runs</h1>
-          <p>Every run references an immutable pipeline version and records step-level results.</p>
+          <p>Every run references an immutable pipeline version and records what happened at each step.</p>
         </div>
       </div>
       <div className="card">
@@ -50,8 +52,8 @@ export function RunsPage() {
           </select>
         </div>
         {list.length === 0 ? (
-          <Empty icon={<History size={22} />} title="No runs">
-            Run a pipeline from its workspace to see it here.
+          <Empty icon={<History size={22} />} title={runs.length ? "No runs match" : "No runs yet"}>
+            {runs.length ? "Change the filters to see other runs." : "Run a pipeline to create its first execution record."}
           </Empty>
         ) : (
           <table className="table">

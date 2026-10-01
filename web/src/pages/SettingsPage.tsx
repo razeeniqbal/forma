@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Server } from "lucide-react";
+import { Server, Database } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useApp } from "@/store/app";
 import { useServerHealth } from "@/components/server";
 import { PRESET_LABEL, PRESET_ORDER } from "@/store/layouts";
@@ -47,11 +48,11 @@ export function SettingsPage() {
           <h3>Workbench</h3>
           <div className="grid-2">
             <div className="field">
-              <label>Default workspace preset</label>
+              <label>Default view for new pipelines</label>
               <select className="select" value={s.defaultPreset} onChange={(e) => update({ defaultPreset: e.target.value as PresetId })}>
                 {PRESET_ORDER.filter((p) => p !== "custom").map((p) => (
                   <option key={p} value={p}>
-                    {PRESET_LABEL[p]}
+                    {p === "pipeline" ? "Pipeline view" : `${PRESET_LABEL[p]} workbench`}
                   </option>
                 ))}
               </select>
@@ -93,13 +94,22 @@ export function SettingsPage() {
           </table>
         </div>
         <div className="card card-pad col" style={{ gap: 10 }}>
+          <h3>Connections</h3>
+          <div className="muted">Database destinations shared by all projects. Only the name of the environment variable holding each URL is stored.</div>
+          <div>
+            <Link className="btn" to="/destinations">
+              <Database size={15} /> Destinations &amp; connections
+            </Link>
+          </div>
+        </div>
+        <div className="card card-pad col" style={{ gap: 10 }}>
           <h3>Data &amp; storage</h3>
-          <div className="muted">Pipelines, sources, runs and layouts are stored in this browser's IndexedDB. Nothing is uploaded to a server.</div>
+          <div className="muted">Projects, sources, pipelines, runs and layouts are stored in this browser's IndexedDB. Nothing is uploaded unless you connect a FORMA server.</div>
           <div>
             <button
               className="btn danger"
               onClick={async () => {
-                if (await confirmAction({ title: "Delete all local data?", body: "All pipelines, sources, runs, connections and layouts in this browser are permanently removed. Export anything you need first.", confirmLabel: "Delete everything", danger: true })) {
+                if (await confirmAction({ title: "Delete all local data?", body: "All projects with their sources, pipelines and runs, plus connections and layouts in this browser are permanently removed. Export anything you need first.", confirmLabel: "Delete everything", danger: true })) {
                   await reset();
                   toast("success", "Local data cleared");
                 }

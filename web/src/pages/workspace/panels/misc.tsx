@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { BarChart3, ShieldCheck, AlertOctagon, Code2, Copy, Database, FileJson, ScrollText, History, ExternalLink, Download, Check, X, Ban } from "lucide-react";
+import { BarChart3, ShieldCheck, AlertOctagon, Code2, Copy, FileJson, ScrollText, History, ExternalLink, Download, Check, X, Ban } from "lucide-react";
 import { profileDataset, validationHealth } from "@/engine/profile";
 import { ruleLabel } from "@/engine/execute";
 import type { Issue, IssueKind } from "@/engine/types";
@@ -350,15 +350,6 @@ export function PythonPanel() {
   );
 }
 
-export function SqlPanel() {
-  return (
-    <PanelFrame id="sql" title="SQL" icon={<Database size={15} color="var(--muted)" />}>
-      <Empty icon={<Database size={22} />} title="SQL generation arrives in V1.x">
-        In V1 the pipeline specification compiles to readable pandas Python. SQL (and Polars) targets are planned and will be generated from the same specification.
-      </Empty>
-    </PanelFrame>
-  );
-}
 
 export function SpecPanel() {
   const ws = useWs();

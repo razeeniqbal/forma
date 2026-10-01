@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from "react";
-import { Plus, Trash2, Upload, Loader2, ArrowRight, Info } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, ArrowRight, ArrowDown, Info, Sheet } from "lucide-react";
 import type { AggFn, Dataset, SourceSpec, Step } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { useApp, defaultSourceSpec } from "@/store/app";
 import { ACCEPT, parseFile } from "@/parsers";
 import { getSourceFile } from "@/store/db";
 import { sheetOf, useSourceFile } from "@/lib/hooks";
-import { Seg, Toggle } from "@/components/ui";
+import { FileIcon, Seg, Toggle } from "@/components/ui";
+import { useWs } from "../context";
 import { fmtInt } from "@/lib/format";
 import { ColumnChecklist, ColumnSelect } from "./StepEditor";
 
@@ -143,12 +144,14 @@ export function ReshapeEditor({ step, onChange, before }: { step: Extract<Step, 
   );
 }
 
-/** Pick a second source (existing upload or a new file) and its sheet. */
-function SourcePicker({ value, onChange }: { value: SourceSpec; onChange: (s: SourceSpec, ds: Dataset) => void }) {
-  const sources = useApp((s) => s.sources);
+/** Pick another project source (a file, or one sheet of a workbook) for join / lookup / append. */
+function SourcePicker({ value, onChange, verb = "Lookup from" }: { value: SourceSpec; onChange: (s: SourceSpec, ds: Dataset) => void; verb?: string }) {
+  const ws = useWs();
+  const projectId = ws.pipeline.projectId;
+  const all = useApp((s) => s.sources);
+  const sources = all.filter((s) => s.projectId === projectId);
   const addSource = useApp((s) => s.addSource);
   const toast = useApp((s) => s.toast);
-  const { file } = useSourceFile(value.fileId || undefined);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
   const choose = async (id: string, sheet?: string) => {
@@ -161,7 +164,8 @@ function SourcePicker({ value, onChange }: { value: SourceSpec; onChange: (s: So
     setBusy(true);
     try {
       const parsed = await parseFile(f);
-      const meta = await addSource(parsed.source);
+      const meta = await addSource(parsed.source, projectId);
+      toast("success", `${meta.name} added to the project`);
       await choose(meta.id);
     } catch (e) {
       toast("error", (e as Error).message);
@@ -169,29 +173,60 @@ function SourcePicker({ value, onChange }: { value: SourceSpec; onChange: (s: So
       setBusy(false);
     }
   };
+  const mainId = ws.spec.source?.fileId;
+  const mainSheet = ws.spec.source?.sheet;
+  const isOn = (id: string, sheet?: string) => value.fileId === id && (!sheet || (value.sheet ?? "") === sheet);
   return (
-    <div className="col" style={{ gap: 8 }}>
-      <div className="row">
-        <select className="select" value={value.fileId} onChange={(e) => e.target.value && choose(e.target.value)} aria-label="Other source">
-          <option value="">Choose a source file…</option>
-          {sources.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <button className="btn" onClick={() => ref.current?.click()} disabled={busy} title="Upload a file">
-          {busy ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
-        </button>
-        <input ref={ref} type="file" accept={ACCEPT} hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+    <div className="col" style={{ gap: 6 }}>
+      <div className="section-title" style={{ margin: 0 }}>
+        {verb} · project sources
       </div>
-      {file && file.sheets.length > 1 && (
-        <select className="select sm" value={value.sheet ?? file.sheets[0].name} onChange={(e) => choose(file.id, e.target.value)} aria-label="Sheet">
-          {file.sheets.map((s) => (
-            <option key={s.name}>{s.name}</option>
-          ))}
-        </select>
-      )}
+      <div className="src-pick compact" role="radiogroup" aria-label="Project sources">
+        {sources.map((s) =>
+          s.sheets.length > 1 ? (
+            s.sheets.map((sh) => {
+              const self = s.id === mainId && sh.name === mainSheet;
+              return (
+                <button
+                  type="button"
+                  key={`${s.id}/${sh.name}`}
+                  role="radio"
+                  aria-checked={isOn(s.id, sh.name)}
+                  className={`src-pick-row sheet ${isOn(s.id, sh.name) ? "on" : ""}`}
+                  disabled={!sh.rows}
+                  onClick={() => choose(s.id, sh.name)}
+                  title={self ? "This pipeline's own source" : undefined}
+                >
+                  <Sheet size={13} color={sh.rows ? "var(--green-text)" : "var(--subtle)"} />
+                  <span className="grow clamp-1">
+                    {s.name} / {sh.name}
+                  </span>
+                  <span className="small subtle num">{self ? "this pipeline" : sh.rows ? fmtInt(sh.rows) : "empty"}</span>
+                </button>
+              );
+            })
+          ) : (
+            <button
+              type="button"
+              key={s.id}
+              role="radio"
+              aria-checked={isOn(s.id)}
+              className={`src-pick-row ${isOn(s.id) ? "on" : ""}`}
+              onClick={() => choose(s.id)}
+              title={s.id === mainId ? "This pipeline's own source" : undefined}
+            >
+              <FileIcon kind={s.kind} />
+              <span className="grow clamp-1">{s.name}</span>
+              <span className="small subtle num">{s.id === mainId ? "this pipeline" : fmtInt(s.sheets[0]?.rows ?? 0)}</span>
+            </button>
+          ),
+        )}
+        <button type="button" className="src-pick-row add" onClick={() => ref.current?.click()} disabled={busy}>
+          {busy ? <Loader2 size={13} className="spin" /> : <Upload size={13} />}
+          <span className="grow">Add new source…</span>
+        </button>
+      </div>
+      <input ref={ref} type="file" accept={ACCEPT} hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
     </div>
   );
 }
@@ -204,26 +239,32 @@ function useOther(spec: SourceSpec): Dataset | undefined {
   }, [file, spec]);
 }
 
+/** Point a join / lookup / append step at another source, preselecting keys and columns by matching names. */
+export function withSource<S extends Extract<Step, { type: "join" | "append" }>>(step: S, source: SourceSpec, ds: Dataset, before: Dataset | undefined): S {
+  if (step.type === "append") return { ...step, source };
+  let on = step.on
+    .map((o) => ({ left: o.left, right: ds.columns.includes(o.right) ? o.right : ds.columns.includes(o.left) ? o.left : "" }))
+    .filter((o) => o.right);
+  if (!on.length) {
+    const common = before?.columns.find((c) => ds.columns.includes(c));
+    on = common ? [{ left: common, right: common }] : [];
+  }
+  const columns = ds.columns.filter((c) => !on.some((o) => o.right === c) && !before?.columns.includes(c));
+  return { ...step, source, on, columns };
+}
+
 export function CombineEditor({ step, onChange, before }: { step: Extract<Step, { type: "join" | "append" }>; onChange: (s: Step) => void; before?: Dataset }) {
+  const ws = useWs();
   const other = useOther(step.source);
-  const setSource = (source: SourceSpec, ds: Dataset) => {
-    if (step.type === "append") return onChange({ ...step, source });
-    // Preselect keys and columns by matching names.
-    let on = step.on
-      .map((o) => ({ left: o.left, right: ds.columns.includes(o.right) ? o.right : ds.columns.includes(o.left) ? o.left : "" }))
-      .filter((o) => o.right);
-    if (!on.length) {
-      const common = before?.columns.find((c) => ds.columns.includes(c));
-      on = common ? [{ left: common, right: common }] : [];
-    }
-    const columns = ds.columns.filter((c) => !on.some((o) => o.right === c) && !before?.columns.includes(c));
-    onChange({ ...step, source, on, columns });
-  };
+  const setSource = (source: SourceSpec, ds: Dataset) => onChange(withSource(step, source, ds, before));
+  const verb = step.type === "append" ? "Append rows from" : step.mode === "join" ? "Join with" : "Lookup from";
   const picker = (
-    <Field label={step.type === "append" ? "Rows from" : "Other source"} hint={other ? `${fmtInt(other.rows.length)} rows · ${other.columns.length} columns` : undefined}>
-      <SourcePicker value={step.source} onChange={setSource} />
-    </Field>
+    <div className="col" style={{ gap: 4 }}>
+      <SourcePicker value={step.source} onChange={setSource} verb={verb} />
+      {other && <div className="hint">{`${fmtInt(other.rows.length)} rows · ${other.columns.length} columns`}</div>}
+    </div>
   );
+  const otherName = step.source.file ? `${step.source.file.replace(/\.[^.]+$/, "")}${step.source.sheet ? ` / ${step.source.sheet}` : ""}` : "Other source";
   if (step.type === "append") {
     const shared = other && before ? other.columns.filter((c) => before.columns.includes(c)) : [];
     const added = other && before ? other.columns.filter((c) => !before.columns.includes(c)) : [];
@@ -260,15 +301,17 @@ export function CombineEditor({ step, onChange, before }: { step: Extract<Step, 
       </Field>
       <div className="label">Match on</div>
       {step.on.map((o, i) => (
-        <div key={i} className="row">
-          <div className="grow">
+        <div key={i} className="key-map">
+          <div className="km-side">
+            <span className="km-src">{ws.spec.name}</span>
             <ColumnSelect ds={before} value={o.left} onChange={(left) => onChange({ ...step, on: step.on.map((x, k) => (k === i ? { ...x, left, right: otherDs?.columns.includes(left) && !x.right ? left : x.right } : x)) })} />
           </div>
-          <span className="muted">=</span>
-          <div className="grow">
+          <ArrowDown size={14} className="km-arrow" aria-label="matches" />
+          <div className="km-side">
+            <span className="km-src">{otherName}</span>
             <ColumnSelect ds={otherDs} value={o.right} onChange={(right) => onChange({ ...step, on: step.on.map((x, k) => (k === i ? { ...x, right } : x)) })} />
           </div>
-          <button className="btn ghost xs icon" aria-label="Remove key" onClick={() => onChange({ ...step, on: step.on.filter((_, k) => k !== i) })}>
+          <button className="btn ghost xs icon km-del" aria-label="Remove key" onClick={() => onChange({ ...step, on: step.on.filter((_, k) => k !== i) })}>
             <Trash2 size={13} color="var(--red)" />
           </button>
         </div>

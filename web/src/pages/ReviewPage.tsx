@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AlertTriangle, ChevronLeft, ChevronRight, Copy, Play, FileText, Search, X, CheckCircle2, MinusCircle, ListChecks, Loader2, Undo2 } from "lucide-react";
 import { useApp } from "@/store/app";
 import type { Issue, IssueKind, ReviewAction, ReviewDecision } from "@/engine/types";
 import type { Run } from "@/store/model";
 import { fingerprint } from "@/engine/load";
-import { Empty, StatusBadge } from "@/components/ui";
+import { Empty, ProjectCrumbs, StatusBadge } from "@/components/ui";
+import { stepTitle } from "@/engine/registry";
 import { ISSUE_LABEL, upsertDecisions } from "@/lib/review";
 import { RuleSuggestions } from "./RuleSuggestions";
 import { copyText, fmtDateTime, fmtInt } from "@/lib/format";
@@ -36,8 +37,8 @@ export function ReviewPage() {
   if (!run)
     return (
       <div className="page">
-        <Empty icon={<ListChecks size={22} />} title="Nothing to review yet" action={pipelineId ? <Link className="btn primary" to={`/pipelines/${pipelineId}`}>Open workspace</Link> : <Link className="btn" to="/runs">Runs</Link>}>
-          Run the pipeline. Rows that cannot be transformed or validated confidently appear here.
+        <Empty icon={<ListChecks size={22} />} title="Nothing to review yet" action={pipelineId ? <Link className="btn primary" to={`/pipelines/${pipelineId}`}>Open workspace</Link> : <Link className="btn" to="/projects">Projects</Link>}>
+          Run the pipeline. Rows that cannot be transformed or validated confidently appear here — no rows need review yet.
         </Empty>
       </div>
     );
@@ -56,6 +57,9 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   const [sel, setSel] = useState<number | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [rerunning, setRerunning] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const stepFilter = params.get("step");
+  const filterStep = stepFilter ? pipeline?.versions.find((v) => v.version === run.version)?.spec.steps.find((s) => s.id === stepFilter) ?? pipeline?.spec.steps.find((s) => s.id === stepFilter) : undefined;
 
   const items = useMemo<Item[]>(() => {
     const m = new Map<number, Issue[]>();
@@ -85,6 +89,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   }, [items]);
 
   const filtered = items.filter((it) => {
+    if (stepFilter && !it.issues.some((i) => i.stepId === stepFilter)) return false;
     if (tab !== "all" && it.kind !== tab) return false;
     if (!q.trim()) return true;
     const hay = [...(run.reviewSource[it.row] ?? []), ...it.issues.map((i) => i.message)].join(" ").toLowerCase();
@@ -96,7 +101,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   const selIndex = selItem ? filtered.indexOf(selItem) : -1;
   const decidedCount = items.filter(isDecided).length;
 
-  useEffect(() => setPage(0), [tab, q, perPage]);
+  useEffect(() => setPage(0), [tab, q, perPage, stepFilter]);
 
   const original = (it: Item): string => originalText(run, it);
   const valueOf = (row: number, col: string) => run.reviewValues[row]?.[col] ?? null;
@@ -113,17 +118,20 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
   };
   const clearDecisions = (row: number) => pipeline && updateSpec(pipeline.id, (s) => ({ ...s, reviewDecisions: s.reviewDecisions.filter((d) => d.row !== row) }));
 
-  const rerun = async () => {
+  // Rerun in Pipeline view so the run can be watched step by step.
+  const rerun = () => {
     setRerunning(true);
-    const r = await useApp.getState().runPipeline(run.pipelineId, "manual");
-    setRerunning(false);
-    if (r) nav(`/runs/${r.id}`);
+    const app = useApp.getState();
+    app.setPreset(run.pipelineId, "pipeline");
+    void app.runPipeline(run.pipelineId, "manual");
+    nav(`/pipelines/${run.pipelineId}`);
   };
 
   return (
     <div className="page wide" style={{ paddingBottom: 16 }}>
       <div className="crumbs">
-        <Link to="/runs">Runs</Link>/<Link to={`/pipelines/${run.pipelineId}`}>{run.pipelineName}</Link>/<Link to={`/runs/${run.id}`}>{fmtDateTime(run.startedAt)}</Link>/<span className="cur">Review Queue</span>
+        <ProjectCrumbs projectId={run.projectId} section="Runs" sectionPath="runs" />
+        <Link to={`/pipelines/${run.pipelineId}`}>{run.pipelineName}</Link>/<Link to={`/runs/${run.id}`}>{fmtDateTime(run.startedAt)}</Link>/<span className="cur">Review Queue</span>
       </div>
       <div className="page-head" style={{ alignItems: "center" }}>
         <div>
@@ -176,6 +184,11 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
               </div>
             </div>
             <div className="chips" style={{ padding: "10px 16px 0" }}>
+              {stepFilter && (
+                <button className="chip on" onClick={() => setParams({}, { replace: true })} aria-label="Clear step filter" title="Show rows from every step">
+                  Step: {filterStep ? stepTitle(filterStep) : stepFilter} ({fmtInt(filtered.length)}) <X size={12} />
+                </button>
+              )}
               <button className={`chip ${tab === "all" ? "on" : ""}`} onClick={() => setTab("all")}>
                 All ({fmtInt(items.length)})
               </button>

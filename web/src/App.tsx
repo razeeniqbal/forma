@@ -4,15 +4,19 @@ import { useApp } from "@/store/app";
 import { Shell } from "@/components/Shell";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ConfirmHost, Toasts } from "@/components/ui";
-import { PipelinesPage } from "@/pages/PipelinesPage";
-import { CreatePipelinePage } from "@/pages/CreatePipelinePage";
+import { ProjectsPage } from "@/pages/projects/ProjectsPage";
+import { NewProjectPage } from "@/pages/projects/NewProjectPage";
+import { ProjectOverview } from "@/pages/projects/ProjectOverview";
+import { ProjectSources } from "@/pages/projects/ProjectSources";
+import { ProjectPipelines } from "@/pages/projects/ProjectPipelines";
+import { CreatePipelinePage } from "@/pages/projects/CreatePipelinePage";
+import { ProjectSettings } from "@/pages/projects/ProjectSettings";
 import { WorkspacePage } from "@/pages/workspace/WorkspacePage";
 import { ValidatePage } from "@/pages/ValidatePage";
 import { ReviewPage } from "@/pages/ReviewPage";
 import { RunPage } from "@/pages/RunPage";
 import { RunsPage } from "@/pages/RunsPage";
 import { ExportPage } from "@/pages/ExportPage";
-import { SourcesPage } from "@/pages/SourcesPage";
 import { DestinationsPage } from "@/pages/DestinationsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { HelpPage } from "@/pages/HelpPage";
@@ -33,21 +37,31 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Shell />}>
-          <Route index element={<Navigate to="/pipelines" replace />} />
-          <Route path="pipelines" element={<PipelinesPage />} />
-          <Route path="pipelines/new" element={<CreatePipelinePage />} />
+          <Route index element={<Navigate to="/projects" replace />} />
+          <Route path="projects" element={<ProjectsPage />} />
+          <Route path="projects/new" element={<NewProjectPage />} />
+          <Route path="projects/:projectId" element={<ProjectOverview />} />
+          <Route path="projects/:projectId/sources" element={<ProjectSources />} />
+          <Route path="projects/:projectId/pipelines" element={<ProjectPipelines />} />
+          <Route path="projects/:projectId/pipelines/new" element={<CreatePipelinePage />} />
+          <Route path="projects/:projectId/runs" element={<RunsPage />} />
+          <Route path="projects/:projectId/settings" element={<ProjectSettings />} />
+          {/* Pipelines and runs have global ids; their project is derived for navigation. */}
           <Route path="pipelines/:id" element={<WorkspacePage />} />
           <Route path="pipelines/:id/validate" element={<ValidatePage />} />
           <Route path="pipelines/:id/export" element={<ExportPage />} />
           <Route path="pipelines/:id/review" element={<ReviewPage />} />
-          <Route path="runs" element={<RunsPage />} />
           <Route path="runs/:runId" element={<RunPage />} />
           <Route path="runs/:runId/review" element={<ReviewPage />} />
-          <Route path="sources" element={<SourcesPage />} />
           <Route path="destinations" element={<DestinationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="help" element={<HelpPage />} />
-          <Route path="*" element={<Navigate to="/pipelines" replace />} />
+          {/* Pre-project URLs. */}
+          <Route path="pipelines" element={<Navigate to="/projects" replace />} />
+          <Route path="pipelines/new" element={<Navigate to="/projects" replace />} />
+          <Route path="sources" element={<Navigate to="/projects" replace />} />
+          <Route path="runs" element={<Navigate to="/projects" replace />} />
+          <Route path="*" element={<Navigate to="/projects" replace />} />
         </Route>
       </Routes>
       <CommandPalette />

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Trash2, Plus, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Wand2, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Trash2, Plus, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Wand2, ArrowRight, Info, Loader2 } from "lucide-react";
 import { useServerHealth } from "@/components/server";
 import { serverClient, useApp } from "@/store/app";
 import type { Cell, Dataset, ExtractField, Step } from "@/engine/types";
@@ -144,14 +144,14 @@ export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; o
                   const samples = [...new Set([...failing.slice(0, 20), ...texts.filter(Boolean).slice(0, 60)])].slice(0, 60) as string[];
                   const r = await serverClient()!.suggestPatterns(samples, hint || undefined);
                   onChange({ ...step, fields: r.fields.map((f) => ({ name: f.name, type: f.type, pattern: f.pattern })) });
-                  setAiNote(`${r.fields.length} fields proposed by ${r.model}. Check the match rates and failed rows before applying — execution stays plain regex.`);
+                  setAiNote(`AI suggestion: ${r.fields.length} pattern${r.fields.length === 1 ? "" : "s"} (shown below with match rates on the preview). Nothing changes until you apply; the step runs as plain regex.`);
                 } catch (e) {
                   toast("error", (e as Error).message);
                 } finally {
                   setAiBusy(false);
                 }
               }}>
-                {aiBusy ? <Loader2 size={12} className="spin" /> : <Sparkles size={12} />} AI suggest
+                {aiBusy && <Loader2 size={12} className="spin" />} Suggest with AI
               </button>
             )}
             <button
@@ -164,7 +164,7 @@ export function ExtractEditor({ step, onChange, before }: { step: ExtractStep; o
           </div>
           {aiNote && (
             <div className="callout small" style={{ padding: "8px 10px" }}>
-              <Sparkles size={14} /> {aiNote}
+              <Info size={14} /> {aiNote}
             </div>
           )}
           {step.fields.map((f, k) => {

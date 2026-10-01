@@ -49,9 +49,9 @@ export function HelpPage() {
         </div>
         <div className="card card-pad col" style={{ gap: 10 }}>
           <h3>Try it</h3>
-          <div className="muted small">The Invoice Processing demo walks through the complete V1 lifecycle on a messy workbook with 1,000 invoices.</div>
-          <Link className="btn primary" to="/pipelines/new" style={{ alignSelf: "flex-start" }}>
-            Create a pipeline
+          <div className="muted small">Create a project and tick “Start from example” to walk through the complete lifecycle on a messy workbook with 1,000 invoices.</div>
+          <Link className="btn primary" to="/projects/new" style={{ alignSelf: "flex-start" }}>
+            Create a project
           </Link>
           <div className="hr" />
           <h3>Feedback</h3>

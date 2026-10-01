@@ -378,7 +378,7 @@ function SourceInspector() {
   const replace = async (f: File) => {
     try {
       const parsed = await parseFile(f);
-      const meta = await useApp.getState().addSource(parsed.source);
+      const meta = await useApp.getState().addSource(parsed.source, ws.pipeline.projectId);
       const sh = parsed.source.sheets.find((s) => s.name === src.sheet) ?? parsed.source.sheets[0];
       const r = detectRegion(sh);
       ws.update((s) => ({ ...s, source: { ...s.source!, type: parsed.source.kind, file: meta.name, fileId: meta.id, sheet: parsed.source.kind === "excel" ? sh.name : undefined, headerRow: r.headerRow, startCol: r.startCol, endCol: r.endCol, csvDelimiter: parsed.source.delimiter } }));

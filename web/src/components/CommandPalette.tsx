@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { create } from "zustand";
-import { Search, Workflow, Plus, Database, History, Settings, FolderInput, CornerDownLeft } from "lucide-react";
+import { Search, Workflow, Plus, Database, History, Settings, FolderInput, CornerDownLeft, FolderKanban, LayoutDashboard } from "lucide-react";
 import { useApp } from "@/store/app";
+import { projectPath, useCurrentProjectId } from "@/lib/project";
 
 export interface PaletteAction {
   id: string;
@@ -56,6 +57,9 @@ export function CommandPalette() {
   const { open, setOpen, actions } = usePalette();
   const nav = useNavigate();
   const pipelines = useApp((s) => s.pipelines);
+  const projects = useApp((s) => s.projects);
+  const currentProjectId = useCurrentProjectId();
+  const currentProject = projects.find((p) => p.id === currentProjectId);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -80,24 +84,40 @@ export function CommandPalette() {
 
   const all = useMemo<PaletteAction[]>(() => {
     const go = (path: string) => () => nav(path);
+    const pid = currentProject?.id;
     const base: PaletteAction[] = [
-      { id: "nav-pipelines", group: "Navigate", title: "Pipelines", icon: <Workflow size={16} />, run: go("/pipelines") },
-      { id: "nav-new", group: "Navigate", title: "New pipeline", icon: <Plus size={16} />, keywords: "create upload", run: go("/pipelines/new") },
-      { id: "nav-sources", group: "Navigate", title: "Sources", keywords: "files uploads", icon: <FolderInput size={16} />, run: go("/sources") },
+      ...(pid
+        ? [
+            { id: "nav-overview", group: currentProject!.name, title: "Overview", keywords: "project map", icon: <LayoutDashboard size={16} />, run: go(projectPath(pid)) },
+            { id: "nav-sources", group: currentProject!.name, title: "Sources", keywords: "files uploads data", icon: <FolderInput size={16} />, run: go(projectPath(pid, "sources")) },
+            { id: "nav-pipelines", group: currentProject!.name, title: "Pipelines", icon: <Workflow size={16} />, run: go(projectPath(pid, "pipelines")) },
+            { id: "nav-new", group: currentProject!.name, title: "New pipeline", keywords: "create", icon: <Plus size={16} />, run: go(projectPath(pid, "pipelines/new")) },
+            { id: "nav-runs", group: currentProject!.name, title: "Runs", keywords: "runs executions logs history", icon: <History size={16} />, run: go(projectPath(pid, "runs")) },
+          ]
+        : []),
+      { id: "nav-projects", group: "Navigate", title: "Projects", icon: <FolderKanban size={16} />, run: go("/projects") },
+      { id: "nav-new-project", group: "Navigate", title: "New project", keywords: "create", icon: <Plus size={16} />, run: go("/projects/new") },
       { id: "nav-dest", group: "Navigate", title: "Destinations & connections", keywords: "database connection warehouse", icon: <Database size={16} />, run: go("/destinations") },
-      { id: "nav-runs", group: "Navigate", title: "Run history", keywords: "runs executions logs", icon: <History size={16} />, run: go("/runs") },
       { id: "nav-settings", group: "Navigate", title: "Settings", icon: <Settings size={16} />, run: go("/settings") },
     ];
+    const projectList: PaletteAction[] = projects.map((p) => ({
+      id: `proj-${p.id}`,
+      group: "Projects",
+      title: p.name,
+      description: p.description,
+      icon: <FolderKanban size={16} />,
+      run: go(projectPath(p.id)),
+    }));
     const pipes: PaletteAction[] = pipelines.map((p) => ({
       id: `pipe-${p.id}`,
       group: "Pipelines",
       title: p.spec.name,
-      description: p.spec.source?.file ?? "No source",
+      description: `${projects.find((x) => x.id === p.projectId)?.name ?? ""} · ${p.spec.source?.file ?? "No source"}`,
       icon: <Workflow size={16} />,
       run: go(`/pipelines/${p.id}`),
     }));
-    return [...Object.values(actions).flat(), ...base, ...pipes];
-  }, [actions, pipelines, nav]);
+    return [...Object.values(actions).flat(), ...base, ...projectList, ...pipes];
+  }, [actions, pipelines, projects, currentProject, nav]);
 
   const results = useMemo(
     () =>

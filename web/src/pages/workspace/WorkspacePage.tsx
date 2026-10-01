@@ -1,15 +1,15 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
   Play, FlaskConical, CalendarClock, Code2, MoreHorizontal, Undo2, Redo2, LayoutGrid, X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
-  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow, Info, Bookmark,
+  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow, Info, Bookmark, GitCommitVertical, Monitor, Server,
 } from "lucide-react";
-import { useApp, usePipeline, defaultSourceSpec } from "@/store/app";
+import { useApp, usePipeline, useProject, defaultSourceSpec } from "@/store/app";
 import type { PanelId, PresetId, WorkspaceLayout } from "@/store/model";
 import { ALL_PANELS, cloneLayout, PANEL_TITLES, PRESET_LABEL, PRESET_ORDER, PRESETS } from "@/store/layouts";
 import { STAGE_OF, stepTitle, describeStep, TRANSFORMS } from "@/engine/registry";
-import type { StepType } from "@/engine/types";
+import type { Step, StepType } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { ACCEPT, parseFile } from "@/parsers";
 import { confirmAction, Empty, Modal, Seg, Toggle, useMenu } from "@/components/ui";
@@ -25,8 +25,14 @@ import { SourcePanel } from "./panels/SourcePanel";
 import { PipelinePanel, stepState } from "./panels/PipelinePanel";
 import { InspectorPanel } from "./panels/InspectorPanel";
 import { BeforeAfterPanel } from "./panels/BeforeAfterPanel";
-import { FailedRowsPanel, LogsPanel, ProfilePanel, PythonPanel, QualityPanel, RunsPanel, SpecPanel, SqlPanel } from "./panels/misc";
+import { FailedRowsPanel, LogsPanel, ProfilePanel, PythonPanel, QualityPanel, RunsPanel, SpecPanel } from "./panels/misc";
 import { TransformPicker } from "./TransformPicker";
+import { PipelineView } from "./PipelineView";
+import { withSource } from "./editors/ReshapeEditor";
+import { makeStep } from "@/lib/stepDefaults";
+import { getSourceFile } from "@/store/db";
+import { sheetOf } from "@/lib/hooks";
+import { projectPath } from "@/lib/project";
 
 const PANELS: Record<PanelId, () => JSX.Element> = {
   source: SourcePanel,
@@ -38,7 +44,6 @@ const PANELS: Record<PanelId, () => JSX.Element> = {
   quality: QualityPanel,
   failedRows: FailedRowsPanel,
   python: PythonPanel,
-  sql: SqlPanel,
   spec: SpecPanel,
   logs: LogsPanel,
   runs: RunsPanel,
@@ -50,7 +55,7 @@ export function WorkspacePage() {
   if (!pipeline)
     return (
       <div className="page">
-        <Empty icon={<Workflow size={22} />} title="Pipeline not found" action={<Link className="btn" to="/pipelines">Back to pipelines</Link>} />
+        <Empty icon={<Workflow size={22} />} title="Pipeline not found" action={<Link className="btn" to="/projects">Projects</Link>} />
       </div>
     );
   return (
@@ -76,12 +81,53 @@ function Workspace() {
   const [name, setName] = useState(pipeline.spec.name);
   const more = useMenu();
   const presetMenu = useMenu();
+  const execMenu = useMenu();
+  const project = useProject(pipeline.projectId);
+  const { health } = useServerHealth();
+  const serverUrl = useApp((s) => s.settings.serverUrl);
+  const execution = project?.execution === "server" && serverUrl ? "server" : "local";
+  // Phones get the pipeline, run status and review — not the three-panel workbench.
+  const narrow = useNarrow();
+  const isFlow = pipeline.preset === "pipeline" || narrow;
+  const [params, setParams] = useSearchParams();
+  const handledUse = useRef<string | null>(null);
+
+  // "Use in pipeline" from Sources: open a lookup / append step on that project source.
+  useEffect(() => {
+    const use = params.get("use");
+    if (!use || !ws.preview.result) return;
+    // Handle each deep link once: it starts a draft, which re-runs the preview and this effect.
+    const token = params.toString();
+    if (handledUse.current === token) return;
+    handledUse.current = token;
+    const as = params.get("as") === "append" ? "append" : "lookup";
+    const sheetName = params.get("sheet") ?? undefined;
+    setParams({}, { replace: true });
+    void (async () => {
+      const f = await getSourceFile(use);
+      if (!f) return;
+      const at = ws.spec.steps.length;
+      const before = ws.datasetAfter(at - 1);
+      const step = makeStep(as, before, undefined) as Extract<Step, { type: "join" | "append" }>;
+      const src = defaultSourceSpec(f, sheetName);
+      const ds = loadDataset(sheetOf(f, src.sheet)!, src);
+      ws.startDraft({ step: withSource(step, src, ds, before), index: at, isNew: true });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, ws.preview.result]);
+
+  /** Level 3: open the step in the panel workbench. */
+  const expand = (index: number) => {
+    ws.setSel(index);
+    app.setPreset(pipeline.id, index === -1 ? "extraction" : "analyst");
+  };
 
   useEffect(() => setName(pipeline.spec.name), [pipeline.spec.name]);
 
   const base: WorkspaceLayout =
-    pipeline.preset === "custom" ? layouts.find((l) => l.id === pipeline.customLayoutId) ?? PRESETS.analyst : PRESETS[pipeline.preset];
-  const layout = edit ?? base;
+    pipeline.preset === "custom" ? layouts.find((l) => l.id === pipeline.customLayoutId) ?? PRESETS.analyst : pipeline.preset === "pipeline" ? PRESETS.analyst : PRESETS[pipeline.preset];
+  // Saved layouts may name panels that no longer exist (the retired SQL placeholder).
+  const layout = sanitize(edit ?? base);
   const setLayout = (l: WorkspaceLayout) =>
     setEdit({ ...l, columns: l.columns.filter((c) => c.panels.length).map((c) => (c.heights?.length === c.panels.length ? c : { ...c, heights: undefined })) });
   const present = new Set(layout.columns.flatMap((c) => c.panels));
@@ -134,6 +180,7 @@ function Workspace() {
   };
 
   const testRun = async () => {
+    app.setPreset(pipeline.id, "pipeline");
     const r = await app.runPipeline(pipeline.id, "test");
     if (r)
       app.toast(
@@ -191,7 +238,7 @@ function Workspace() {
       ...PRESET_ORDER.filter((p) => p !== "custom").map((p) => ({
         id: `preset-${p}`,
         group: "Workspace",
-        title: `${PRESET_LABEL[p]} workspace`,
+        title: p === "pipeline" ? "Pipeline view" : `${PRESET_LABEL[p]} view`,
         keywords: "preset layout",
         icon: <LayoutGrid size={16} />,
         run: () => choosePreset(p),
@@ -209,6 +256,12 @@ function Workspace() {
   return (
     <div className="ws">
       <div className="ws-head">
+        {project && (
+          <Link to={projectPath(project.id)} className="ws-project" title={`Back to ${project.name}`}>
+            {project.name}
+            <span className="subtle">/</span>
+          </Link>
+        )}
         <input
           className="ws-title"
           value={name}
@@ -229,16 +282,41 @@ function Workspace() {
           </button>
         </div>
         <div className="row" style={{ marginLeft: "auto", gap: 8 }}>
-          <button className="btn" onClick={(e) => presetMenu.open(e.currentTarget.getBoundingClientRect(), [
-            ...PRESET_ORDER.filter((p) => p !== "custom").map((p) => ({ label: PRESET_LABEL[p], icon: pipeline.preset === p ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset(p) })),
+          <button
+            className={`exec-chip ${execution}`}
+            title="Where runs execute"
+            aria-label={`Execution: ${execution === "server" ? "FORMA Server" : "Local"}`}
+            onClick={(e) =>
+              execMenu.open(e.currentTarget.getBoundingClientRect(), [
+                { label: "Local — runs in this browser", icon: execution === "local" ? <Check size={15} /> : <Monitor size={15} />, onClick: () => project && app.updateProject(project.id, { execution: "local" }) },
+                {
+                  label: serverUrl ? `FORMA Server${health ? "" : " (not reachable)"}` : "FORMA Server — connect in Settings",
+                  icon: execution === "server" ? <Check size={15} /> : <Server size={15} />,
+                  onClick: () => (serverUrl ? project && app.updateProject(project.id, { execution: "server" }) : nav("/settings")),
+                },
+              ])
+            }
+          >
+            <span className="dot" /> {execution === "server" ? "FORMA Server" : "Local"}
+          </button>
+          <div className="seg view-seg" role="group" aria-label="View">
+            <button className={isFlow ? "on" : ""} onClick={() => choosePreset("pipeline")} title="Pipeline view">
+              <GitCommitVertical size={14} /> Pipeline
+            </button>
+            <button
+              className={!isFlow ? "on" : ""}
+              aria-label="Workbench views"
+              onClick={(e) => presetMenu.open(e.currentTarget.getBoundingClientRect(), [
+            ...PRESET_ORDER.filter((p) => p !== "custom" && p !== "pipeline").map((p) => ({ label: `${PRESET_LABEL[p]} view`, icon: pipeline.preset === p ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset(p) })),
             ...(layouts.length ? [{ separator: true, label: "" }] : []),
             ...layouts.map((l) => ({ label: l.name, icon: pipeline.customLayoutId === l.id && pipeline.preset === "custom" ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset("custom", l.id) })),
             { separator: true, label: "" },
-            { label: "Customize workspace…", icon: <LayoutGrid size={15} />, onClick: () => setCustomize(true) },
+            { label: "Customize workbench…", icon: <LayoutGrid size={15} />, onClick: () => { if (isFlow) app.setPreset(pipeline.id, "analyst"); setCustomize(true); } },
           ])}>
-            <LayoutGrid size={15} /> {presetLabel}
-            {edit && <span className="dot" style={{ background: "var(--amber)" }} title="Unsaved layout changes" />}
-          </button>
+              <LayoutGrid size={14} /> {isFlow ? "Workbench" : presetLabel}
+              {edit && <span className="dot" style={{ background: "var(--amber)" }} title="Unsaved layout changes" />}
+            </button>
+          </div>
           <button className="btn" onClick={testRun} disabled={!!running || !ws.spec.source}>
             {running ? <Loader2 size={15} className="spin" /> : <FlaskConical size={15} />} Test Run
           </button>
@@ -249,7 +327,7 @@ function Workspace() {
             <Play size={15} /> Run
           </button>
           <Link className="btn soft" to={`/pipelines/${pipeline.id}/export`}>
-            <Code2 size={15} /> Export Python
+            <Code2 size={15} /> Export
           </Link>
           <button
             className="btn icon"
@@ -260,7 +338,7 @@ function Workspace() {
                 { label: "Versions…", icon: <History size={15} />, onClick: () => setVersions(true) },
                 { label: "Validation", icon: <ShieldCheck size={15} />, onClick: () => nav(`/pipelines/${pipeline.id}/validate`) },
                 { label: "Review queue", icon: <ListChecks size={15} />, onClick: () => nav(`/pipelines/${pipeline.id}/review`) },
-                { label: "Customize workspace", icon: <LayoutGrid size={15} />, onClick: () => setCustomize(true) },
+                { label: "Customize workbench", icon: <LayoutGrid size={15} />, onClick: () => { if (isFlow) app.setPreset(pipeline.id, "analyst"); setCustomize(true); } },
                 { separator: true, label: "" },
                 {
                   label: "Save steps as preset…",
@@ -282,7 +360,7 @@ function Workspace() {
                   onClick: async () => {
                     if (await confirmAction({ title: "Delete pipeline?", body: `"${pipeline.spec.name}" and its versions will be deleted. Source files and run history are kept.`, confirmLabel: "Delete", danger: true })) {
                       app.deletePipeline(pipeline.id);
-                      nav("/pipelines");
+                      nav(projectPath(pipeline.projectId, "pipelines"));
                     }
                   },
                 },
@@ -294,7 +372,16 @@ function Workspace() {
         </div>
       </div>
 
+      {isFlow ? (
+        <div className="ws-body flow-body">
+          <PipelineView onExpand={expand} />
+        </div>
+      ) : (
+      <>
       <div className="stepper" role="list" aria-label="Pipeline stages">
+        <button className="btn ghost sm stp-back" onClick={() => choosePreset("pipeline")} title="Back to the pipeline view">
+          <GitCommitVertical size={14} /> Pipeline view
+        </button>
         <button className={`stp ${ws.spec.source ? "ok" : ""} ${ws.sel === SOURCE ? "on" : ""}`} onClick={() => !ws.draft && ws.setSel(SOURCE)} role="listitem">
           <span className="n">01</span>
           <span>
@@ -429,6 +516,8 @@ function Workspace() {
           </aside>
         )}
       </div>
+      </>
+      )}
 
       <TransformPicker />
       {ws.runModal && <RunModal onClose={() => ws.setRunModal(false)} />}
@@ -436,8 +525,32 @@ function Workspace() {
       {scheduling && <ScheduleModal onClose={() => setScheduling(false)} />}
       {more.node}
       {presetMenu.node}
+      {execMenu.node}
     </div>
   );
+}
+
+function useNarrow(): boolean {
+  const q = "(max-width: 760px)";
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
+
+function sanitize(l: WorkspaceLayout): WorkspaceLayout {
+  if (l.columns.every((c) => c.panels.every((p) => p in PANELS))) return l;
+  const columns = l.columns
+    .map((c) => {
+      const keep = c.panels.map((p, i) => [p, i] as const).filter(([p]) => p in PANELS);
+      return { ...c, panels: keep.map(([p]) => p), heights: c.heights && keep.map(([, i]) => c.heights![i]) };
+    })
+    .filter((c) => c.panels.length);
+  return { ...l, columns };
 }
 
 function MaxPanel({ id }: { id: PanelId }) {
@@ -447,11 +560,11 @@ function MaxPanel({ id }: { id: PanelId }) {
 
 function RunModal({ onClose }: { onClose: () => void }) {
   const ws = useWs();
-  const nav = useNavigate();
   const app = useApp.getState();
   const [mode, setMode] = useState<"current" | "other">("current");
   const { health } = useServerHealth();
-  const [where, setWhere] = useState<"browser" | "server">(health ? "server" : "browser");
+  const project = useProject(ws.pipeline.projectId);
+  const [where, setWhere] = useState<"browser" | "server">(health && project?.execution === "server" ? "server" : "browser");
   const [other, setOther] = useState<{ id: string; name: string; missing: string[]; rows: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -463,7 +576,7 @@ function RunModal({ onClose }: { onClose: () => void }) {
     setBusy(true);
     try {
       const parsed = await parseFile(f);
-      const meta = await app.addSource(parsed.source);
+      const meta = await app.addSource(parsed.source, p.projectId);
       const spec = defaultSourceSpec(parsed.source, ws.spec.source?.sheet);
       const sheet = parsed.source.sheets.find((s) => s.name === spec.sheet) ?? parsed.source.sheets[0];
       const ds = loadDataset(sheet, spec);
@@ -475,11 +588,15 @@ function RunModal({ onClose }: { onClose: () => void }) {
     }
   };
 
+  // Runs are watched in the pipeline view; the run record stays one click away.
   const run = async () => {
     setBusy(true);
     onClose();
-    const r = where === "server" ? await app.runOnServer(p.id) : await app.runPipeline(p.id, "manual", mode === "other" && other ? { sourceFileId: other.id } : {});
-    if (r) nav(`/runs/${r.id}`);
+    app.setPreset(p.id, "pipeline");
+    if (where === "server") {
+      const r = await app.runOnServer(p.id);
+      if (r) app.toast("info", "Running on the FORMA server. Results appear when it finishes.");
+    } else await app.runPipeline(p.id, "manual", mode === "other" && other ? { sourceFileId: other.id } : {});
   };
 
   return (
@@ -513,11 +630,11 @@ function RunModal({ onClose }: { onClose: () => void }) {
                 if (w === "server") setMode("current");
               }}
               options={[
-                { value: "server", label: "FORMA server" },
-                { value: "browser", label: "This browser" },
+                { value: "browser", label: "Local" },
+                { value: "server", label: "FORMA Server" },
               ]}
             />
-            <div className="hint">{where === "server" ? "Runs the exported Python on the server: large files, database destinations, run history shared with schedules." : "Runs in a background worker in this tab."}</div>
+            <div className="hint">{where === "server" ? "Runs through the connected FORMA execution server (the exported Python): large files, databases, shared run history." : "Runs in this browser."}</div>
           </div>
         )}
         <label className={`option ${mode === "current" ? "on" : ""}`}>

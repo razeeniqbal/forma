@@ -37,10 +37,10 @@ export function useServerHealth(): { configured: boolean; health?: ServerHealth;
 }
 
 /** Add a database query or API / Google Sheets source through the FORMA server. */
-export function ServerSourceModal({ onClose, onAdded }: { onClose: () => void; onAdded: (meta: SourceMeta) => void }) {
+export function ServerSourceModal({ projectId, initialKind = "database", onClose, onAdded }: { projectId: string; initialKind?: "database" | "api"; onClose: () => void; onAdded: (meta: SourceMeta) => void }) {
   const connections = useApp((s) => s.connections);
   const addSource = useApp((s) => s.addSource);
-  const [kind, setKind] = useState<"database" | "api">("database");
+  const [kind, setKind] = useState<"database" | "api">(initialKind);
   const [urlEnv, setUrlEnv] = useState(connections.find((c) => c.type !== "api")?.envVar ?? "WAREHOUSE_URL");
   const [query, setQuery] = useState("select * from invoices");
   const [url, setUrl] = useState("");
@@ -86,7 +86,7 @@ export function ServerSourceModal({ onClose, onAdded }: { onClose: () => void; o
       sheets: [{ name: kind === "database" ? "query" : "records", cells: grid }],
       origin,
     };
-    onAdded(await addSource(file));
+    onAdded(await addSource(file, projectId));
     onClose();
   };
 

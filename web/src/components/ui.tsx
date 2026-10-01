@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import { create } from "zustand";
 import { AlertTriangle, CheckCircle2, Info, X, XCircle, Loader2, CircleDashed } from "lucide-react";
 import { useApp } from "@/store/app";
@@ -284,4 +285,15 @@ export function Ring({ value, size = 84 }: { value: number; size?: number }) {
 export function FileIcon({ kind }: { kind: string }) {
   const label = kind === "excel" ? "XLS" : kind === "csv" ? "CSV" : kind === "text" ? "TXT" : "{ }";
   return <div className={`file-ic ${kind}`}>{label}</div>;
+}
+
+/** Breadcrumb head for screens inside a project: "Project / Section". */
+export function ProjectCrumbs({ projectId, section, sectionPath }: { projectId?: string; section: string; sectionPath: string }) {
+  const project = useApp((s) => s.projects.find((p) => p.id === projectId));
+  if (!project) return null;
+  return (
+    <>
+      <Link to={`/projects/${project.id}`}>{project.name}</Link>/<Link to={`/projects/${project.id}/${sectionPath}`}>{section}</Link>/
+    </>
+  );
 }

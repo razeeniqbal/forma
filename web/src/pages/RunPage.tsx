@@ -9,7 +9,7 @@ import type { Run } from "@/store/model";
 import type { Dataset } from "@/engine/types";
 import { DataGrid, estimateWidths } from "@/components/DataGrid";
 import { CodeView } from "@/components/CodeView";
-import { Empty, Modal, StatusBadge, StatusIcon } from "@/components/ui";
+import { Empty, Modal, StatusBadge, StatusIcon, ProjectCrumbs } from "@/components/ui";
 import { generateConfigYaml, generatePipelineJson } from "@/codegen/python";
 import { toCsv } from "@/lib/exporters";
 import { copyText, download, fmtDateTime, fmtDuration, fmtInt, fmtPct, fmtTime } from "@/lib/format";
@@ -39,7 +39,7 @@ export function RunPage() {
   if (!run)
     return (
       <div className="page">
-        <Empty icon={<History size={22} />} title="Run not found" action={<Link className="btn" to="/runs">All runs</Link>} />
+        <Empty icon={<History size={22} />} title="Run not found" action={<Link className="btn" to="/projects">Projects</Link>} />
       </div>
     );
 
@@ -58,7 +58,7 @@ export function RunPage() {
   return (
     <div className="page wide">
       <div className="crumbs">
-        <Link to="/runs">Runs</Link>/<Link to={`/pipelines/${run.pipelineId}`}>{run.pipelineName}</Link>/<span className="cur">{fmtDateTime(run.startedAt)}</span>
+        <ProjectCrumbs projectId={run.projectId} section="Runs" sectionPath="runs" /><Link to={`/pipelines/${run.pipelineId}`}>{run.pipelineName}</Link>/<span className="cur">{fmtDateTime(run.startedAt)}</span>
       </div>
       <div className="page-head" style={{ alignItems: "center" }}>
         <div>

@@ -22,6 +22,9 @@ export function DestinationsPage() {
   const [adding, setAdding] = useState(false);
   return (
     <div className="page">
+      <div className="crumbs">
+        <Link to="/settings">Settings</Link>/<span className="cur">Destinations &amp; connections</span>
+      </div>
       <div className="page-head">
         <div>
           <h1>Destinations &amp; connections</h1>
