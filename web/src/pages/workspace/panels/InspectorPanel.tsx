@@ -4,7 +4,12 @@ import {
   Info, Upload, Crosshair, SlidersHorizontal, Eye, Database, FileSpreadsheet, Type,
 } from "lucide-react";
 import type { Dataset, Destination, Step } from "@/engine/types";
-import { describeStep, STAGE_OF, stepColumns, stepTitle, TRANSFORMS } from "@/engine/registry";
+import { describeStep, stageOf, stepColumns, stepTitle } from "@/engine/registry";
+import { operationOf } from "@/engine/taxonomy";
+import { DocLink } from "@/components/DocLink";
+import { explainMissingColumn } from "@/lib/schema";
+import { loadDestination, setLoadDestination } from "@/engine/graph/spec";
+import { LOAD_ID } from "@/engine/graph/model";
 import { colLetter, detectRegion } from "@/engine/load";
 import { observations, profileColumn, profileDataset, type ColumnProfile } from "@/engine/profile";
 import { generateStep } from "@/codegen/python";
@@ -55,7 +60,7 @@ function DraftEditor() {
   const before = ws.datasetBefore(d.index);
   const res = ws.preview.result?.steps[d.index];
   const [showAll, setShowAll] = useState(false);
-  const meta = TRANSFORMS.find((t) => t.type === d.step.type);
+  const meta = operationOf(d.step);
   const results = ws.preview.result?.ruleResults ?? [];
   const onChange = (s: Step) => ws.updateDraft(s);
   let form: React.ReactNode;
@@ -72,9 +77,10 @@ function DraftEditor() {
           <h2 style={{ fontSize: 16 }} className="grow">
             {stepTitle(d.step)}
           </h2>
-          <span className="badge">{STAGE_OF[d.step.type]}</span>
+          <span className="badge">{stageOf(d.step)}</span>
         </div>
-        <div className="muted small">{meta?.description}</div>
+        <div className="muted small">{meta.description}</div>
+        <DocLink page={meta.doc} className="block" />
       </div>
       <div className="field">
         <label>Step label (optional)</label>
@@ -86,7 +92,10 @@ function DraftEditor() {
       {res?.error ? (
         <div className="callout red">
           <XCircle size={16} />
-          {res.error}
+          <div>
+            {res.error}
+            {explainMissingColumn(ws.effective, d.index, res.error, ws.preview.result?.snapshots) && <div className="small">{explainMissingColumn(ws.effective, d.index, res.error, ws.preview.result?.snapshots)}</div>}
+          </div>
         </div>
       ) : res ? (
         <>
@@ -156,10 +165,11 @@ function StepSummary({ index }: { index: number }) {
         <div className="muted small" style={{ marginTop: 4 }}>
           {describeStep(step).detail}
         </div>
+        <DocLink page={operationOf(step).doc} className="block" />
       </div>
       <div className="kv">
         <div>Stage</div>
-        <div>{STAGE_OF[step.type]}</div>
+        <div>{stageOf(step)}</div>
         <div>Affects</div>
         <div>{stepColumns(step).join(", ") || "-"}</div>
         <div>Position</div>
@@ -179,7 +189,11 @@ function StepSummary({ index }: { index: number }) {
       </div>
       {res?.error && (
         <div className="callout red">
-          <XCircle size={16} /> {res.error}
+          <XCircle size={16} />
+          <div>
+            {res.error}
+            {explainMissingColumn(ws.spec, index, res.error, ws.preview.result?.snapshots) && <div className="small">{explainMissingColumn(ws.spec, index, res.error, ws.preview.result?.snapshots)}</div>}
+          </div>
         </div>
       )}
       {issues.length > 0 && (
@@ -505,23 +519,36 @@ function SourceInspector() {
   );
 }
 
-function LoadInspector() {
+/** Destination of a Load: the main one, or an extra Load ending a branch. */
+export function LoadInspector({ loadId = LOAD_ID }: { loadId?: string }) {
   const ws = useWs();
   const connections = useApp((s) => s.connections);
-  const d: Destination = ws.spec.destination ?? { type: "file", format: "csv", path: "" };
-  const set = (patch: Partial<Destination>) => ws.update((s) => ({ ...s, destination: { ...d, ...patch } }), "dest");
+  const d: Destination = loadDestination(ws.spec, loadId) ?? { type: "file", format: "csv", path: "" };
+  const set = (patch: Partial<Destination>) => ws.update((s) => setLoadDestination(s, loadId, { ...d, ...patch }), `dest:${loadId}`);
   const res = ws.preview.result;
+  const branch = res?.loads?.find((l) => l.id === loadId);
+  const extra = loadId !== LOAD_ID;
   return (
     <div className="col" style={{ gap: 12 }}>
       <div className="row">
         <Database size={18} color="var(--blue)" />
-        <h2 style={{ fontSize: 16 }}>Destination</h2>
+        <h2 style={{ fontSize: 16 }} className="grow">
+          {extra ? "Branch destination" : "Destination"}
+        </h2>
+        <DocLink page="tools-load" />
       </div>
-      {res && (
+      {res && !extra && (
         <div className="grid-3" style={{ gap: 8 }}>
           <MiniStat k="To load" v={fmtInt(res.output.rows.length)} />
           <MiniStat k="Review" v={fmtInt(res.reviewRows.length)} tone={res.reviewRows.length ? "amber" : undefined} />
           <MiniStat k="Excluded" v={fmtInt(res.excludedRows.length)} />
+        </div>
+      )}
+      {extra && branch && (
+        <div className="grid-3" style={{ gap: 8 }}>
+          <MiniStat k="Reaching it" v={fmtInt(branch.beforeGate.rows.length)} />
+          <MiniStat k="To load" v={fmtInt(branch.output.rows.length)} />
+          <MiniStat k="Held" v={fmtInt(branch.beforeGate.rows.length - branch.output.rows.length)} tone={branch.beforeGate.rows.length > branch.output.rows.length ? "amber" : undefined} />
         </div>
       )}
       <Seg value={d.type} onChange={(type) => set({ type })} options={[{ value: "file", label: "File" }, { value: "database", label: "Database" }]} />
@@ -572,6 +599,11 @@ function LoadInspector() {
         <AlertTriangle size={16} />
         <div>Rows with unresolved review items are held back and never loaded silently.</div>
       </div>
+      {extra && (
+        <button className="btn danger" onClick={() => ws.removeLoad(loadId)}>
+          <Trash2 size={14} /> Remove this Load
+        </button>
+      )}
     </div>
   );
 }

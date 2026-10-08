@@ -81,8 +81,10 @@ class Jobs:
                 raise FileNotFoundError(f"Source file {file_id} was not uploaded to the server")
             target = config["source"] if key == "source" else config["sources"][key.split(".", 1)[1]]
             target["path"] = f["path"]
-        if config["output"]["type"] == "file":
-            config["output"]["path"] = "output/" + Path(config["output"]["path"]).name
+        # Linear exports have one "output"; pipelines with connections have "outputs" by Load id.
+        for target in [config["output"]] if "output" in config else config.get("outputs", {}).values():
+            if target["type"] == "file":
+                target["path"] = "output/" + Path(target["path"]).name
         (run_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
     def _execute(self, run_id: str, run_dir: Path) -> None:

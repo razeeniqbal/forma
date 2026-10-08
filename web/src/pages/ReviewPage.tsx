@@ -9,6 +9,7 @@ import { Empty, ProjectCrumbs, StatusBadge } from "@/components/ui";
 import { stepTitle } from "@/engine/registry";
 import { ISSUE_LABEL, upsertDecisions } from "@/lib/review";
 import { RuleSuggestions } from "./RuleSuggestions";
+import { DocLink } from "@/components/DocLink";
 import { copyText, fmtDateTime, fmtInt } from "@/lib/format";
 
 interface Item {
@@ -144,6 +145,7 @@ function Review({ run, pipelineExists }: { run: Run; pipelineExists: boolean }) 
               Run ID <span className="mono">{run.id}</span>
             </span>
             <StatusBadge status={run.status} />
+            <DocLink page="review-why" />
             {items.length > 0 && (
               <span className="badge amber">
                 <AlertTriangle size={13} /> {fmtInt(items.length)} rows need review

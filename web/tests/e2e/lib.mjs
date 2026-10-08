@@ -53,10 +53,10 @@ export async function openPipeline(page, projectId, name) {
   return page.url().split("/pipelines/")[1].split(/[?/]/)[0];
 }
 
-/** Switches the open pipeline to a workbench view ("Analyst", "Engineer", …). */
+/** Switches the open pipeline to the Workbench ("Workbench") or a panel layout ("Analyst", "Engineer", ...). */
 export async function workbench(page, view) {
   await page.getByRole("button", { name: "Workbench views" }).click();
-  await page.getByRole("menuitem", { name: `${view} view` }).click();
+  await page.getByRole("menuitem", { name: view === "Workbench" ? "Workbench" : `${view} layout`, exact: true }).click();
   await page.locator(".grid-row, .panel").first().waitFor();
 }
 
@@ -65,10 +65,10 @@ export async function pipelineView(page) {
   await page.locator(".cnode").first().waitFor();
 }
 
-/** Opens the transformation picker and chooses the first match for `q`. */
+/** Opens Add Tool and chooses the first search match for `q`. */
 export async function pick(page, q) {
   await page.getByRole("button", { name: "Add transformation" }).last().click();
-  await page.getByPlaceholder(/Search transformations|Add transformation/).fill(q);
+  await page.getByPlaceholder(/Search tools/).fill(q);
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, ChevronUp, ChevronDown, Trash2, Pencil, Database, FileSpreadsheet, MoreHorizontal, Bookmark } from "lucide-react";
 import { useApp } from "@/store/app";
-import { describeStep, STAGE_OF, stepTitle } from "@/engine/registry";
+import { describeStep, stageOf, stepTitle } from "@/engine/registry";
 import type { StepResult } from "@/engine/types";
 import { useMenu } from "@/components/ui";
 import { useWs, SOURCE } from "../context";
@@ -78,7 +78,7 @@ export function PipelinePanel() {
                   {stepTitle(s)} {isDraft && <span className="badge blue sm">{ws.draft?.isNew ? "Preview" : "Editing"}</span>}
                 </div>
                 <div className="d">
-                  <span className="subtle">{STAGE_OF[s.type]} · </span>
+                  <span className="subtle">{stageOf(s)} · </span>
                   {r?.error ? <span style={{ color: "var(--red-text)" }}>{r.error}</span> : describeStep(s).detail}
                 </div>
               </div>

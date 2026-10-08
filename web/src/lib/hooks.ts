@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ExecutionResult, PipelineSpec, RawSheet, SourceFile } from "@/engine/types";
-import { execute } from "@/engine/execute";
+import { executeSpec } from "@/engine/graph/run";
+import { extraSources } from "@/engine/graph/spec";
 import { getSourceFile, peekSourceFile } from "@/store/db";
 import { loadSideSheets, useApp } from "@/store/app";
 
@@ -40,10 +41,7 @@ export function sheetOf(file: SourceFile | undefined, name?: string): RawSheet |
 
 /** Raw sheets of join / lookup / append sources used by a spec, loaded from storage. */
 export function useSideSheets(spec: PipelineSpec | undefined): Record<string, RawSheet> | undefined {
-  const key = (spec?.steps ?? [])
-    .map((s) => (s.type === "join" || s.type === "append" ? `${s.source.fileId}:${s.source.sheet ?? ""}` : ""))
-    .filter((k) => k && !k.startsWith(":"))
-    .join("|");
+  const key = spec ? extraSources(spec).map((s) => `${s.fileId}:${s.sheet ?? ""}`).join("|") : "";
   const [state, setState] = useState<{ key: string; sheets: Record<string, RawSheet> } | null>(key ? null : { key: "", sheets: {} });
   useEffect(() => {
     if (!key) {
@@ -74,7 +72,7 @@ export function usePreview(spec: PipelineSpec | undefined): { result?: Execution
     if (!sheets) return { loading: true, sampled: false };
     const sheet = sheetOf(file, spec.source.sheet)!;
     try {
-      const result = execute(spec, sheet, { limit: previewRows, keepSnapshots: true, sheets });
+      const result = executeSpec(spec, sheet, { limit: previewRows, keepSnapshots: true, sheets });
       return { result, loading: false, sampled: sheet.cells.length - spec.source.headerRow - 1 > previewRows };
     } catch (e) {
       return { error: (e as Error).message, loading: false, sampled: false };

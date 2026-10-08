@@ -3,12 +3,13 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
   Play, FlaskConical, CalendarClock, Code2, MoreHorizontal, Undo2, Redo2, LayoutGrid, X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
-  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow, Info, Bookmark, GitCommitVertical, Monitor, Server,
+  Save, ShieldCheck, ListChecks, Copy, Trash2, History, Upload, Loader2, Eye, EyeOff, Check, Plus, Workflow, Info, Bookmark, GitCommitVertical, Monitor, Server, BookOpen, Maximize, PanelsTopLeft,
 } from "lucide-react";
 import { useApp, usePipeline, useProject, defaultSourceSpec } from "@/store/app";
 import type { PanelId, PresetId, WorkspaceLayout } from "@/store/model";
 import { ALL_PANELS, cloneLayout, PANEL_TITLES, PRESET_LABEL, PRESET_ORDER, PRESETS } from "@/store/layouts";
-import { STAGE_OF, stepTitle, describeStep, TRANSFORMS } from "@/engine/registry";
+import { stageOf, stepTitle, describeStep } from "@/engine/registry";
+import { CATEGORIES, OPERATIONS, operation, pathOf } from "@/engine/taxonomy";
 import type { StepType } from "@/engine/types";
 import { loadDataset } from "@/engine/load";
 import { ACCEPT, parseFile } from "@/parsers";
@@ -30,6 +31,8 @@ import { TransformPicker } from "./TransformPicker";
 import { PipelineView } from "./PipelineView";
 import { CanvasPanel } from "./panels/CanvasPanel";
 import { startCombineDraft } from "./combine";
+import { WorkbenchSections, type WorkbenchMode } from "./WorkbenchSections";
+import { canvasCommand } from "./canvas/PipelineCanvas";
 import { projectPath } from "@/lib/project";
 
 const PANELS: Record<PanelId, () => JSX.Element> = {
@@ -77,6 +80,7 @@ function Workspace() {
   const [maximized, setMaximized] = useState<PanelId | null>(null);
   const [versions, setVersions] = useState(false);
   const [scheduling, setScheduling] = useState(false);
+  const [wbMode, setWbMode] = useState<WorkbenchMode>("configure");
   const [name, setName] = useState(pipeline.spec.name);
   const more = useMenu();
   const presetMenu = useMenu();
@@ -106,16 +110,18 @@ function Workspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, ws.preview.result]);
 
-  /** Level 3: open the step in the panel workbench. */
-  const expand = (index: number) => {
+  /** Level 3: open the node in the Workbench, with the sections that matter for it. */
+  const expand = (index: number, mode: WorkbenchMode = "configure") => {
     ws.setSel(index);
-    app.setPreset(pipeline.id, index === -1 ? "extraction" : "analyst");
+    setWbMode(mode);
+    app.setPreset(pipeline.id, "focus");
   };
+  const isSections = pipeline.preset === "focus";
 
   useEffect(() => setName(pipeline.spec.name), [pipeline.spec.name]);
 
   const base: WorkspaceLayout =
-    pipeline.preset === "custom" ? layouts.find((l) => l.id === pipeline.customLayoutId) ?? PRESETS.analyst : pipeline.preset === "pipeline" ? PRESETS.analyst : PRESETS[pipeline.preset];
+    pipeline.preset === "custom" ? layouts.find((l) => l.id === pipeline.customLayoutId) ?? PRESETS.analyst : pipeline.preset === "pipeline" || pipeline.preset === "focus" ? PRESETS.analyst : PRESETS[pipeline.preset];
   // Saved layouts may name panels that no longer exist (the retired SQL placeholder).
   const layout = sanitize(edit ?? base);
   const setLayout = (l: WorkspaceLayout) =>
@@ -208,34 +214,62 @@ function Workspace() {
     [ws.draft, ws.sel, ws.column, ws.cell, ws.spec.steps.length, maximized, customize, pipeline.id],
   );
 
+  const onCanvas = (cmd: "fit" | "layout") => {
+    if (!isFlow) app.setPreset(pipeline.id, "pipeline");
+    canvasCommand(pipeline.id, cmd);
+  };
   const paletteActions = useMemo<PaletteAction[]>(
     () => [
-      ...TRANSFORMS.filter((t) => !t.later).map((t) => ({
-        id: `add-${t.type}`,
-        group: "Add transformation",
-        title: t.title,
-        description: t.description,
-        keywords: t.keywords,
+      ...CATEGORIES.map((c) => ({
+        id: `addcat-${c.id}`,
+        group: "Add tool",
+        title: `Add ${c.title}`,
+        description: c.tagline,
+        keywords: `tool ${c.id}`,
         icon: <Plus size={16} />,
-        run: () => ws.addStep(t.type as StepType | "lookup"),
+        run: () => (c.id === "source" || c.id === "load" ? ws.inspect(c.id === "source" ? SOURCE : ws.spec.steps.length, true) : ws.openPicker(undefined, c.id)),
       })),
-      { id: "run", group: "Pipeline", title: "Run pipeline", icon: <Play size={16} />, run: () => ws.setRunModal(true) },
-      { id: "test", group: "Pipeline", title: "Test run", icon: <FlaskConical size={16} />, run: testRun },
+      { id: "add-branch-load", group: "Add tool", title: "Add Load (branch)", description: "Write the selected tool's output to its own destination as well", keywords: "branch output destination split", icon: <Plus size={16} />, run: () => ws.addLoad() },
+      ...(["join", "lookup", "append"] as const).map((id) => ({
+        id: `add-${id}`,
+        group: "Add tool",
+        title: `Add ${operation(id).title}`,
+        description: operation(id).description,
+        keywords: operation(id).keywords,
+        icon: <Plus size={16} />,
+        run: () => ws.addStep(id),
+      })),
+      ...OPERATIONS.filter((o) => !["source", "load", "join", "lookup", "append"].includes(o.id)).map((o) => ({
+        id: `add-${o.id}`,
+        group: "Tools",
+        title: pathOf(o).join(" > "),
+        description: o.description,
+        keywords: o.keywords,
+        icon: <Plus size={16} />,
+        run: () => ws.addStep(o.id as StepType),
+      })),
+      { id: "run", group: "Pipeline", title: "Run Pipeline", icon: <Play size={16} />, run: () => ws.setRunModal(true) },
+      { id: "test", group: "Pipeline", title: "Test Run", icon: <FlaskConical size={16} />, run: testRun },
+      { id: "review", group: "Pipeline", title: "Open Review", keywords: "queue exceptions", icon: <ListChecks size={16} />, run: () => nav(`/pipelines/${pipeline.id}/review`) },
+      { id: "fit", group: "Canvas", title: "Fit Pipeline", keywords: "zoom view", icon: <Maximize size={16} />, run: () => onCanvas("fit") },
+      { id: "layout", group: "Canvas", title: "Auto Layout", keywords: "arrange tidy", icon: <Workflow size={16} />, run: () => onCanvas("layout") },
       { id: "export", group: "Pipeline", title: "Export Python", icon: <Code2 size={16} />, run: () => nav(`/pipelines/${pipeline.id}/export`) },
       { id: "validate", group: "Pipeline", title: "Open validation", icon: <ShieldCheck size={16} />, run: () => nav(`/pipelines/${pipeline.id}/validate`) },
-      { id: "review", group: "Pipeline", title: "Open review queue", icon: <ListChecks size={16} />, run: () => nav(`/pipelines/${pipeline.id}/review`) },
       { id: "save", group: "Pipeline", title: "Save version", keywords: "publish", icon: <Save size={16} />, run: saveVersion },
-      ...PRESET_ORDER.filter((p) => p !== "custom").map((p) => ({
+      { id: "view-canvas", group: "Workspace", title: "Pipeline Canvas", keywords: "view flow", icon: <GitCommitVertical size={16} />, run: () => choosePreset("pipeline") },
+      { id: "view-workbench", group: "Workspace", title: "Open Workbench", keywords: "inspect sections", icon: <PanelsTopLeft size={16} />, run: () => expand(ws.sel) },
+      { id: "view-engineer", group: "Workspace", title: "Open Engineer View", keywords: "code python canvas", icon: <Code2 size={16} />, run: () => choosePreset("engineer") },
+      ...PRESET_ORDER.filter((p) => !["custom", "pipeline", "focus", "engineer"].includes(p)).map((p) => ({
         id: `preset-${p}`,
         group: "Workspace",
-        title: p === "pipeline" ? "Pipeline view" : `${PRESET_LABEL[p]} view`,
-        keywords: "preset layout",
+        title: `${PRESET_LABEL[p]} layout`,
+        keywords: "preset layout view",
         icon: <LayoutGrid size={16} />,
         run: () => choosePreset(p),
       })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pipeline.id, ws.addStep, ws.draft],
+    [pipeline.id, ws.addStep, ws.addLoad, ws.openPicker, ws.inspect, ws.draft, ws.sel, ws.spec.steps.length, isFlow],
   );
   usePaletteActions("workspace", paletteActions);
 
@@ -284,6 +318,8 @@ function Workspace() {
                   icon: execution === "server" ? <Check size={15} /> : <Server size={15} />,
                   onClick: () => (serverUrl ? project && app.updateProject(project.id, { execution: "server" }) : nav("/settings")),
                 },
+                { separator: true, label: "" },
+                { label: "Learn about execution", icon: <BookOpen size={15} />, onClick: () => nav("/docs/execution-local") },
               ])
             }
           >
@@ -297,13 +333,15 @@ function Workspace() {
               className={!isFlow ? "on" : ""}
               aria-label="Workbench views"
               onClick={(e) => presetMenu.open(e.currentTarget.getBoundingClientRect(), [
-            ...PRESET_ORDER.filter((p) => p !== "custom" && p !== "pipeline").map((p) => ({ label: `${PRESET_LABEL[p]} view`, icon: pipeline.preset === p ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset(p) })),
+            { label: "Workbench", icon: pipeline.preset === "focus" ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => expand(ws.sel) },
+            { separator: true, label: "" },
+            ...PRESET_ORDER.filter((p) => p !== "custom" && p !== "pipeline" && p !== "focus").map((p) => ({ label: `${PRESET_LABEL[p]} layout`, icon: pipeline.preset === p ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset(p) })),
             ...(layouts.length ? [{ separator: true, label: "" }] : []),
             ...layouts.map((l) => ({ label: l.name, icon: pipeline.customLayoutId === l.id && pipeline.preset === "custom" ? <Check size={15} /> : <span style={{ width: 15 }} />, onClick: () => choosePreset("custom", l.id) })),
             { separator: true, label: "" },
             { label: "Customize workbench…", icon: <LayoutGrid size={15} />, onClick: () => { if (isFlow) app.setPreset(pipeline.id, "analyst"); setCustomize(true); } },
           ])}>
-              <LayoutGrid size={14} /> {isFlow ? "Workbench" : presetLabel}
+              <LayoutGrid size={14} /> {isFlow || isSections ? "Workbench" : presetLabel}
               {edit && <span className="dot" style={{ background: "var(--amber)" }} title="Unsaved layout changes" />}
             </button>
           </div>
@@ -385,7 +423,7 @@ function Workspace() {
             <button className={`stp ${stepState(results[i])} ${ws.sel === i ? "on" : ""}`} onClick={() => !ws.draft && ws.setSel(i)} role="listitem" title={describeStep(s).detail}>
               <span className="n">{String(i + 2).padStart(2, "0")}</span>
               <span>
-                <div className="t">{STAGE_OF[s.type]}</div>
+                <div className="t">{stageOf(s)}</div>
                 <div className="d">{stepTitle(s)}</div>
               </span>
             </button>
@@ -401,6 +439,11 @@ function Workspace() {
         </button>
       </div>
 
+      {isSections ? (
+        <div className="ws-body wbs-body-wrap">
+          <WorkbenchSections mode={wbMode} onMode={setWbMode} />
+        </div>
+      ) : (
       <div className="ws-body">
         <LayoutCtl.Provider value={{ hide, toggleMax: (p) => setMaximized((m) => (m === p ? null : p)), maximized }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -506,6 +549,7 @@ function Workspace() {
           </aside>
         )}
       </div>
+      )}
       </>
       )}
 

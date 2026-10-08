@@ -1,8 +1,11 @@
 // App-level objects around the PipelineSpec (PRD §5, §12, §20).
 import type { Dataset, Issue, PipelineSpec, RuleResult, SourceKind, StepResult } from "@/engine/types";
 
-/** Pipeline view modes. "pipeline" is the visual step flow; the others are workbench panel layouts. */
-export type PresetId = "pipeline" | "analyst" | "extraction" | "compare" | "engineer" | "monitor" | "custom";
+/**
+ * Pipeline view modes. "pipeline" is the canvas; "focus" is the default Workbench (collapsible sections that
+ * open for the selected node); the others are panel layouts kept for deep, arranged work.
+ */
+export type PresetId = "pipeline" | "focus" | "analyst" | "extraction" | "compare" | "engineer" | "monitor" | "custom";
 
 /** Where pipeline runs execute. */
 export type ExecutionTarget = "local" | "server";
@@ -99,6 +102,8 @@ export interface Run {
   ruleResults: RuleResult[];
   columns: string[];
   error?: string;
+  /** Branching pipelines: every Load (the main one first), with the rows reaching it and the rows it wrote. */
+  loads?: { id: string; label: string; rowsIn: number; rowsOut: number }[];
   /** Executed on the FORMA server (id there). */
   remoteId?: string;
   trigger?: string;

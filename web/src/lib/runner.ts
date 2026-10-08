@@ -1,4 +1,4 @@
-import { execute } from "@/engine/execute";
+import { executeSpec } from "@/engine/graph/run";
 import type { ExecutionResult, PipelineSpec, RawSheet, StepResult } from "@/engine/types";
 
 export type RunProgress = { kind: "loaded"; rows: number; columns: number } | { kind: "step"; index: number; result: StepResult };
@@ -13,7 +13,7 @@ export function executeInWorker(
 ): Promise<ExecutionResult> {
   if (typeof Worker === "undefined")
     return Promise.resolve(
-      execute(spec, sheet, {
+      executeSpec(spec, sheet, {
         limit,
         sheets,
         onLoaded: (rows, columns) => onProgress?.({ kind: "loaded", rows, columns }),

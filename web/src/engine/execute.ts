@@ -42,11 +42,18 @@ export class StepError extends Error {
   }
 }
 
-interface Ctx {
+export interface Ctx {
   issues: Issue[];
   step: Step;
   env: Env;
+  /** Graph execution: the second dataset of a join / lookup / append, already computed by its input node. */
+  other?: Dataset;
+  /** Name of that second input, for messages (a file name, or the producing step's title). */
+  otherName?: string;
 }
+
+/** Name of a combine step's second input, for messages. */
+const otherName = (ctx: Ctx, step: Extract<Step, { type: "join" | "append" }>) => ctx.otherName ?? step.source.file;
 
 /** Execution-wide state shared by steps that create new rows. */
 export interface Env {
@@ -62,13 +69,23 @@ export function isReshaping(step: Step): boolean {
   return step.type === "group" || step.type === "pivot" || step.type === "unpivot" || (step.type === "join" && step.mode === "join");
 }
 
-function newRows(ctx: Ctx, columns: string[], rows: Cell[][]): Dataset {
+export function newRows(ctx: Ctx, columns: string[], rows: Cell[][]): Dataset {
   const rowIds = rows.map((row) => {
     const id = ctx.env.nextId++;
     ctx.env.fingerprints.set(id, fingerprint(row));
     return id;
   });
   return { columns, rows, rowIds };
+}
+
+/** Append's explicit schema mapping: rename the appended source's columns onto pipeline columns. */
+function mapColumns(other: Dataset, step: Extract<Step, { type: "append" }>, name: string): Dataset {
+  const mapping = Object.entries(step.mapping ?? {}).filter(([from, to]) => to && from !== to);
+  if (!mapping.length) return other;
+  for (const [from] of mapping) if (!other.columns.includes(from)) throw new StepError(step.id, `Mapped column "${from}" not found in ${name}`);
+  const renamed = other.columns.map((c) => step.mapping![c] || c);
+  if (new Set(renamed).size !== renamed.length) throw new StepError(step.id, "Two appended columns map to the same column; check the schema mapping");
+  return { ...other, columns: renamed };
 }
 
 function sideSource(ctx: Ctx, spec: import("./types").SourceSpec): Dataset {
@@ -228,7 +245,7 @@ export function ruleLabel(rule: ValidationRule): string {
   }
 }
 
-function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[]): Dataset {
+export function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[]): Dataset {
   switch (step.type) {
     case "select": {
       const idx = step.columns.map((c) => colIndex(ds, c, step));
@@ -507,16 +524,16 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
     }
     case "join": {
       if (!step.on.length) throw new StepError(step.id, "Choose at least one key column");
-      const right = sideSource(ctx, step.source);
+      const right = ctx.other ?? sideSource(ctx, step.source);
       const li = step.on.map((o) => colIndex(ds, o.left, step));
       const ri = step.on.map((o) => {
         const i = right.columns.indexOf(o.right);
-        if (i < 0) throw new StepError(step.id, `Column "${o.right}" not found in ${step.source.file}`);
+        if (i < 0) throw new StepError(step.id, `Column "${o.right}" not found in ${otherName(ctx, step)}`);
         return i;
       });
       const bring = step.columns.map((c) => {
         const i = right.columns.indexOf(c);
-        if (i < 0) throw new StepError(step.id, `Column "${c}" not found in ${step.source.file}`);
+        if (i < 0) throw new StepError(step.id, `Column "${c}" not found in ${otherName(ctx, step)}`);
         return i;
       });
       const outNames = step.columns.map((c) => (ds.columns.includes(c) ? `${step.prefix}${c}` : c));
@@ -539,7 +556,7 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
           const hit = li.some((i) => isBlank(row[i])) ? undefined : index.get(keyOf(row, li))?.[0];
           if (hit === undefined) {
             if (step.how === "inner") return;
-            if (step.flagUnmatched) issue(ctx, ds, r, step.on[0].left, "missing_value", `No match in ${step.source.file} for ${step.on.map((o) => toText(row[ds.columns.indexOf(o.left)]) ?? "blank").join(", ")}`, row[li[0]]);
+            if (step.flagUnmatched) issue(ctx, ds, r, step.on[0].left, "missing_value", `No match in ${otherName(ctx, step)} for ${step.on.map((o) => toText(row[ds.columns.indexOf(o.left)]) ?? "blank").join(", ")}`, row[li[0]]);
           }
           rows.push([...row, ...(hit === undefined ? blank() : pick(hit))]);
           rowIds.push(ds.rowIds[r]);
@@ -558,7 +575,7 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
       return newRows(ctx, columns, rows);
     }
     case "append": {
-      const other = sideSource(ctx, step.source);
+      const other = mapColumns(ctx.other ?? sideSource(ctx, step.source), step, otherName(ctx, step));
       const columns = [...ds.columns, ...other.columns.filter((c) => !ds.columns.includes(c))];
       const pad = columns.length - ds.columns.length;
       const map = columns.map((c) => other.columns.indexOf(c));
@@ -639,7 +656,7 @@ function applyStep(ds: Dataset, step: Step, ctx: Ctx, ruleResults: RuleResult[])
  * Only rows present before the step are affected, so issues of rows already
  * held for review at an earlier gate are kept.
  */
-function reconcileIssues(issues: Issue[], step: Step, before: Dataset, out: Dataset): Issue[] {
+export function reconcileIssues(issues: Issue[], step: Step, before: Dataset, out: Dataset): Issue[] {
   let next = issues;
   if (step.type === "rename") {
     next = next.map((i) => (step.mapping[i.column] ? { ...i, column: step.mapping[i.column] } : i));
@@ -653,7 +670,7 @@ function reconcileIssues(issues: Issue[], step: Step, before: Dataset, out: Data
   return next;
 }
 
-function countChanges(before: Dataset, after: Dataset): number {
+export function countChanges(before: Dataset, after: Dataset): number {
   if (before.rowIds !== after.rowIds && before.rows.length !== after.rows.length) return 0;
   let n = 0;
   const shared = after.columns.map((c) => before.columns.indexOf(c));

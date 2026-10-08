@@ -14,11 +14,14 @@ await pick(page, "lookup");
 const panel = page.locator('section[aria-label="New transformation"]');
 await panel.getByText("Lookup from · project sources").waitFor();
 await panel.getByRole("radio", { name: /customers\.csv/ }).click();
-await panel.getByText("Columns to bring in").waitFor();
+await panel.getByText("Fields to bring across").waitFor();
 await page.waitForTimeout(500);
+if (!(await page.getByRole("button", { name: /Apply transformation/ }).isDisabled())) throw new Error("keys must not be chosen silently");
+await panel.getByRole("button", { name: "Use", exact: true }).first().click();
+await page.waitForTimeout(400);
 const text = await panel.innerText();
-if (!/19 rows · 4 columns/.test(text)) throw new Error("customers.csv not loaded:\n" + text);
-if (!/Clean Invoices[\s\S]*customers/.test(text)) throw new Error("key mapping names both sides:\n" + text);
+if (!/Reference dataset: 19 rows, 4 columns/.test(text)) throw new Error("customers.csv not loaded:\n" + text);
+if (!/Primary dataset[\s\S]*Reference dataset \(customers\)/.test(text)) throw new Error("key mapping names both sides by role:\n" + text);
 await shot("lookup");
 await apply(page);
 

@@ -149,7 +149,8 @@ export function makeStep(kind: StepType | "lookup", ds: Dataset | undefined, col
         source: EMPTY_SOURCE,
         mode: kind === "lookup" ? "lookup" : "join",
         how: "left",
-        on: col ? [{ left: col, right: col }] : [],
+        // Keys are never guessed: only a column the user started from is used, and only if both sides have it.
+        on: column && cols.includes(column) ? [{ left: column, right: column }] : [],
         columns: [],
         prefix: "right_",
         flagUnmatched: kind === "lookup",

@@ -19,7 +19,7 @@ import { RunsPage } from "@/pages/RunsPage";
 import { ExportPage } from "@/pages/ExportPage";
 import { DestinationsPage } from "@/pages/DestinationsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
-import { HelpPage } from "@/pages/HelpPage";
+import { DocsPage } from "@/pages/DocsPage";
 
 export function App() {
   const ready = useApp((s) => s.ready);
@@ -55,7 +55,9 @@ export function App() {
           <Route path="runs/:runId/review" element={<ReviewPage />} />
           <Route path="destinations" element={<DestinationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="help" element={<HelpPage />} />
+          <Route path="docs" element={<DocsPage />} />
+          <Route path="docs/:slug" element={<DocsPage />} />
+          <Route path="help" element={<Navigate to="/docs" replace />} />
           {/* Pre-project URLs. */}
           <Route path="pipelines" element={<Navigate to="/projects" replace />} />
           <Route path="pipelines/new" element={<Navigate to="/projects" replace />} />

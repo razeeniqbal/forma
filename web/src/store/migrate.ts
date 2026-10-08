@@ -31,6 +31,7 @@ export interface MigratedData {
 export function specSourceIds(spec: PipelineSpec): string[] {
   const ids = spec.source?.fileId ? [spec.source.fileId] : [];
   for (const s of spec.steps) if ((s.type === "join" || s.type === "append") && s.source.fileId) ids.push(s.source.fileId);
+  for (const s of spec.graph?.sources ?? []) ids.push(s.source.fileId);
   return ids;
 }
 

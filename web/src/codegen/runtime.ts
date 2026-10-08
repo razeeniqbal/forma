@@ -434,6 +434,17 @@ def combine_rows(df, other, on, columns, prefix, how, mode, flag_unmatched, step
     return new_rows(names, rows)
 
 
+def rename_appended(other: pd.DataFrame, mapping: dict) -> pd.DataFrame:
+    """Apply an explicit schema mapping before appending (appended column -> pipeline column)."""
+    for name in mapping:
+        if name not in other.columns:
+            raise ValueError(f"Mapped column \"{name}\" not found")
+    renamed = [mapping.get(c, c) for c in other.columns]
+    if len(set(renamed)) != len(renamed):
+        raise ValueError("Two appended columns map to the same column; check the schema mapping")
+    return other.set_axis(renamed, axis=1)
+
+
 def append_rows(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
     """Stack another source's rows below; columns are matched by name."""
     names = list(df.columns) + [c for c in other.columns if c not in df.columns]

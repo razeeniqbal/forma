@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { create } from "zustand";
-import { Search, Workflow, Plus, Database, History, Settings, FolderInput, CornerDownLeft, FolderKanban, LayoutDashboard } from "lucide-react";
+import { Search, Workflow, Plus, Database, History, Settings, FolderInput, CornerDownLeft, FolderKanban, LayoutDashboard, BookOpen } from "lucide-react";
 import { useApp } from "@/store/app";
 import { projectPath, useCurrentProjectId } from "@/lib/project";
+import { DOCS } from "@/docs/content";
 
 export interface PaletteAction {
   id: string;
@@ -99,6 +100,7 @@ export function CommandPalette() {
       { id: "nav-new-project", group: "Navigate", title: "New project", keywords: "create", icon: <Plus size={16} />, run: go("/projects/new") },
       { id: "nav-dest", group: "Navigate", title: "Destinations & connections", keywords: "database connection warehouse", icon: <Database size={16} />, run: go("/destinations") },
       { id: "nav-settings", group: "Navigate", title: "Settings", icon: <Settings size={16} />, run: go("/settings") },
+      { id: "nav-docs", group: "Navigate", title: "Open Docs", keywords: "help documentation guide learn", icon: <BookOpen size={16} />, run: go("/docs") },
     ];
     const projectList: PaletteAction[] = projects.map((p) => ({
       id: `proj-${p.id}`,
@@ -116,14 +118,16 @@ export function CommandPalette() {
       icon: <Workflow size={16} />,
       run: go(`/pipelines/${p.id}`),
     }));
-    return [...Object.values(actions).flat(), ...base, ...projectList, ...pipes];
+    // Docs pages are found by search only, so they never crowd the default list.
+    const docs: PaletteAction[] = DOCS.map((d) => ({ id: `doc-${d.slug}`, group: "Docs", title: `${d.section} > ${d.title}`, description: d.summary, keywords: "docs help", icon: <BookOpen size={16} />, run: go(`/docs/${d.slug}`) }));
+    return [...Object.values(actions).flat(), ...base, ...projectList, ...pipes, ...docs];
   }, [actions, pipelines, projects, currentProject, nav]);
 
   const results = useMemo(
     () =>
       all
         .map((a) => ({ a, s: score(a, q) }))
-        .filter((x) => x.s > 0)
+        .filter((x) => x.s > 0 && (q || x.a.group !== "Docs"))
         .sort((x, y) => (q ? y.s - x.s : 0))
         .map((x) => x.a)
         .slice(0, 60),
@@ -148,7 +152,7 @@ export function CommandPalette() {
           <Search size={18} color="var(--subtle)" />
           <input
             autoFocus
-            placeholder="Search pipelines, transformations and actions…"
+            placeholder="Search pipelines, tools, docs and actions"
             value={q}
             onChange={(e) => {
               setQ(e.target.value);

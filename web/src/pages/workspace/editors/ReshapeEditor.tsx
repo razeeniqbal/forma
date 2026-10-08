@@ -10,6 +10,8 @@ import { FileIcon, Seg, Toggle } from "@/components/ui";
 import { useWs } from "../context";
 import { fmtInt } from "@/lib/format";
 import { ColumnChecklist, ColumnSelect } from "./StepEditor";
+import { appendSchema, inputRoles, suggestKeys } from "@/lib/combine";
+import { DocLink } from "@/components/DocLink";
 
 const FNS: { value: AggFn; label: string }[] = [
   { value: "sum", label: "Sum" },
@@ -231,7 +233,7 @@ function SourcePicker({ value, onChange, verb = "Lookup from" }: { value: Source
   );
 }
 
-function useOther(spec: SourceSpec): Dataset | undefined {
+export function useOther(spec: SourceSpec): Dataset | undefined {
   const { file } = useSourceFile(spec.fileId || undefined);
   return useMemo(() => {
     const sh = sheetOf(file, spec.sheet);
@@ -239,49 +241,40 @@ function useOther(spec: SourceSpec): Dataset | undefined {
   }, [file, spec]);
 }
 
-/** Point a join / lookup / append step at another source, preselecting keys and columns by matching names. */
+/**
+ * Point a join / lookup / append step at another source. Keys the user already chose are kept when the new
+ * source has them; otherwise keys stay empty. FORMA suggests keys in the editor but never picks them silently.
+ */
 export function withSource<S extends Extract<Step, { type: "join" | "append" }>>(step: S, source: SourceSpec, ds: Dataset, before: Dataset | undefined): S {
-  if (step.type === "append") return { ...step, source };
-  let on = step.on
-    .map((o) => ({ left: o.left, right: ds.columns.includes(o.right) ? o.right : ds.columns.includes(o.left) ? o.left : "" }))
-    .filter((o) => o.right);
-  if (!on.length) {
-    const common = before?.columns.find((c) => ds.columns.includes(c));
-    on = common ? [{ left: common, right: common }] : [];
-  }
+  if (step.type === "append") return { ...step, source, mapping: undefined };
+  const on = step.on.filter((o) => o.left && ds.columns.includes(o.right));
   const columns = ds.columns.filter((c) => !on.some((o) => o.right === c) && !before?.columns.includes(c));
   return { ...step, source, on, columns };
 }
 
 export function CombineEditor({ step, onChange, before }: { step: Extract<Step, { type: "join" | "append" }>; onChange: (s: Step) => void; before?: Dataset }) {
-  const ws = useWs();
   const other = useOther(step.source);
   const setSource = (source: SourceSpec, ds: Dataset) => onChange(withSource(step, source, ds, before));
   const verb = step.type === "append" ? "Append rows from" : step.mode === "join" ? "Join with" : "Lookup from";
+  const [leftRole, rightRole] = inputRoles(step);
+  // With explicit connections the second input can be another step's output instead of a file.
+  const fromStep = !step.source.fileId && !!step.source.file;
   const picker = (
     <div className="col" style={{ gap: 4 }}>
+      {fromStep && (
+        <div className="callout">
+          <Info size={16} />
+          <div className="small">
+            The {rightRole.toLowerCase()} is <b>{step.source.file}</b>, connected on the canvas. Choose a project source below to read a file instead.
+          </div>
+        </div>
+      )}
       <SourcePicker value={step.source} onChange={setSource} verb={verb} />
-      {other && <div className="hint">{`${fmtInt(other.rows.length)} rows · ${other.columns.length} columns`}</div>}
+      {other && <div className="hint">{`${rightRole}: ${fmtInt(other.rows.length)} rows, ${other.columns.length} columns`}</div>}
     </div>
   );
   const otherName = step.source.file ? `${step.source.file.replace(/\.[^.]+$/, "")}${step.source.sheet ? ` / ${step.source.sheet}` : ""}` : "Other source";
-  if (step.type === "append") {
-    const shared = other && before ? other.columns.filter((c) => before.columns.includes(c)) : [];
-    const added = other && before ? other.columns.filter((c) => !before.columns.includes(c)) : [];
-    return (
-      <div className="col" style={{ gap: 12 }}>
-        {picker}
-        {other && (
-          <div className="callout">
-            <Info size={16} />
-            <div className="small">
-              Columns are matched by name: {shared.length} shared{added.length ? `, ${added.length} new (${added.slice(0, 4).join(", ")}${added.length > 4 ? "…" : ""})` : ""}. Missing values are left blank. Appended rows get new row numbers.
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+  if (step.type === "append") return <AppendEditor step={step} onChange={onChange} before={before} other={other} picker={picker} otherName={otherName} />;
   const otherDs = other;
   return (
     <div className="col" style={{ gap: 12 }}>
@@ -303,12 +296,12 @@ export function CombineEditor({ step, onChange, before }: { step: Extract<Step, 
       {step.on.map((o, i) => (
         <div key={i} className="key-map">
           <div className="km-side">
-            <span className="km-src">{ws.spec.name}</span>
-            <ColumnSelect ds={before} value={o.left} onChange={(left) => onChange({ ...step, on: step.on.map((x, k) => (k === i ? { ...x, left, right: otherDs?.columns.includes(left) && !x.right ? left : x.right } : x)) })} />
+            <span className="km-src">{leftRole}</span>
+            <ColumnSelect ds={before} value={o.left} onChange={(left) => onChange({ ...step, on: step.on.map((x, k) => (k === i ? { ...x, left } : x)) })} />
           </div>
           <ArrowDown size={14} className="km-arrow" aria-label="matches" />
           <div className="km-side">
-            <span className="km-src">{otherName}</span>
+            <span className="km-src">{rightRole} ({otherName})</span>
             <ColumnSelect ds={otherDs} value={o.right} onChange={(right) => onChange({ ...step, on: step.on.map((x, k) => (k === i ? { ...x, right } : x)) })} />
           </div>
           <button className="btn ghost xs icon km-del" aria-label="Remove key" onClick={() => onChange({ ...step, on: step.on.filter((_, k) => k !== i) })}>
@@ -316,10 +309,11 @@ export function CombineEditor({ step, onChange, before }: { step: Extract<Step, 
           </button>
         </div>
       ))}
+      <KeySuggestions step={step} before={before} other={otherDs} onUse={(k) => onChange({ ...step, on: [...step.on, k], columns: step.columns.filter((c) => c !== k.right) })} />
       <button className="btn sm" style={{ alignSelf: "flex-start" }} onClick={() => onChange({ ...step, on: [...step.on, { left: before?.columns[0] ?? "", right: otherDs?.columns[0] ?? "" }] })}>
         <Plus size={13} /> Add key
       </button>
-      <Field label="Columns to bring in">
+      <Field label={step.mode === "lookup" ? "Fields to bring across" : "Columns to bring in"}>
         <ColumnChecklist ds={otherDs} value={step.columns} onChange={(columns) => onChange({ ...step, columns })} max={180} />
       </Field>
       <Field label="Prefix for clashing names" hint="Applied only when a brought column already exists.">
@@ -329,6 +323,104 @@ export function CombineEditor({ step, onChange, before }: { step: Extract<Step, 
         <Toggle checked={step.flagUnmatched} onChange={(flagUnmatched) => onChange({ ...step, flagUnmatched })} label="Send rows without a match to review" />
       )}
       {step.mode === "join" && HELD_NOTE}
+      <DocLink page={step.mode === "lookup" ? "combine-lookup" : "combine-join"} />
+    </div>
+  );
+}
+
+/** Suggested key pairs from names and real value overlap. The user confirms each one. */
+function KeySuggestions({ step, before, other, onUse }: { step: Extract<Step, { type: "join" }>; before?: Dataset; other?: Dataset; onUse: (k: { left: string; right: string }) => void }) {
+  const list = useMemo(() => (before && other ? suggestKeys(before, other) : []), [before, other]);
+  const fresh = list.filter((k) => !step.on.some((o) => o.left === k.left && o.right === k.right));
+  if (!fresh.length) return step.on.length ? null : <div className="hint">Choose the columns that identify the same record on both sides.</div>;
+  return (
+    <div className="key-suggest">
+      <div className="hint">{step.on.length ? "Other possible keys" : "Suggested keys. FORMA does not pick keys for you: choose one to use it."}</div>
+      {fresh.map((k) => (
+        <div key={`${k.left}=${k.right}`} className="key-suggest-row">
+          <span className="mono">
+            {k.left} = {k.right}
+          </span>
+          <span className="subtle small">{Math.round(k.overlap * 100)}% of values match</span>
+          <button className="btn xs" onClick={() => onUse({ left: k.left, right: k.right })}>
+            Use
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Append: schema compatibility and explicit column mapping. Suggestions are shown, never applied silently. */
+function AppendEditor({ step, onChange, before, other, picker, otherName }: { step: Extract<Step, { type: "append" }>; onChange: (s: Step) => void; before?: Dataset; other?: Dataset; picker: React.ReactNode; otherName: string }) {
+  const schema = useMemo(() => (before && other ? appendSchema(before, other, step.mapping) : null), [before, other, step.mapping]);
+  const setMap = (from: string, to: string) => {
+    const mapping = { ...(step.mapping ?? {}) };
+    if (to) mapping[from] = to;
+    else delete mapping[from];
+    onChange({ ...step, mapping: Object.keys(mapping).length ? mapping : undefined });
+  };
+  const used = new Set(Object.values(step.mapping ?? {}));
+  return (
+    <div className="col" style={{ gap: 12 }}>
+      {picker}
+      {schema && other && before && (
+        <>
+          <div className="label">Schema mapping</div>
+          <table className="table compact schema-map">
+            <thead>
+              <tr>
+                <th>Pipeline column</th>
+                <th aria-label="from" />
+                <th>{otherName}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {other.columns.map((from) => {
+                const m = schema.matched.find((x) => x.from === from);
+                const target = step.mapping?.[from] ?? (before.columns.includes(from) ? from : "");
+                const suggestion = schema.suggestions.find((x) => x.from === from);
+                return (
+                  <tr key={from}>
+                    <td>
+                      <select className="select sm" value={target} onChange={(e) => setMap(from, e.target.value === from && before.columns.includes(from) ? "" : e.target.value)} aria-label={`Map ${from}`}>
+                        <option value="">Add as a new column</option>
+                        {before.columns.map((c) => (
+                          <option key={c} value={c} disabled={c !== target && (used.has(c) || (c !== from && schema.matched.some((x) => x.target === c && !x.mapped)))}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                      {m?.conflict && <div className="hint amber">Type conflict: {m.conflict.target} and {m.conflict.from}</div>}
+                    </td>
+                    <td className="subtle">&larr;</td>
+                    <td>
+                      <span className="mono">{from}</span>
+                      {suggestion && !m && (
+                        <div className="hint">
+                          Maybe {suggestion.target}?{" "}
+                          <button className="link" onClick={() => setMap(from, suggestion.target)}>
+                            Map it
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="callout">
+            <Info size={16} />
+            <div className="small">
+              {schema.matched.length} matched{schema.missing.length ? `, ${schema.missing.length} pipeline column${schema.missing.length === 1 ? "" : "s"} left blank for appended rows (${schema.missing.slice(0, 4).join(", ")}${schema.missing.length > 4 ? ", ..." : ""})` : ""}
+              {schema.additional.length ? `, ${schema.additional.length} added as new column${schema.additional.length === 1 ? "" : "s"}` : ""}. Appended rows get new row numbers.
+            </div>
+          </div>
+          {schema.invalid.length > 0 && <div className="callout red small">{schema.invalid.join(". ")}</div>}
+        </>
+      )}
+      <DocLink page="combine-append" />
     </div>
   );
 }

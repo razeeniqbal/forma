@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Workflow, FolderInput, History, Settings, LifeBuoy, Search, PanelLeftClose, PanelLeftOpen, ArrowLeft, LayoutDashboard, SlidersHorizontal, FolderKanban } from "lucide-react";
+import { Workflow, FolderInput, History, Settings, BookOpen, Search, PanelLeftClose, PanelLeftOpen, ArrowLeft, LayoutDashboard, SlidersHorizontal, FolderKanban } from "lucide-react";
 import { useApp, useProject } from "@/store/app";
 import { projectPath, useCurrentProjectId } from "@/lib/project";
 import { usePalette } from "./CommandPalette";
@@ -115,7 +115,7 @@ export function Shell() {
         {nav.map(item)}
         <div className="spacer" />
         {item({ to: "/settings", label: "Settings", icon: Settings, active: under("/settings") || under("/destinations") })}
-        {item({ to: "/help", label: "Help & Feedback", icon: LifeBuoy, active: under("/help") })}
+        {item({ to: "/docs", label: "Docs", icon: BookOpen, active: under("/docs") })}
         <button
           className="nav-item nav-toggle"
           onClick={toggle}

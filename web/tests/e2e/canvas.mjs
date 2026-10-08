@@ -26,7 +26,10 @@ step("every step of the PipelineSpec is a node; connections are derived");
 const nodes = await page.locator(".react-flow__node").count();
 expect(nodes === 11, `expected 11 nodes (source, 9 steps, destination), got ${nodes}`);
 expect((await page.locator(".react-flow__edge").count()) === 10, "10 flow connections");
-expect((await page.locator(".react-flow__handle.connectable").count()) === 0, "no connectable ports while execution is ordered");
+// Ports exist (connections are editable) but stay invisible until a node is hovered or selected.
+const ports = page.locator(".react-flow__handle.connectable");
+expect((await ports.count()) > 0, "connectable ports exist");
+expect((await ports.evaluateAll((els) => els.filter((e) => getComputedStyle(e).opacity !== "0").length)) === 0, "ports are hidden until hover, so the canvas stays calm");
 await shot("canvas");
 
 step("record the run result and the generated Python before moving anything");
@@ -145,14 +148,19 @@ await page.getByRole("button", { name: "Project sources" }).click();
 const target = await page.locator(".react-flow__pane").boundingBox();
 await page.locator(".ctray-item", { hasText: "customers.csv" }).dragTo(page.locator(".react-flow__pane"), { targetPosition: { x: target.width - 300, y: target.height - 120 } });
 await page.getByRole("menuitem", { name: /Look up columns/ }).click();
+// Keys are suggested, never chosen silently: confirm the suggestion.
+await page.getByRole("button", { name: "Use", exact: true }).first().click();
 await page.getByRole("button", { name: /Apply transformation/ }).click();
 await page.locator(".cnode.side", { hasText: "customers.csv" }).waitFor();
-expect((await page.locator('.react-flow__edge[data-id^="side:"]').count()) === 1, "supporting source connects to the lookup step");
+await page.locator('.react-flow__edge[data-id^="side:"]').first().waitFor();
+const sideEdges = await page.locator('.react-flow__edge[data-id^="side:"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-id")));
+expect(sideEdges.length === 1, "supporting source connects to the lookup step: " + JSON.stringify(sideEdges));
 await page.locator(".react-flow__node", { has: page.locator(".cnode.side") }).first().click();
-await preview.getByText("PROJECT SOURCE").waitFor();
+await preview.getByText("Reference dataset").first().waitFor();
 await node("Lookup customers.csv").click();
+await preview.getByText("matched").first().waitFor();
 const lk = await preview.innerText();
-expect(/Keys/.test(lk) && /customer = customer/.test(lk) && /Lookup \(first match\)/.test(lk), "lookup preview shows keys and type:\n" + lk);
+expect(/Primary dataset/i.test(lk) && /Reference dataset/i.test(lk) && /customer = customer/.test(lk) && /Lookup, first match/.test(lk), "lookup inspector shows inputs by role, keys and type:\n" + lk);
 await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Sources", exact: true }).click();
 await page.getByRole("listbox", { name: "Project sources" }).getByRole("option", { name: /customers\.csv/ }).click();
 expect((await page.locator('[aria-label="Source detail"]').innerText()).includes("Clean Invoices"), "the source is referenced, not copied");

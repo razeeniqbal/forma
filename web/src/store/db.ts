@@ -56,12 +56,13 @@ export async function getRawFile(id: string): Promise<Blob | undefined> {
   return load<Blob>(`raw:${id}`);
 }
 
-export async function putRunOutput(runId: string, ds: Dataset): Promise<void> {
-  await save(`out:${runId}`, ds);
+/** A run's output. Branching pipelines store one per Load; the main Load uses the plain key. */
+export async function putRunOutput(runId: string, ds: Dataset, loadId?: string): Promise<void> {
+  await save(loadId && loadId !== "load" ? `out:${runId}:${loadId}` : `out:${runId}`, ds);
 }
 
-export async function getRunOutput(runId: string): Promise<Dataset | undefined> {
-  return load<Dataset>(`out:${runId}`);
+export async function getRunOutput(runId: string, loadId?: string): Promise<Dataset | undefined> {
+  return load<Dataset>(loadId && loadId !== "load" ? `out:${runId}:${loadId}` : `out:${runId}`);
 }
 
 export async function clearAll(): Promise<void> {

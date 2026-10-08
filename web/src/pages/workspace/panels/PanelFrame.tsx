@@ -4,6 +4,9 @@ import type { PanelId } from "@/store/model";
 
 export const LayoutCtl = createContext<{ hide(id: PanelId): void; toggleMax(id: PanelId): void; maximized: PanelId | null } | null>(null);
 
+/** Inside a collapsible Workbench section, which supplies its own title. */
+export const InSection = createContext(false);
+
 export function PanelFrame({
   id,
   title,
@@ -24,6 +27,20 @@ export function PanelFrame({
   pad?: boolean;
 }) {
   const ctl = useContext(LayoutCtl);
+  const inSection = useContext(InSection);
+  if (inSection)
+    return (
+      <section className="panel in-section" aria-label={typeof title === "string" ? title : undefined}>
+        {(sub || actions) && (
+          <div className="panel-head slim">
+            <span className="sub grow">{sub}</span>
+            {actions}
+          </div>
+        )}
+        <div className={`panel-body ${pad ? "pad" : ""}`}>{children}</div>
+        {footer && <div className="panel-foot">{footer}</div>}
+      </section>
+    );
   return (
     <section className="panel" aria-label={typeof title === "string" ? title : undefined}>
       <div className="panel-head">

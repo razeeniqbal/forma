@@ -3,8 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { Code2, Copy, Download, FolderDown, FileCode2, Folder, File, Info, Database, CheckCircle2, Loader2, Maximize2, Workflow, Terminal } from "lucide-react";
 import { usePipeline, useApp } from "@/store/app";
 import { getRawFile } from "@/store/db";
-import { sideSteps, generateConfigYaml, generatePipelineJson, generatePython, generateReadme, generateRequirements, stepFunctionName } from "@/codegen/python";
-import { stepTitle, STAGE_OF } from "@/engine/registry";
+import { extraSources } from "@/engine/graph/spec";
+import { generateConfigYaml, generatePipelineJson, generatePython, generateReadme, generateRequirements, stepFunctionName } from "@/codegen/python";
+import { stepTitle, stageOf } from "@/engine/registry";
 import { CodeView, findStepRange } from "@/components/CodeView";
 import { Empty, Modal, Tabs, ProjectCrumbs } from "@/components/ui";
 import { useFullExecution } from "@/lib/hooks";
@@ -62,17 +63,17 @@ export function ExportPage() {
   const downloadProject = async () => {
     setBusy(true);
     try {
-      const extraSources: Record<string, Blob> = {};
+      const extraFiles: Record<string, Blob> = {};
       if (includeSource)
-        for (const s of sideSteps(spec)) {
-          const blob = await getRawFile(s.source.fileId);
-          if (blob) extraSources[s.source.file] = blob;
+        for (const s of extraSources(spec)) {
+          const blob = await getRawFile(s.fileId);
+          if (blob) extraFiles[s.file] = blob;
         }
       const files = projectFiles(spec, {
         ...opts,
         expected: out,
         source: includeSource ? raw : undefined,
-        extraSources,
+        extraSources: extraFiles,
         target: target === "script" ? "project" : target,
         schedule: pipeline.schedule?.enabled ? pipeline.schedule.cron : null,
       });
@@ -146,7 +147,7 @@ export function ExportPage() {
                     {raw && spec.source && (
                       <label className="row" style={{ gap: 6, marginTop: 4 }}>
                         <input type="checkbox" checked={includeSource} onChange={(e) => setIncludeSource(e.target.checked)} />
-                        Include source file{sideSteps(spec).length ? "s" : ""} <span className="mono">{[spec.source.file, ...new Set(sideSteps(spec).map((s) => s.source.file))].join(", ")}</span>
+                        Include source file{extraSources(spec).length ? "s" : ""} <span className="mono">{[spec.source.file, ...new Set(extraSources(spec).map((s) => s.file))].join(", ")}</span>
                       </label>
                     )}
                   </div>
@@ -260,7 +261,7 @@ export function ExportPage() {
               <CodeView code={shown[tab]} />
             </div>
             <div className="small muted" style={{ padding: "8px 14px", borderTop: "1px solid var(--border)" }}>
-              {spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")} ${STAGE_OF[s.type]}: ${stepTitle(s)}`).join(" · ") || "No steps yet"}
+              {spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")} ${stageOf(s)}: ${stepTitle(s)}`).join(" · ") || "No steps yet"}
             </div>
           </div>
 

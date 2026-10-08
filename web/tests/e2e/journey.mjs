@@ -56,7 +56,7 @@ const pid = page.url().split("/pipelines/")[1];
 // 7. Pipeline view is the default
 step("7. pipeline view opens by default: Source → Load");
 await card("Source").waitFor();
-await card("Destination").waitFor();
+await card("Load").waitFor();
 expect((await card("Source").innerText()).includes("1,001"), "source card shows row count");
 await shot("new-pipeline-view");
 
@@ -101,11 +101,11 @@ await page.waitForTimeout(200);
 expect(undone === before - 1 && (await page.locator(".step-item").count()) === before, `undo/redo mismatch ${before}/${undone}`);
 
 // 8. See the pipeline
-step("8. back in pipeline view: Source → Extract → Clean → Validate → Load");
+step("8. back in pipeline view: Source → Extract → Transform → Validate → Load");
 await pipelineView(page);
 const stages = (await page.locator(".fc-stage").allInnerTexts()).map((s) => s.trim().toUpperCase());
-expect(stages[0] === "SOURCE" && stages.at(-1) === "DESTINATION", `flow order: ${stages}`);
-for (const s of ["EXTRACT", "CLEAN", "VALIDATE"]) expect(stages.includes(s), `missing ${s} in ${stages}`);
+expect(stages[0] === "SOURCE" && stages.at(-1) === "LOAD", `flow order: ${stages}`);
+for (const s of ["EXTRACT", "TRANSFORM", "VALIDATE"]) expect(stages.includes(s), `missing ${s} in ${stages}`);
 expect(stages.indexOf("EXTRACT") < stages.indexOf("VALIDATE"), `extract before validate: ${stages}`);
 await shot("pipeline-view");
 
@@ -120,9 +120,12 @@ expect(/ready/.test(sideText) && /review/.test(sideText), "preview shows ready /
 await shot("step-preview");
 
 // 11–12. Expand → workbench on that step
-step("11–12. expand Extract into the workbench");
-await side.getByRole("button", { name: "Expand" }).click();
+step("11–12. open Extract in the Workbench: only the sections that matter are open");
+await side.getByRole("button", { name: "Open Workbench" }).click();
 await page.locator(".stp.on", { hasText: "Extract" }).waitFor();
+await page.locator('.wbs.open[data-section="preview"]').waitFor();
+expect((await page.locator('.wbs.open[data-section="quality"]').count()) === 0, "Quality starts collapsed for Extract");
+await page.locator('.wbs[data-section="beforeAfter"] .wbs-head').click();
 await page.locator('section[aria-label="Before / After"]').waitFor();
 expect((await inspector.first().innerText()).includes("Extract"), "inspector shows the expanded step");
 await shot("expanded-step");

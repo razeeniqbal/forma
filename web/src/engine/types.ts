@@ -114,7 +114,14 @@ export type Step =
       prefix: string;
       flagUnmatched: boolean;
     }
-  | { id: string; type: "append"; label?: string; source: SourceSpec };
+  | {
+      id: string;
+      type: "append";
+      label?: string;
+      source: SourceSpec;
+      /** Explicit schema mapping: appended-source column → pipeline column. Unmapped columns match by name. */
+      mapping?: Record<string, string>;
+    };
 
 export type AggFn = "sum" | "mean" | "min" | "max" | "count" | "count_distinct" | "first";
 
@@ -179,6 +186,22 @@ export interface PipelineSpec {
   steps: Step[];
   destination: Destination | null;
   reviewDecisions: ReviewDecision[];
+  /**
+   * Explicit connections (GRAPH_ENGINE_DESIGN.md §9.3). Absent: the pipeline is the linear chain of `steps`
+   * and combine steps read `step.source`. Present: execution follows these connections, and `steps` holds
+   * every step's configuration in creation order. Written the first time someone edits a connection.
+   */
+  graph?: StoredGraph;
+}
+
+/** Sources other than the main one, and every connection, of a pipeline with explicit connections. */
+export interface StoredGraph {
+  sources: { id: string; source: SourceSpec; rank: number; order: number }[];
+  edges: { id: string; from: string; to: string; input: "input" | "left" | "right" | "primary" | "reference" | "datasets"; slot?: number }[];
+  /** Next row-identity rank; ranks are never reused. */
+  nextRank: number;
+  /** Loads besides the main one (`destination`): each ends its own branch. */
+  loads?: { id: string; destination: Destination | null; order: number }[];
 }
 
 export type IssueKind =
@@ -234,4 +257,10 @@ export interface ExecutionResult {
   snapshots?: Dataset[];
   /** Datasets entering each review gate (a gate runs before every reshaping step and at the end). */
   gated: Dataset[];
+  /** Pipelines with explicit connections: the dataset each step reads on its primary input, by step index. */
+  stepInputs?: (Dataset | undefined)[];
+  /** Pipelines with explicit connections: every Load's result (the main Load first). */
+  loads?: { id: string; output: Dataset; beforeGate: Dataset }[];
+  /** Pipelines with explicit connections: structural and configuration problems, by node. */
+  problems?: { level: "error" | "warning"; message: string; nodeId?: string; edgeId?: string }[];
 }

@@ -3,7 +3,8 @@ import type { Issue, PipelineSpec, RawSheet, SourceFile, SourceSpec, Step } from
 import { detectRegion, loadDataset, sideSheetKey } from "@/engine/load";
 import { parseCsv } from "@/parsers";
 import { FormaServer, type ServerRun } from "@/lib/server";
-import { newId, stepTitle, STAGE_OF } from "@/engine/registry";
+import { newId, stepTitle, stageOf } from "@/engine/registry";
+import { destinationLabel as destinationLabelOf, extraSources, graphProblems, loadDestination } from "@/engine/graph/spec";
 import { toText } from "@/engine/values";
 import { executeInWorker, type RunProgress } from "@/lib/runner";
 import * as db from "./db";
@@ -187,17 +188,15 @@ export function defaultSourceSpec(file: SourceFile, sheetName?: string): SourceS
   };
 }
 
-/** Raw sheets for join / lookup / append steps, keyed by file id. */
+/** Raw sheets of every source besides the main one (combine steps and source nodes), by `sideSheetKey`. */
 export async function loadSideSheets(spec: PipelineSpec): Promise<Record<string, RawSheet>> {
   const out: Record<string, RawSheet> = {};
-  for (const s of spec.steps) {
-    if ((s.type === "join" || s.type === "append") && s.source.fileId) {
-      const key = sideSheetKey(s.source.fileId, s.source.sheet);
-      if (out[key]) continue;
-      const f = await db.getSourceFile(s.source.fileId);
-      const sh = f && (f.sheets.find((x) => x.name === s.source.sheet) ?? f.sheets[0]);
-      if (sh) out[key] = sh;
-    }
+  for (const src of extraSources(spec)) {
+    const key = sideSheetKey(src.fileId, src.sheet);
+    if (out[key]) continue;
+    const f = await db.getSourceFile(src.fileId);
+    const sh = f && (f.sheets.find((x) => x.name === src.sheet) ?? f.sheets[0]);
+    if (sh) out[key] = sh;
   }
   return out;
 }
@@ -247,7 +246,8 @@ export function fromServerRun(r: ServerRun, spec: PipelineSpec | undefined, trig
     excludedCount: res?.excluded_count ?? 0,
     failedCount: r.status === "failed" ? res?.rows_in ?? 0 : 0,
     steps: (res?.steps ?? []).map((s, i) => ({
-      stepId: spec?.steps[i]?.id ?? `srv${i}`,
+      // Graph exports report each step's id; older exports report steps in pipeline order.
+      stepId: (s as { step_id?: string }).step_id ?? spec?.steps[i]?.id ?? `srv${i}`,
       title: s.title,
       stage: s.label.split(/: | \u2014 /)[0].replace(/^\d+\s*/, ""), // "03 Clean: Title" (older exports used a dash)
       rowsIn: s.rows_in,
@@ -514,6 +514,12 @@ export const useApp = create<AppState>((set, get) => ({
       return;
     }
     const sheet = file.sheets.find((s) => s.name === p.spec.source!.sheet) ?? file.sheets[0];
+    // A pipeline whose connections are incomplete does not run.
+    const blocking = p.spec.graph ? graphProblems(p.spec).filter((x) => x.level === "error") : [];
+    if (blocking.length) {
+      get().toast("error", `Fix the pipeline's connections first: ${blocking[0].message}`);
+      return;
+    }
     // Manual runs reference an immutable version (PRD §12).
     const version = mode === "manual" ? get().saveVersion(id, "Run") : p.version;
     const spec: PipelineSpec = mode === "manual" ? get().pipelines.find((x) => x.id === id)!.versions.at(-1)!.spec : p.spec;
@@ -573,7 +579,7 @@ export const useApp = create<AppState>((set, get) => ({
       res.steps.forEach((r, i) => {
         const step = runSpec.steps[i];
         const title = stepTitle(step);
-        const stage = STAGE_OF[step.type];
+        const stage = stageOf(step);
         steps.push({ ...r, title, stage });
         tick(r.durationMs);
         if (r.error) {
@@ -614,6 +620,14 @@ export const useApp = create<AppState>((set, get) => ({
         if (res.reviewRows.length) logs.push({ t, level: "warning", step: "Review", message: `${res.reviewRows.length.toLocaleString()} rows need review and were not loaded.` });
       }
       await db.putRunOutput(run.id, res.output);
+      // Branches: every extra Load's output is kept too.
+      const loads = res.loads && res.loads.length > 1 ? res.loads : undefined;
+      if (loads) {
+        for (const l of loads.slice(1)) {
+          await db.putRunOutput(run.id, l.output, l.id);
+          if (!failed) logs.push({ t, level: "success", step: "Load", message: `Prepared ${l.output.rows.length.toLocaleString()} rows for ${destinationLabelOf(loadDestination(runSpec, l.id))}` });
+        }
+      }
       const finishedAt = Math.max(Date.now(), t);
       logs.push({ t: finishedAt, level: failed ? "error" : "info", step: "System", message: failed ? "Pipeline failed." : `Pipeline completed in ${((finishedAt - started) / 1000).toFixed(1)} seconds.` });
       finished = {
@@ -633,6 +647,7 @@ export const useApp = create<AppState>((set, get) => ({
         reviewValues,
         ruleResults: res.ruleResults,
         columns: res.beforeGate.columns,
+        loads: loads?.map((l) => ({ id: l.id, label: destinationLabelOf(loadDestination(runSpec, l.id)), rowsIn: l.beforeGate.rows.length, rowsOut: l.output.rows.length })),
         error: steps.find((s) => s.error && !s.error.startsWith("Skipped"))?.error,
       };
     } catch (e) {
@@ -654,6 +669,11 @@ export const useApp = create<AppState>((set, get) => ({
     const server = serverClient();
     const p0 = get().pipelines.find((x) => x.id === id);
     if (!server || !p0?.spec.source) return;
+    const blocking = p0.spec.graph ? graphProblems(p0.spec).filter((x) => x.level === "error") : [];
+    if (blocking.length) {
+      get().toast("error", `Fix the pipeline's connections first: ${blocking[0].message}`);
+      return;
+    }
     const version = get().saveVersion(id, "Run on server");
     const p = get().pipelines.find((x) => x.id === id)!;
     const spec = p.versions.at(-1)!.spec;

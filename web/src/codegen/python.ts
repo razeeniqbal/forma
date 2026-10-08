@@ -2,10 +2,12 @@
 // one clearly named function whose header comment matches the visual pipeline.
 
 import type { PipelineSpec, SourceSpec, Step, ValidationRule } from "@/engine/types";
-import { STAGE_OF, stepTitle } from "@/engine/registry";
+import { stageOf, stepTitle } from "@/engine/registry";
 import { isReshaping, ruleLabel } from "@/engine/execute";
 import { formulaToPython, parseFormula } from "@/engine/formula";
 import { runtimePython } from "./runtime";
+import { extraSources, toGraphSpec } from "@/engine/graph/spec";
+import { generateGraphPython, graphConfigObject } from "./graph";
 
 export interface GenOptions {
   version?: number;
@@ -103,7 +105,11 @@ function issueKindForRule(rule: ValidationRule): string {
   return "rule_failed";
 }
 
-function stepBody(step: Step): string[] {
+/**
+ * Body of a step function. `graphInput` names the second dataset of a combine step in graph pipelines:
+ * it arrives as the `other` argument instead of being loaded inside the step.
+ */
+function stepBody(step: Step, graphInput?: string): string[] {
   const id = pyStr(step.id);
   switch (step.type) {
     case "select":
@@ -331,7 +337,7 @@ function stepBody(step: Step): string[] {
       ];
     case "join":
       return [
-        `other = side_source(${pyStr(step.id)})  # ${step.source.file}`,
+        ...(graphInput === undefined ? [`other = side_source(${pyStr(step.id)})  # ${step.source.file}`] : []),
         `return combine_rows(`,
         `    df,`,
         `    other,`,
@@ -342,11 +348,17 @@ function stepBody(step: Step): string[] {
         `    mode=${pyStr(step.mode)},`,
         `    flag_unmatched=${step.flagUnmatched ? "True" : "False"},`,
         `    step=${id},`,
-        `    source_name=${pyStr(step.source.file)},`,
+        `    source_name=${pyStr(graphInput ?? step.source.file)},`,
         `)`,
       ];
-    case "append":
-      return [`other = side_source(${pyStr(step.id)})  # ${step.source.file}`, `return append_rows(df, other)`];
+    case "append": {
+      const mapping = Object.entries(step.mapping ?? {}).filter(([from, to]) => to && from !== to);
+      return [
+        ...(graphInput === undefined ? [`other = side_source(${pyStr(step.id)})  # ${step.source.file}`] : []),
+        ...(mapping.length ? [`# Schema mapping: appended column -> pipeline column`, `other = rename_appended(other, {${mapping.map(([a, b]) => `${pyStr(a)}: ${pyStr(b)}`).join(", ")}})`] : []),
+        `return append_rows(df, other)`,
+      ];
+    }
     case "validate": {
       const lines: string[] = [`rules = [`];
       for (const r of step.rules) {
@@ -398,26 +410,28 @@ function stepDoc(step: Step): string {
   }
 }
 
-export function generateStep(step: Step, index: number): string {
+export function generateStep(step: Step, index: number, graph?: { otherName: string; decorator: string }): string {
   const n = String(index + 2).padStart(2, "0");
-  const header = `# ${n} ${STAGE_OF[step.type]}: ${stepTitle(step)}`;
+  const header = `# ${n} ${stageOf(step)}: ${stepTitle(step)}`;
   let body: string[];
   try {
-    body = stepBody(step);
+    body = stepBody(step, graph && (step.type === "join" || step.type === "append") ? graph.otherName : undefined);
   } catch (e) {
     body = [`raise ValueError(${pyStr(`Step could not be generated: ${(e as Error).message}`)})`];
   }
   const doc = stepDoc(step).replace(/\\/g, "\\\\").replace(/"""/g, "'''").replace(/[\r\n]+/g, " ");
+  const combine = !!graph && (step.type === "join" || step.type === "append");
   return [
     header,
-    `def ${stepFunctionName(step, index)}(df: pd.DataFrame) -> pd.DataFrame:`,
+    ...(graph ? [graph.decorator] : []),
+    `def ${stepFunctionName(step, index)}(df: pd.DataFrame${combine ? ", other: pd.DataFrame" : ""}) -> pd.DataFrame:`,
     `    """${doc}"""`,
     ...body.map((l) => (l ? "    " + l : "")),
     ...(body.some((l) => l.startsWith("return ")) ? [] : [`    return df`]),
   ].join("\n");
 }
 
-function sourceConfig(s: SourceSpec) {
+export function sourceConfig(s: SourceSpec) {
   const o = s.origin;
   return {
     ...(o?.kind === "database"
@@ -444,10 +458,11 @@ export function outputConfig(spec: PipelineSpec, opts: GenOptions = {}) {
 
 /** Steps that read an additional source file (join / lookup / append). */
 export function sideSteps(spec: PipelineSpec) {
-  return spec.steps.filter((s): s is Extract<Step, { type: "join" | "append" }> => s.type === "join" || s.type === "append");
+  return spec.steps.filter((s): s is Extract<Step, { type: "join" | "append" }> => (s.type === "join" || s.type === "append") && !!s.source.fileId);
 }
 
-export function configObject(spec: PipelineSpec, opts: GenOptions = {}) {
+export function configObject(spec: PipelineSpec, opts: GenOptions = {}): Record<string, unknown> {
+  if (spec.graph) return graphConfigObject(toGraphSpec(spec), opts);
   return {
     source: sourceConfig(spec.source!),
     ...(sideSteps(spec).length ? { sources: Object.fromEntries(sideSteps(spec).map((s) => [s.id, sourceConfig(s.source)])) } : {}),
@@ -457,6 +472,8 @@ export function configObject(spec: PipelineSpec, opts: GenOptions = {}) {
 }
 
 export function generatePython(spec: PipelineSpec, opts: GenOptions = {}): string {
+  // Pipelines with explicit connections export as graph code (codegen/graph.ts).
+  if (spec.graph) return generateGraphPython(toGraphSpec(spec), opts);
   const version = opts.version ?? 1;
   const when = (opts.generatedAt ?? new Date()).toISOString().replace("T", " ").slice(0, 19);
   const steps = spec.steps.map((s, i) => generateStep(s, i));
@@ -465,7 +482,7 @@ export function generatePython(spec: PipelineSpec, opts: GenOptions = {}): strin
     `    df = ${stepFunctionName(s, i)}(df)`,
   ]);
   const stepTable = spec.steps.map(
-    (s, i) => `    (${pyStr(`${String(i + 2).padStart(2, "0")} ${STAGE_OF[s.type]}: ${stepTitle(s)}`)}, ${stepFunctionName(s, i)}, ${isReshaping(s) ? "True" : "False"}),`,
+    (s, i) => `    (${pyStr(`${String(i + 2).padStart(2, "0")} ${stageOf(s)}: ${stepTitle(s)}`)}, ${stepFunctionName(s, i)}, ${isReshaping(s) ? "True" : "False"}),`,
   );
   const decisions = spec.reviewDecisions.map((d) => ({
     row: d.row,
@@ -664,8 +681,8 @@ if __name__ == "__main__":
 
 export function generateRequirements(spec: PipelineSpec): string {
   const lines = ["pandas>=2.1", "numpy>=1.24", "pyyaml>=6.0"];
-  if (spec.source?.type === "excel" || sideSteps(spec).some((s) => s.source.type === "excel") || spec.destination?.format === "xlsx") lines.push("openpyxl>=3.1");
-  const dbSource = spec.source?.type === "database" || sideSteps(spec).some((s) => s.source.type === "database");
+  if (spec.source?.type === "excel" || extraSources(spec).some((s) => s.type === "excel") || spec.destination?.format === "xlsx") lines.push("openpyxl>=3.1");
+  const dbSource = spec.source?.type === "database" || extraSources(spec).some((s) => s.type === "database");
   if (spec.destination?.type === "database" || dbSource) lines.push("sqlalchemy>=2.0", "psycopg2-binary>=2.9");
   return lines.join("\n") + "\n";
 }
@@ -694,7 +711,7 @@ export function generateConfigYaml(spec: PipelineSpec, opts: GenOptions = {}): s
 
 export function generateReadme(spec: PipelineSpec, opts: GenOptions = {}): string {
   const out = outputConfig(spec, opts);
-  const stepsList = [`01. **Source**: ${spec.source?.file ?? "source"}`, ...spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")}. **${STAGE_OF[s.type]}**: ${stepTitle(s)}`)].join("\n");
+  const stepsList = [`01. **Source**: ${spec.source?.file ?? "source"}`, ...spec.steps.map((s, i) => `${String(i + 2).padStart(2, "0")}. **${stageOf(s)}**: ${stepTitle(s)}`)].join("\n");
   return `# ${spec.name}
 
 Generated by **FORMA** (pipeline version v${opts.version ?? 1}).
@@ -714,7 +731,7 @@ python pipeline.py                          # uses config.yaml
 python pipeline.py --source path/to/new.${spec.source?.type === "excel" ? "xlsx" : spec.source?.type ?? "csv"}   # rerun on a compatible file
 \`\`\`
 
-${spec.source?.origin?.kind === "database" ? `The source is read live from the database in \`$${spec.source.origin.urlEnv}\` with the query in \`config.yaml\`.\n\n` : spec.source?.origin?.kind === "api" ? `The source is fetched live from \`${spec.source.origin.url}\`.\n\n` : ""}Place the source file (\`${spec.source?.file ?? "source"}\`)${sideSteps(spec).length ? ` and ${[...new Set(sideSteps(spec).map((s) => `\`${s.source.file}\``))].join(", ")}` : ""} next to \`pipeline.py\` or pass \`--source\`.
+${spec.source?.origin?.kind === "database" ? `The source is read live from the database in \`$${spec.source.origin.urlEnv}\` with the query in \`config.yaml\`.\n\n` : spec.source?.origin?.kind === "api" ? `The source is fetched live from \`${spec.source.origin.url}\`.\n\n` : ""}Place the source file (\`${spec.source?.file ?? "source"}\`)${extraSources(spec).length ? ` and ${[...new Set(extraSources(spec).map((s) => `\`${s.file}\``))].join(", ")}` : ""} next to \`pipeline.py\` or pass \`--source\`.
 
 ${
   out.type === "database"
@@ -739,7 +756,7 @@ ${stepsList || "_No steps yet._"}
 }
 
 export function generatePipelineJson(spec: PipelineSpec, version = 1): string {
-  return JSON.stringify({ formaSpec: 1, version, ...spec }, null, 2) + "\n";
+  return JSON.stringify({ formaSpec: spec.graph ? 2 : 1, version, ...spec }, null, 2) + "\n";
 }
 
 /** Airflow DAG wrapping the generated pipeline (one task; DataFrames never go through XCom). */
@@ -766,11 +783,17 @@ import pipeline  # noqa: E402
 
 def run_pipeline(**_context):
     config = pipeline.load_config()
-    output, review = pipeline.run(config)
-    pipeline.write_output(output, review, config)
+    if hasattr(pipeline, "run_all"):  # a pipeline with connections: every Load
+        outputs, review = pipeline.run_all(config)
+        pipeline.write_outputs(outputs, review, config)
+        loaded = sum(len(o) for o in outputs.values())
+    else:
+        output, review = pipeline.run(config)
+        pipeline.write_output(output, review, config)
+        loaded = len(output)
     if len(review):
         print(f"{review['row'].nunique()} rows need review. See {config['review_output']}")
-    return {"loaded_rows": len(output), "review_rows": int(review["row"].nunique()) if len(review) else 0}
+    return {"loaded_rows": loaded, "review_rows": int(review["row"].nunique()) if len(review) else 0}
 
 
 with DAG(
@@ -787,6 +810,7 @@ with DAG(
 
 /** Prefect flow: every FORMA step becomes a named Prefect task. */
 export function generatePrefectFlow(spec: PipelineSpec, opts: GenOptions & { schedule?: string | null } = {}): string {
+  if (spec.graph) return graphPrefectFlow(spec, opts);
   return `"""
 Prefect flow for "${spec.name}", generated by FORMA (pipeline v${opts.version ?? 1}).
 
@@ -817,6 +841,53 @@ def forma_flow(source: str | None = None):
     output, review = task(pipeline.finish_run, name="Review gate")(df)
     task(pipeline.write_output, name="Load")(output, review, config)
     return len(output)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source")
+    parser.add_argument("--serve", action="store_true", help="serve the flow on its schedule")
+    args = parser.parse_args()
+    if args.serve:
+        forma_flow.serve(name=${pyStr(slug(spec.name))}${opts.schedule ? `, cron=${pyStr(opts.schedule)}` : ""})
+    else:
+        forma_flow(args.source)
+`;
+}
+
+/** Prefect flow for a pipeline with connections: every node runs as a task, in execution order. */
+function graphPrefectFlow(spec: PipelineSpec, opts: GenOptions & { schedule?: string | null }): string {
+  return `"""
+Prefect flow for "${spec.name}", generated by FORMA (pipeline v${opts.version ?? 1}).
+
+Each FORMA node runs as its own Prefect task, named like the visual pipeline.
+    pip install prefect
+    python flow.py                 # run once
+${opts.schedule ? `    python flow.py --serve         # run on schedule: ${opts.schedule}
+` : ""}"""
+from __future__ import annotations
+
+import argparse
+
+from prefect import flow, task
+
+import pipeline
+
+
+@flow(name=${pyStr(spec.name)})
+def forma_flow(source: str | None = None):
+    config = pipeline.load_config()
+    if source:
+        config["sources"][${pyStr("source")}]["path"] = source
+    task(pipeline.start_run, name="Start")(config)
+    data, outputs = {}, {}
+    for node_id, node in pipeline.NODES.items():
+        function = getattr(pipeline, node["function"])
+        result = task(function, name=node["label"])(*[data[i] for i in node["inputs"]])
+        (outputs if node["kind"] == "load" else data)[node_id] = result
+    outputs, review = task(pipeline.finish_run, name="Review gate")(outputs)
+    task(pipeline.write_outputs, name="Load")(outputs, review, config)
+    return sum(len(o) for o in outputs.values())
 
 
 if __name__ == "__main__":

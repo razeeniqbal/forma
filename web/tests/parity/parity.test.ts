@@ -1,7 +1,7 @@
 // Visual ↔ code parity (PRD §2.4): the generated Python must produce exactly
 // what the FORMA engine produces, cell for cell, for the same source file.
 import { describe, expect, it } from "vitest";
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { execute } from "@/engine/execute";
@@ -10,9 +10,12 @@ import { generateAirflowDag, generateConfigYaml, generatePrefectFlow, generatePy
 import { fingerprint, loadDataset, sideSheetKey } from "@/engine/load";
 import { toText } from "@/engine/values";
 import { parseCsv, parseJson } from "@/parsers";
-import type { PipelineSpec, RawSheet } from "@/engine/types";
+import type { Dataset, PipelineSpec, RawSheet } from "@/engine/types";
+import { generateGraphPython } from "@/codegen/graph";
+import { migrateSpec } from "@/engine/graph/model";
 import { SAMPLES, sampleCsv, sampleSheet } from "../helpers";
 import { toCsv } from "@/lib/exporters";
+import { expectGraphEquivalent } from "../graphEquivalence";
 
 const OUT = join(__dirname, "..", "..", ".parity-out");
 const PY = process.env.PYTHON ?? (process.platform === "win32" ? "python" : "python3");
@@ -21,6 +24,27 @@ interface Extra {
   file: string;
   text: string;
   fileId: string;
+}
+
+interface PyResult {
+  columns: string[];
+  rowIds: number[];
+  rows: (string | null)[][];
+  reviewRows: number[];
+  excludedRows: number[];
+  issues: number;
+  rules: { evaluated: number; passed: number }[];
+}
+
+export function expectPythonMatches(py: PyResult, ts: { output: Dataset; reviewRows: number[]; excludedRows: number[]; issues: unknown[]; ruleResults: { evaluated: number; passed: number }[] }) {
+  expect(py.columns).toEqual(ts.output.columns);
+  expect(py.rowIds).toEqual(ts.output.rowIds);
+  const tsRows = ts.output.rows.map((r) => r.map(toText));
+  for (let i = 0; i < tsRows.length; i++) expect(py.rows[i], `row ${ts.output.rowIds[i]}`).toEqual(tsRows[i]);
+  expect(py.reviewRows).toEqual(ts.reviewRows);
+  expect(py.excludedRows).toEqual(ts.excludedRows);
+  expect(py.issues).toBe(ts.issues.length);
+  expect(py.rules.map((r) => [r.evaluated, r.passed])).toEqual(ts.ruleResults.map((r) => [r.evaluated, r.passed]));
 }
 
 function runCase(name: string, spec: PipelineSpec, sheet: RawSheet, sourceFile: string, sourceText?: string, extras: Extra[] = [], sideSheets: Record<string, RawSheet> = {}) {
@@ -40,16 +64,17 @@ function runCase(name: string, spec: PipelineSpec, sheet: RawSheet, sourceFile: 
   const py = JSON.parse(readFileSync(join(dir, "python.json"), "utf8"));
   const ts = execute(spec, sheet, { sheets });
   expect(ts.steps.filter((s) => s.error)).toEqual([]);
-  expect(py.columns).toEqual(ts.output.columns);
-  expect(py.rowIds).toEqual(ts.output.rowIds);
-  const tsRows = ts.output.rows.map((r) => r.map(toText));
-  for (let i = 0; i < tsRows.length; i++) expect(py.rows[i], `row ${ts.output.rowIds[i]}`).toEqual(tsRows[i]);
-  expect(py.reviewRows).toEqual(ts.reviewRows);
-  expect(py.excludedRows).toEqual(ts.excludedRows);
-  expect(py.issues).toBe(ts.issues.length);
-  expect(py.rules.map((r: { evaluated: number; passed: number }) => [r.evaluated, r.passed])).toEqual(
-    ts.ruleResults.map((r) => [r.evaluated, r.passed]),
-  );
+  // The graph engine on the migrated pipeline gives exactly the same result.
+  expectGraphEquivalent(spec, sheet, sheets);
+  expectPythonMatches(py, ts);
+  // The generated graph code for the migrated pipeline gives the same result too.
+  const gdir = `${dir}_graph`;
+  rmSync(gdir, { recursive: true, force: true });
+  mkdirSync(gdir, { recursive: true });
+  for (const f of readdirSync(dir)) if (statSync(join(dir, f)).isFile() && !/^(pipeline\.py|config\.yaml|python\.json)$/.test(f)) copyFileSync(join(dir, f), join(gdir, f));
+  writeFileSync(join(gdir, "pipeline.py"), generateGraphPython(migrateSpec(spec), { version: 1 }));
+  execFileSync(PY, [join(__dirname, "run_python.py"), gdir], { stdio: ["ignore", "ignore", "pipe"] });
+  expectPythonMatches(JSON.parse(readFileSync(join(gdir, "python.json"), "utf8")), ts);
   return ts;
 }
 
@@ -259,6 +284,29 @@ describe("parity: TypeScript engine ≡ generated Python", () => {
         steps: [...steps, { id: "ap", type: "append", source: custSource }, { id: "flt", type: "filter", column: "region", op: "not_blank", value: "" }],
       };
       runCase("append", appendSpec, sheet, join(SAMPLES, "invoices.csv"), undefined, [extra]);
+    });
+
+    it("append with an explicit schema mapping", () => {
+      const sheet = sampleCsv();
+      const src = { type: "csv" as const, file: "invoices.csv", fileId: "f", headerRow: 0, startCol: 0, endCol: 6, csvDelimiter: "," };
+      const february = ["customer_name,amount_total,note", "Atlas Holdings,1200,late", "Beta Trading,RM 3400,", ",99,blank customer"].join("\n") + "\n";
+      const feb: Extra = { file: "february.csv", text: february, fileId: "feb" };
+      const febSource = { type: "csv" as const, file: "february.csv", fileId: "feb", headerRow: 0, startCol: 0, endCol: 2, csvDelimiter: "," };
+      const spec: PipelineSpec = {
+        name: "Append mapped",
+        source: src,
+        steps: [
+          ...invoiceSteps().slice(0, 7),
+          { id: "ap", type: "append", source: febSource, mapping: { customer_name: "customer", amount_total: "amount" } },
+          { id: "v", type: "validate", rules: [{ id: "c", column: "customer", kind: "not_blank" }] },
+        ],
+        destination: null,
+        reviewDecisions: [],
+      };
+      const ts = runCase("append_mapped", spec, sheet, join(SAMPLES, "invoices.csv"), undefined, [feb]);
+      expect(ts.output.columns).toContain("note");
+      expect(ts.output.columns).not.toContain("customer_name");
+      expect(ts.reviewRows.length).toBeGreaterThan(0);
     });
   });
 

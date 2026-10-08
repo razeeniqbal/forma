@@ -22,6 +22,7 @@ export function RunPage() {
   const nav = useNavigate();
   const [level, setLevel] = useState<"all" | "info" | "success" | "warning" | "error">("all");
   const [modal, setModal] = useState<null | "output" | "compare" | "spec" | "config">(null);
+  const [outputLoad, setOutputLoad] = useState<string | undefined>(undefined);
   const [rerunning, setRerunning] = useState(false);
   const refreshServerRun = useApp((s) => s.refreshServerRun);
   useEffect(() => {
@@ -258,6 +259,25 @@ export function RunPage() {
             <button className="btn soft" onClick={() => setModal("output")} disabled={run.status === "failed" || run.status === "running"}>
               <FileText size={15} /> View output data
             </button>
+            {run.loads && run.loads.length > 1 && (
+              <div className="run-loads" aria-label="Outputs">
+                <div className="section-title">Outputs</div>
+                {run.loads.map((l) => (
+                  <div key={l.id} className="run-load">
+                    <span className="grow clamp-1">
+                      <b>{l.label}</b>
+                      <span className="subtle small"> {l.id === "load" ? "main Load" : "branch"}</span>
+                    </span>
+                    <span className="num small">
+                      {fmtInt(l.rowsOut)} loaded{l.rowsIn > l.rowsOut ? <span className="amber"> · {fmtInt(l.rowsIn - l.rowsOut)} held</span> : null}
+                    </span>
+                    <button className="btn xs" disabled={run.status === "failed"} onClick={() => (setOutputLoad(l.id), setModal("output"))}>
+                      View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <button className="btn soft" onClick={() => setModal("compare")} disabled={!prev}>
               <GitCompare size={15} /> Compare with previous run
             </button>
@@ -286,7 +306,7 @@ export function RunPage() {
         </div>
       </div>
 
-      {modal === "output" && <OutputModal run={run} onClose={() => setModal(null)} />}
+      {modal === "output" && <OutputModal run={run} loadId={outputLoad} onClose={() => (setModal(null), setOutputLoad(undefined))} />}
       {modal === "compare" && prev && <CompareModal run={run} prev={prev} onClose={() => setModal(null)} />}
       {modal === "spec" && (
         <Modal title={`Pipeline spec: ${run.mode === "test" ? "draft at run time" : `v${run.version}`}`} size="lg" onClose={() => setModal(null)}>
@@ -344,16 +364,17 @@ async function toXlsx(ds: Dataset): Promise<ArrayBuffer> {
   return (await wb.xlsx.writeBuffer()) as ArrayBuffer;
 }
 
-function OutputModal({ run, onClose }: { run: Run; onClose: () => void }) {
+function OutputModal({ run, loadId, onClose }: { run: Run; loadId?: string; onClose: () => void }) {
   const [ds, setDs] = useState<Dataset | null | undefined>(undefined);
   useEffect(() => {
-    getRunOutput(run.id).then((d) => setDs(d ?? null));
-  }, [run.id]);
+    getRunOutput(run.id, loadId).then((d) => setDs(d ?? null));
+  }, [run.id, loadId]);
+  const branch = loadId ? run.loads?.find((l) => l.id === loadId) : undefined;
   const widths = useMemo(() => (ds ? estimateWidths(ds.columns, ds.rows.length, (r, c) => ds.rows[r][c]) : []), [ds]);
-  const base = run.pipelineName.toLowerCase().replace(/\W+/g, "_");
+  const base = run.pipelineName.toLowerCase().replace(/\W+/g, "_") + (loadId && loadId !== "load" ? `_${loadId}` : "");
   return (
     <Modal
-      title={`Output data: ${fmtInt(ds?.rows.length ?? run.rowsOut)} rows`}
+      title={`${branch ? `${branch.label}: ` : "Output data: "}${fmtInt(ds?.rows.length ?? branch?.rowsOut ?? run.rowsOut)} rows`}
       size="xl"
       onClose={onClose}
       footer={

@@ -1,6 +1,7 @@
 // Client for the optional FORMA server (Python backend, PRD §19).
 import type { PipelineSpec } from "@/engine/types";
 import { configObject, generatePython, sideSteps } from "@/codegen/python";
+import { toGraphSpec } from "@/engine/graph/spec";
 import { getRawFile } from "@/store/db";
 import type { Connection, Pipeline } from "@/store/model";
 
@@ -102,15 +103,24 @@ export class FormaServer {
     const opts = { version, connectionEnv: conn?.envVar };
     const files: Record<string, string> = {};
     const isFile = (t: string) => t !== "database" && t !== "api";
-    if (spec.source && isFile(spec.source.type)) {
-      await this.ensureFile(spec.source.fileId, spec.source.file);
-      files.source = spec.source.fileId;
-    }
-    for (const s of sideSteps(spec))
-      if (isFile(s.source.type)) {
-        await this.ensureFile(s.source.fileId, s.source.file);
-        files[`sources.${s.id}`] = s.source.fileId;
+    if (spec.graph) {
+      // A pipeline with connections: every source node, by node id.
+      for (const n of toGraphSpec(spec).graph.nodes)
+        if (n.kind === "source" && isFile(n.source.type)) {
+          await this.ensureFile(n.source.fileId, n.source.file);
+          files[`sources.${n.id}`] = n.source.fileId;
+        }
+    } else {
+      if (spec.source && isFile(spec.source.type)) {
+        await this.ensureFile(spec.source.fileId, spec.source.file);
+        files.source = spec.source.fileId;
       }
+      for (const s of sideSteps(spec))
+        if (isFile(s.source.type)) {
+          await this.ensureFile(s.source.fileId, s.source.file);
+          files[`sources.${s.id}`] = s.source.fileId;
+        }
+    }
     return this.req(`/api/pipelines/${encodeURIComponent(p.id)}`, {
       method: "PUT",
       body: JSON.stringify({ name: spec.name, version, pipeline_py: generatePython(spec, opts), config: configObject(spec, opts), files, schedule: p.schedule ?? null }),

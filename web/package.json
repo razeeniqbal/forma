@@ -12,7 +12,7 @@
     "parity": "vitest run --config vitest.parity.config.ts",
     "sample": "node scripts/make-sample.mjs",
     "brand": "node scripts/make-brand.mjs",
-    "e2e": "node tests/e2e/journey.mjs e2e-shots && node tests/e2e/canvas.mjs e2e-shots && node tests/e2e/sheets.mjs e2e-shots && node tests/e2e/reshape.mjs e2e-shots && node tests/e2e/phase2.mjs e2e-shots && node tests/e2e/shell.mjs e2e-shots && node tests/e2e/migrate.mjs e2e-shots",
+    "e2e": "node tests/e2e/journey.mjs e2e-shots && node tests/e2e/canvas.mjs e2e-shots && node tests/e2e/sheets.mjs e2e-shots && node tests/e2e/reshape.mjs e2e-shots && node tests/e2e/phase2.mjs e2e-shots && node tests/e2e/shell.mjs e2e-shots && node tests/e2e/migrate.mjs e2e-shots && node tests/e2e/docs.mjs e2e-shots && node tests/e2e/graph.mjs e2e-shots",
     "check": "tsc -b --noEmit && vitest run && vitest run --config vitest.parity.config.ts"
   },
   "dependencies": {

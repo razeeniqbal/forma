@@ -18,8 +18,8 @@ export const PANEL_TITLES: Record<PanelId, string> = {
 
 export const ALL_PANELS = Object.keys(PANEL_TITLES) as PanelId[];
 
-/** Workbench panel layouts. The "pipeline" view mode is the visual step flow and has no panel layout. */
-export const PRESETS: Record<Exclude<PresetId, "custom" | "pipeline">, WorkspaceLayout> = {
+/** Workbench panel layouts. "pipeline" (the canvas) and "focus" (collapsible sections) have no panel layout. */
+export const PRESETS: Record<Exclude<PresetId, "custom" | "pipeline" | "focus">, WorkspaceLayout> = {
   analyst: {
     id: "analyst",
     name: "Analyst",
@@ -68,9 +68,10 @@ export const PRESETS: Record<Exclude<PresetId, "custom" | "pipeline">, Workspace
   },
 };
 
-export const PRESET_ORDER: PresetId[] = ["pipeline", "analyst", "extraction", "compare", "engineer", "monitor", "custom"];
+export const PRESET_ORDER: PresetId[] = ["pipeline", "focus", "analyst", "extraction", "compare", "engineer", "monitor", "custom"];
 export const PRESET_LABEL: Record<PresetId, string> = {
   pipeline: "Pipeline",
+  focus: "Workbench",
   analyst: "Analyst",
   extraction: "Extraction",
   compare: "Compare",

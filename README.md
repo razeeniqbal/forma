@@ -27,7 +27,7 @@ Choose **Explore the example project** on the Projects home for the prebuilt Inv
 | `npm test` | Engine unit tests |
 | `npm run parity` | Runs the TypeScript engine **and** the generated pandas code on the same files and compares every cell (needs Python with `pandas`, `openpyxl`, `pyyaml`) |
 | `npm run check` | Typecheck + unit + parity tests |
-| `npm run e2e` | Browser walkthroughs: the canonical project → pipeline → run journey, sheets, reshape, schedules/presets/rule suggestions, shell and data migration (needs `npm run build && npx vite preview --port 4173` running; `tests/e2e/server.mjs` also needs a FORMA server) |
+| `npm run e2e` | Browser walkthroughs: the canonical project → pipeline → run journey, sheets, reshape, schedules/presets/rule suggestions, shell, data migration, and Docs / Add Tool / Workbench sections (needs `npm run build && npx vite preview --port 4173` running; `tests/e2e/server.mjs` also needs a FORMA server) |
 | `npm run sample` / `npm run brand` | Regenerate the sample workbook / brand assets |
 
 ## How FORMA is organised
@@ -37,7 +37,10 @@ Choose **Explore the example project** on the Projects home for the prebuilt Inv
 - **Projects** are the home screen. A project holds the sources, pipelines and runs for one data problem, plus its settings (name, description, default execution target).
 - **Sources** belong to a project and are stored once. Pipelines *reference* them, so several pipelines can read the same file, and Join / Lookup / Append pick from the project's sources (or add a new one to the project). Every sheet of a workbook is its own selectable source.
 - **The project overview** is a read-only data map (sources → pipelines → outputs) with recent activity.
-- **Pipelines open on the pipeline canvas** (see below). Interaction follows **CANVAS → NODE → PREVIEW → EXPAND → WORKBENCH**: click a node for a quick preview (input → output examples, ready / review counts, Edit), double-click or Expand to open the panel workbench for deep work, and come back to the same view.
+- **Pipelines open on the pipeline canvas** (see below). Interaction follows **CANVAS → NODE → INSPECT → CONFIGURE → RUN**: click a node for its quick inspector (input and output examples, row impact, review count, output schema), choose **Configure** to change it, or **Open Workbench** (double-click) for deep investigation, and come back to the same view with the same node selected.
+- **Tools** are organised as **SOURCE → EXTRACT → TRANSFORM → VALIDATE → LOAD** (a mental model, not a fixed order). Transform has groups: Clean, Convert, Structure, Reshape, Combine, Calculate. **+ Add Tool** shows the five categories first and searches the taxonomy (`date` finds *Transform > Convert > Date*). The taxonomy and each tool's input/output contract live in `web/src/engine/taxonomy.ts`.
+- **The Workbench** is a set of collapsible sections (Data Preview, Step Configuration, Before / After, Profile, Quality, Failed Rows, Code, Pipeline Spec, Run Logs, Run History). Only the sections that matter for the selected tool open (Extract: Data Preview and Step Configuration; Validate: Step Configuration and Quality), with Review and Engineer focuses; your open / closed choices are remembered. The arranged panel layouts (Analyst, Extraction, Compare, Engineer, Monitor, custom) are still available.
+- **Docs** (sidebar, `/docs`) explain the product: getting started, the canvas, every tool, combining data, sources, review, execution and engineering, with search, related topics and Back / Next. Contextual **Learn about ...** links throughout the app open the relevant page. Docs content is in `web/src/docs/content.ts`.
 - **Runs are visible events.** The engine reports the source load and each completed step; the canvas shows them in order with their real row counts and timings, then summarises *1,001 input · 986 ready · 15 review*. Review counts link straight to that step's rows in the review queue.
 - **Execution** is explicit: *Local* (runs in this browser) or *FORMA Server* (runs through the connected execution server), per project and per run.
 
@@ -46,13 +49,19 @@ Choose **Explore the example project** on the Projects home for the prebuilt Inv
 **Position is visual. Connection is logical. Execution is deterministic.**
 
 - Every pipeline opens on a free-movable canvas: drag nodes anywhere, pan by dragging the background or scrolling, zoom with Ctrl/⌘ + scroll or pinch, and use the toolbar for zoom, **Fit**, **Auto layout** and **Undo layout change**. Positions and the viewport are remembered per pipeline, including when you come back from the workbench or the review queue.
-- **Nodes** are semantic: Source, transformation steps (Select, Extract, Clean, Lookup, Join, Append, Group and so on), Validate (quality) and Destination. Each shows its operation, row impact, status (Ready, Running, Success, Review, Failed, Skipped) and review count.
+- **Nodes** are compact and semantic: each shows its category (SOURCE, EXTRACT, TRANSFORM, VALIDATE, LOAD; multi-input tools name themselves: JOIN, LOOKUP, APPEND), its operation, row impact, status (Ready, Running, Success, Review, Failed, Skipped) and review count. Supporting sources show their role: *reference*, *right input* or *appended rows*.
 - **Connections** are data flow, drawn as orthogonal paths with row counts where the number of rows changes. They come from the PipelineSpec: the main chain in execution order, plus a supporting-source node for every project source that a Join, Lookup or Append step reads. Press **+** on a connection to insert a step there.
+- **+ Add Tool** in the canvas toolbar adds after the selected node. During a run, the connection into the step the engine reports as running is a moving dashed line (a solid highlight with reduced motion); nothing is animated that the engine did not report.
+- **Join, Lookup and Append** name their inputs by role (left / right, primary / reference). The quick inspector shows real matched and unmatched counts, result rows and columns. Keys are suggested from names and value overlap but never chosen silently. Append checks schema compatibility (matched, missing, additional columns, type conflicts) and supports an explicit column mapping, executed identically by the engine and the generated Python.
 - **Project sources tray:** drag a project source onto the canvas (or click it) to start a Lookup or Append step that reads it. The source is referenced, never copied.
 - **Auto layout** arranges the chain in execution order, wrapping long pipelines into rows like text, with supporting sources below the step they feed.
 - **Engineer view** puts the canvas next to the generated Python: selecting a node shows that step's function.
 
-Moving nodes never changes execution. The PipelineSpec stays the only execution model; node positions and the viewport live in a separate `PipelineCanvasState` per pipeline (`web/src/canvas/graph.ts`). The derived graph already has the `nodes` + `edges` shape a future graph executor could adopt, but connections cannot be rewired, and there is no branching, until the engine and the generated Python can honour them. A test moves every node to random positions and checks that the output, review rows and generated Python are unchanged.
+- **Editable connections:** hover a tool to see its connection points and drag from its output to another tool's input; compatible tools light up. Select a connection to disconnect it, drag its ends to reconnect, or use **+** to insert a tool on it. Every tool's inspector has **Connections** for doing the same without dragging. Prepare a dataset on its own branch (drag a project source in and choose *Add as a source to prepare first*) and connect it to the second input of a Join, Lookup or Append. Loops and incompatible connections are refused with a reason; an incomplete pipeline shows its problem on the node and does not run.
+
+- **Branching:** a pipeline can end in several Loads. Select a tool and choose **+ Add Tool > Load > New Load (branch)** to write its output to its own destination as well. Each Load has its own review gate; runs keep every output, and the run page lists each with its row counts and a download.
+
+Moving nodes never changes execution; connections do. Node positions and the viewport live in a separate `PipelineCanvasState` per pipeline (`web/src/canvas/graph.ts`). A pipeline gets explicit connections the first time one is edited; until then it is the linear chain of its steps, run through the same graph engine. A test moves every node to random positions and checks that the output, review rows and generated Python are unchanged. The design for graph execution (editable connections, prepared inputs for Join / Lookup / Append, branching) is in [`GRAPH_ENGINE_DESIGN.md`](GRAPH_ENGINE_DESIGN.md).
 
 **Library decision.** The canvas uses [React Flow](https://reactflow.dev) (`@xyflow/react`, MIT). It provides pan, zoom, dragging, fit view, custom nodes and edges, keyboard access (Tab to a node, Enter to preview it, arrow keys to move it) and only re-renders nodes whose data changed, and it supports connection editing for a later graph phase. Its default node-editor look is replaced by FORMA components: no visible ports, no minimap, FORMA cards and restrained connectors.
 
@@ -94,7 +103,10 @@ The full V1 loop from PRD §28 works end to end:
 web/
   src/engine/     Pipeline spec (source of truth), deterministic executor,
                   value semantics, formula language, profiling, detection
-  src/codegen/    Spec → readable pandas project (runtime helpers mirror the engine)
+  src/engine/graph/  Pipeline graph: migration from the spec, execution order, connection rules,
+                  validation, schema inference, and the graph executor every run uses
+  src/codegen/    Spec → readable pandas project (runtime helpers mirror the engine);
+                  codegen/graph.ts generates the same for graph pipelines
   src/parsers/    CSV / Excel / JSON / JSONL / text → raw grids
   src/store/      App state: projects, sources, pipelines, runs, undo/redo, versions,
                   migrations (IndexedDB persistence)
@@ -105,13 +117,13 @@ web/
 ```
 
 - **One spec, two engines.** The UI, the in-browser executor and the code generator all work from the same `PipelineSpec` (PRD §8). The parity suite runs both engines on the same files and checks they agree cell for cell, including row IDs, review rows and rule counts. Exported projects can check themselves: `python pipeline.py --check expected/forma_output.csv`.
+- **Graph engine.** Every preview and run executes through the graph engine (`web/src/engine/graph/`), with the linear spec migrated on the fly. Equivalence tests prove it gives exactly the linear engine's results on every parity fixture, and graph parity tests cover what only a graph can express: prepared inputs for Lookup and Join, branches to several Loads, a diamond, a multi-dataset Append and per-branch review issues. Editable connections come next; see [`GRAPH_ENGINE_DESIGN.md`](GRAPH_ENGINE_DESIGN.md).
 - **Browser-first, server optional.** Without a server, everything runs locally and all data stays in the browser. Previews run on a configurable sample, and full runs process every row in a Web Worker. With the FORMA server connected, runs can execute there instead.
 
 ## Not in this build yet
 
 - collaboration, comments and approvals (need multi-user accounts)
 - SQL and Polars code targets
-- branching pipelines (a pipeline is an ordered list of steps)
 - an in-browser Python parity check (use `python pipeline.py --check` locally)
 - lineage and Git integration
 
